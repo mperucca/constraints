@@ -22,7 +22,7 @@ import scala.util.Random
   {
     val a, b = Random.nextInt()
     Proof.attempt[Divisible[a.type, b.type]] match
-      case Some(proof: Divisible[a.type, b.type]) => divide(a, b)(proof)
+      case Some(proof) => divide(a, b)(proof)
       case None => println(s"cannot divide($a, $b)")
   }
 
@@ -101,7 +101,7 @@ import scala.util.Random
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
     Proof.attempt[Unique[list.type]] match
-      case Some(proof: Unique[list.type]) => println(s"$list has no duplicate values")
+      case Some(proof) => println(s"$list has no duplicate values")
       case None => println(s"$list has duplicate values")
 
     val a: 1 = 1
