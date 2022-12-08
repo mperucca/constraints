@@ -1,4 +1,4 @@
-package constraint
+package constraints
 
 sealed trait And[A, B]
 sealed trait Not[A]

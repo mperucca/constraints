@@ -1,4 +1,4 @@
-package constraint
+package constraints
 
 opaque type RuntimeCheck[-A] = Boolean
 

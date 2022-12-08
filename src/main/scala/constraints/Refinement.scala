@@ -1,4 +1,4 @@
-package constraint
+package constraints
 
 class Refinement[+A, P[_]](val value: A)(val proof: Proof[P[value.type]])
 

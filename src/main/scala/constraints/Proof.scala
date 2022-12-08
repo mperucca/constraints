@@ -1,4 +1,4 @@
-package constraint
+package constraints
 
 import scala.util.NotGiven
 
@@ -23,7 +23,7 @@ object Proof:
     Option.when(summon[RuntimeCheck[A]].succeeds)(trust[A])
 
   inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] =
-    inline c.satisfied match
+    inline c.valid match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
       case true => trust[A]

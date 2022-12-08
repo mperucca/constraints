@@ -1,4 +1,4 @@
-package constraint
+package constraints
 
 trait Iterate[-I, +A]:
   def iterable(i: I): Iterable[A]
