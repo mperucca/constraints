@@ -4,13 +4,8 @@ type Proof[A] = Proof.Impl[Normalize[A]]
 
 object Proof:
 
-  sealed trait Impl[+A]
-
-  object Impl extends Impl[Nothing]:
-
-    extension [A](proof: => Impl[A])
-
-      def corollaries[B](using => Corollary[A, B]): Proof[A And B] = unchecked
+  private[constraints] sealed trait Impl[+A]
+  private[constraints] object Impl extends Impl[Nothing]
 
   def unchecked[A]: Proof[A] = Impl
 
@@ -25,5 +20,8 @@ object Proof:
 
   inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] = compileTimeCheck
 
-  // Making this an extension method results in the compiler hanging...
-  def and[A, B](a: Proof[A], b: Proof[B]): Proof[A And B] = unchecked
+  extension[A] (proof: => Proof[A])
+
+    def corollaries[B](using => Corollary[A, B]): Proof[A And B] = unchecked
+
+    def and[B](b: => Proof[B]): Proof[A And B] = unchecked

@@ -98,7 +98,7 @@ import scala.util.Random
   {
     val a = Proof[1 !== 2]
     val b = Proof[3 !== 4]
-    Proof.and(a, b): Proof[1 !== 2 And 3 !== 4]
+    a and b: Proof[1 !== 2 And 3 !== 4]
   }
 
   // corollaries example
