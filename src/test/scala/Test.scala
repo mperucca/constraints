@@ -4,37 +4,39 @@ import scala.util.Random
 @main def test(): Unit =
 
   // safer divide method
-  def divide(a: Int, b: Int)(
-    using Proof[b.type !== 0 And (a.type !== Int.MinValue.type Or b.type !== -1)]
-  ): Int = a / b
+  def divide(dividend: Int, divisor: Int)(
+    using Proof[divisor.type !== 0 And (dividend.type !== Int.MinValue.type Or divisor.type !== -1)]
+  ): Int = dividend / divisor
 
   // trust example
   {
-    val a, b = Random.between(3, 8)
-    divide(a, b)(using Proof.unchecked)
+    val dividend, divisor = Random.between(3, 8)
+    // we trust the operands to be between 3 and 8 which meet the proof constraints
+    divide(dividend, divisor)(using Proof.unchecked)
   }
-
-  type Divisible[A <: Int, B <: Int] = B !== 0 And (A !== Int.MinValue.type Or B !== -1)
 
   // runtime check example
   {
-    val a, b = Random.nextInt()
-    Proof.runtimeCheck[Divisible[a.type, b.type]] match
-      case Some(given Proof[Divisible[a.type, b.type]]) => divide(a, b)
-      case None => println(s"cannot divide($a, $b)")
+    val dividend, divisor = Random.nextInt()
+    // type alias for brevity
+    type Divisible = divisor.type !== 0 And (dividend.type !== Int.MinValue.type Or divisor.type !== -1)
+    // we check the operands at runtime in case the random numbers violate the constraints
+    Proof.runtimeCheck[Divisible] match
+      case Some(given Proof[Divisible]) => divide(dividend, divisor) // compiles since a proof is now in scope
+      case None => println(s"cannot divide($dividend, $divisor)")
   }
 
   // can still prove with unknown if simplification makes knowledge unnecessary
   {
-    val a = Random.nextInt()
-    divide(a, 4)
+    val dividend = Random.nextInt()
+    divide(dividend, divisor = 4) // compiles since a positive divisor meets sufficient constraints
   }
 
   // can provide just a sufficient part of the whole proof options
   {
-    val b = Random.between(1, 6)
-    given positiveProof: Proof[b.type !== 0 And b.type !== -1] = Proof.unchecked
-    divide(Random.nextInt(), b)
+    val divisor = Random.between(1, 6)
+    given positiveProof: Proof[divisor.type !== 0 And divisor.type !== -1] = Proof.unchecked
+    divide(Random.nextInt(), divisor) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // proof equivalence/satisfaction examples
@@ -43,7 +45,7 @@ import scala.util.Random
     type B
     summon[Proof[Not[Not[A]]] =:= Proof[A]]
     summon[
-      Proof[ForAll[(A, B), [X] =>> X !== 5]] <:< Proof[B !== 5]
+      Proof[(A, B) ForAll ([X] =>> X !== 5)] <:< Proof[B !== 5]
     ]
     summon[
       Proof[Not[A Xor B]]
@@ -52,31 +54,16 @@ import scala.util.Random
     ]
   }
 
-  // specific refinement example
-  {
-    class NonZero[+I](val value: I)(
-      using proof: Proof[value.type !== 0]
-    )
-    def divide(a: Int, b: NonZero[Int])(
-      using Proof[a.type !== Int.MinValue.type Or b.value.type !== -1]
-    ): Int = a / b.value
-
-    val a = Random.nextInt()
-    val i: 1 = valueOf
-    val b = NonZero[i.type](i)
-    divide(a, b)
-  }
-
-  // generic refinement example
+  // refinement example
   {
     type NonZero = [V] =>> V !== 0
-    def divide(a: Int, b: Int Refinement NonZero)(
-      using Proof[a.type !== Int.MinValue.type Or b.value.type !== -1]
-    ): Int = a / b.value
+    def divide(dividend: Int, divisor: Int Refinement NonZero)(
+      using Proof[dividend.type !== Int.MinValue.type Or divisor.value.type !== -1]
+    ): Int = dividend / divisor.value
 
-    val a = Random.nextInt()
-    val b = Refinement[NonZero](1)
-    divide(a, b)
+    val dividend = Random.nextInt()
+    val divisor = Refinement[NonZero](1) // compiles since 1 != 0
+    divide(dividend, divisor) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
   // independent constraints on collections example
@@ -101,7 +88,7 @@ import scala.util.Random
     val a: 1 = 1
     val b: 2 = valueOf
     type Tupled = (a.type, b.type, 3)
-    import constraints.nonEmptyTupleValueOf
+    import constraints.nonEmptyTupleValueOf // not sure why the standard library doesn't provide this...
     val tuple: Tupled = valueOf
     type DoubleCheckUniqueness = Unique[tuple.type] And Unique[(a.type, b.type, 3)]
     Proof.compileTimeCheck[DoubleCheckUniqueness]
@@ -117,6 +104,7 @@ import scala.util.Random
   // corollaries example
   {
     given [A <: Int, B <: Int]: Corollary[A !== B, B !== A] = Corollary
-    Proof[1 !== 2].corollaries: Proof[2 !== 1]
+    val proof = Proof[1 !== 2]
+    proof.corollaries: Proof[2 !== 1]
   }
 

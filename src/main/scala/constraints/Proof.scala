@@ -10,20 +10,20 @@ object Proof:
 
     extension [A](proof: => Impl[A])
 
-      def corollaries[B](using => Corollary[A, B]): Proof[A And B] = unchecked[A And B]
+      def corollaries[B](using => Corollary[A, B]): Proof[A And B] = unchecked
 
   def unchecked[A]: Proof[A] = Impl
 
   def runtimeCheck[A: RuntimeCheck]: Option[Proof[A]] =
-    Option.when(summon[RuntimeCheck[A]].succeeds)(unchecked[A])
+    Option.when(summon[RuntimeCheck[A]].succeeds)(unchecked)
 
   inline given compileTimeCheck[A](using inline c: CompileTimeCheck[A]): Proof[A] =
     inline c.valid match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
-      case true => unchecked[A]
+      case true => unchecked
 
   inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] = compileTimeCheck
 
   // Making this an extension method results in the compiler hanging...
-  def and[A, B](a: Proof[A], b: Proof[B]): Proof[A And B] = unchecked[A And B]
+  def and[A, B](a: Proof[A], b: Proof[B]): Proof[A And B] = unchecked
