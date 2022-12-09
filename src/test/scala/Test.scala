@@ -70,12 +70,12 @@ import scala.util.Random
   // generic refinement example
   {
     type NonZero = [V] =>> V !== 0
-    def divide(a: Int, b: Refinement[Int, NonZero])(
+    def divide(a: Int, b: Int Refinement NonZero)(
       using Proof[a.type !== Int.MinValue.type Or b.value.type !== -1]
     ): Int = a / b.value
 
     val a = Random.nextInt()
-    val b = Refinement.prove[NonZero](1)
+    val b = Refinement[NonZero](1)
     divide(a, b)
   }
 
@@ -83,7 +83,7 @@ import scala.util.Random
   {
     val alphanumerics: Iterable[Char] = Random.alphanumeric.take(9)
     trait Alphanumeric[C]
-    alphanumerics.map(Refinement.trust): Iterable[Char Refinement Alphanumeric]
+    alphanumerics.map(Refinement.unchecked): Iterable[Char Refinement Alphanumeric]
   }
 
   // dependent constraints on collections examples
