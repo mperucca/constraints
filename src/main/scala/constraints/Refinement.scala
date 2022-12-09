@@ -1,14 +1,14 @@
 package constraints
 
-class Refinement[+A, P[_]](val value: A)(val proof: Proof[P[value.type]])
+class Refinement[+A, P[_]](val value: A)(using val proof: Proof[P[value.type]])
 
 object Refinement:
 
   def trust[P[_]](a: Any): Refinement[a.type, P] =
-    Refinement(a)(Proof.trust[P[a.type]])
+    Refinement(a)(using Proof.unchecked)
 
-  def attempt[P[_]](a: Any)(using RuntimeCheck[P[a.type]]): Option[Refinement[a.type, P]] =
-    Proof.attempt[P[a.type]].map(Refinement(a)(_))
+  def runtimeCheck[P[_]](a: Any)(using RuntimeCheck[P[a.type]]): Option[Refinement[a.type, P]] =
+    Proof.runtimeCheck[P[a.type]].map(Refinement(a)(using _))
 
   inline def prove[P[_]](a: Any)(using inline c: CompileTimeCheck[P[a.type]]): Refinement[a.type, P] =
-    Refinement(a)(Proof[P[a.type]])
+    Refinement(a)(using Proof[P[a.type]])

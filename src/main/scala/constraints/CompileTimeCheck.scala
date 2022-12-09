@@ -7,7 +7,7 @@ trait CompileTimeCheck[-A]:
 
 object CompileTimeCheck:
 
-  transparent inline given[A, B](
+  transparent inline given [A, B](
     using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
   ): CompileTimeCheck[A And B] =
     inline a.valid match
@@ -20,7 +20,7 @@ object CompileTimeCheck:
         case null => UnknownCompileTimeCheck
         case true => TrueCompileTimeCheck
 
-  transparent inline given[A](
+  transparent inline given [A](
     using inline a: CompileTimeCheck[A]
   ): CompileTimeCheck[Not[A]] =
     inline a.valid match
@@ -28,7 +28,7 @@ object CompileTimeCheck:
       case null => UnknownCompileTimeCheck
       case true => FalseCompileTimeCheck
 
-  transparent inline given[A, B](
+  transparent inline given [A, B](
     using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
   ): CompileTimeCheck[A Or B] =
     inline a.valid match
@@ -41,7 +41,7 @@ object CompileTimeCheck:
         case true => TrueCompileTimeCheck
       case true => TrueCompileTimeCheck
 
-  transparent inline given[A, B](
+  transparent inline given [A, B](
     using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
   ): CompileTimeCheck[A Xor B] =
     inline a.valid match

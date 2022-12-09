@@ -1,31 +1,29 @@
 package constraints
 
-import scala.util.NotGiven
-
-type Proof[A] = A match
-  case Not[Not[a]] => Proof[a]
-  case Not[a And b] => Proof[Not[a] Or Not[b]]
-  case Not[a Or b] => Proof[Not[a] And Not[b]]
-  case Not[a Xor b] => Proof[Not[TranslateXor[a, b]]]
-  case a And b => Proof[a] & Proof[b]
-  case a Or b => Proof[a] | Proof[b]
-  case a Xor b => Proof[TranslateXor[a, b]]
-  case Not[False] => True
-  case Not[True] => False
-  case _ => A
-private type TranslateXor[A, B] = (A And Not[B]) Or (Not[A] And B)
+type Proof[A] = Proof.Impl[Normalize[A]]
 
 object Proof:
 
-  def trust[A]: Proof[A] = null.asInstanceOf[Proof[A]]
+  sealed trait Impl[+A]
 
-  def attempt[A: RuntimeCheck]: Option[Proof[A]] =
-    Option.when(summon[RuntimeCheck[A]].succeeds)(trust[A])
+  object Impl extends Impl[Nothing]:
 
-  inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] =
+    extension [A](proof: => Impl[A])
+
+      def corollaries[B](using => Corollary[A, B]): Proof[A And B] = unchecked[A And B]
+
+  def unchecked[A]: Proof[A] = Impl
+
+  def runtimeCheck[A: RuntimeCheck]: Option[Proof[A]] =
+    Option.when(summon[RuntimeCheck[A]].succeeds)(unchecked[A])
+
+  inline given compileTimeCheck[A](using inline c: CompileTimeCheck[A]): Proof[A] =
     inline c.valid match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
-      case true => trust[A]
+      case true => unchecked[A]
 
-  def and[A, B](a: A, b: B): Proof[A And B] = trust[A And B]
+  inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] = compileTimeCheck
+
+  // Making this an extension method results in the compiler hanging...
+  def and[A, B](a: Proof[A], b: Proof[B]): Proof[A And B] = unchecked[A And B]
