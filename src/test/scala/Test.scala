@@ -68,8 +68,8 @@ import scala.util.Random
     alphanumerics.map(Refinement(_)(using Proof.unchecked)): Iterable[Char Refinement Alphanumeric]
 
     trait Letter[C]
-    given [C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
-    RuntimeCheck.all(alphanumerics)(c => summon[RuntimeCheck[Letter[c.type]]]): (Iterable[Char Refinement ([C] =>> Not[Letter[C]])], Iterable[Char Refinement Letter])
+    given letterRuntimeCheck[C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
+    RuntimeCheck.all(alphanumerics)(c => letterRuntimeCheck[c.type]): (Iterable[Char Refinement Inverse[Letter]], Iterable[Char Refinement Letter])
   }
 
   // dependent constraints on collections examples

@@ -15,7 +15,7 @@ object RuntimeCheck:
   given [A, B](using a: RuntimeCheck[A], b: => RuntimeCheck[B]): RuntimeCheck[A Or B] = a || b
   given [A, B](using a: RuntimeCheck[A], b: RuntimeCheck[B]): RuntimeCheck[A Xor B] = a != b
 
-  def all[A, P[_]](iterable: Iterable[A])(runtimeCheck: (a: A) => RuntimeCheck[P[a.type]]): (Iterable[A Refinement ([X] =>> Not[P[X]])], Iterable[A Refinement P]) =
+  def all[A, P[_]](iterable: Iterable[A])(runtimeCheck: (a: A) => RuntimeCheck[P[a.type]]): (Iterable[A Refinement Inverse[P]], Iterable[A Refinement P]) =
     iterable.partitionMap { a =>
       Proof.runtimeCheck(using runtimeCheck(a)) match
         case Left(given Proof[Not[P[a.type]]]) => Left(Refinement(a))

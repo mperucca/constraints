@@ -13,3 +13,5 @@ type Nor[A, B] = Not[A Or B]
 type Xnor[A, B] = Not[A Xor B]
 type ForAll[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], True, And]
 type Exists[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], False, Or]
+
+type Inverse[P[_]] = [X] =>> Not[P[X]]
