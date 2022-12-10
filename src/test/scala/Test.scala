@@ -22,8 +22,8 @@ import scala.util.Random
     type Divisible = divisor.type !== 0 And (dividend.type !== Int.MinValue.type Or divisor.type !== -1)
     // we check the operands at runtime in case the random numbers violate the constraints
     Proof.runtimeCheck[Divisible] match
-      case Some(given Proof[Divisible]) => divide(dividend, divisor) // compiles since a proof is now in scope
-      case None => println(s"cannot divide($dividend, $divisor)")
+      case Right(given Proof[Divisible]) => divide(dividend, divisor) // compiles since a proof is now in scope
+      case Left(_) => println(s"cannot divide($dividend, $divisor)")
   }
 
   // can still prove with unknown if simplification makes knowledge unnecessary
@@ -34,9 +34,9 @@ import scala.util.Random
 
   // can provide just a sufficient part of the whole proof options
   {
-    val divisor = Random.between(1, 6)
-    given positiveProof: Proof[divisor.type !== 0 And divisor.type !== -1] = Proof.unchecked
-    divide(Random.nextInt(), divisor) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    val dividend: Int = Random.nextInt()
+    val divisor: 4 = valueOf
+    divide(dividend, divisor)(using Proof[divisor.type !== 0 And divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // proof equivalence/satisfaction examples
@@ -44,14 +44,8 @@ import scala.util.Random
     type A
     type B
     summon[Proof[Not[Not[A]]] =:= Proof[A]]
-    summon[
-      Proof[(A, B) ForAll ([X] =>> X !== 5)] <:< Proof[B !== 5]
-    ]
-    summon[
-      Proof[Not[A Xor B]]
-        <:<
-        Proof[(A And Not[B]) Implies Not[A Or B]]
-    ]
+    summon[Proof[(A, B) ForAll ([X] =>> X !== 5)] <:< Proof[B !== 5]]
+    summon[Proof[Not[A Xor B]] <:< Proof[(A And Not[B]) Implies Not[A Or B]]]
   }
 
   // refinement example
@@ -69,8 +63,13 @@ import scala.util.Random
   // independent constraints on collections example
   {
     val alphanumerics: Iterable[Char] = Random.alphanumeric.take(9)
+
     trait Alphanumeric[C]
-    alphanumerics.map(Refinement.unchecked): Iterable[Char Refinement Alphanumeric]
+    alphanumerics.map(Refinement(_)(using Proof.unchecked)): Iterable[Char Refinement Alphanumeric]
+
+    trait Letter[C]
+    given [C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
+    RuntimeCheck.all(alphanumerics)(c => summon[RuntimeCheck[Letter[c.type]]]): (Iterable[Char Refinement ([C] =>> Not[Letter[C]])], Iterable[Char Refinement Letter])
   }
 
   // dependent constraints on collections examples

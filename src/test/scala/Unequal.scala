@@ -1,7 +1,10 @@
 import constraints.*
+
 import quoted.*
+import scala.annotation.targetName
 
 sealed trait Unequal[A, B]
+@targetName("Unequal")
 type !==[A, B] = Unequal[A, B]
 
 object Unequal:

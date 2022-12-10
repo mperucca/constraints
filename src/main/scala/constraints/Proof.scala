@@ -9,8 +9,8 @@ object Proof:
 
   def unchecked[A]: Proof[A] = Impl
 
-  def runtimeCheck[A: RuntimeCheck]: Option[Proof[A]] =
-    Option.when(summon[RuntimeCheck[A]].succeeds)(unchecked)
+  def runtimeCheck[A: RuntimeCheck]: Either[Proof[Not[A]], Proof[A]] =
+    Either.cond(summon[RuntimeCheck[A]].succeeds, unchecked, unchecked)
 
   inline given compileTimeCheck[A](using inline c: CompileTimeCheck[A]): Proof[A] =
     inline c.valid match
@@ -20,8 +20,8 @@ object Proof:
 
   inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] = compileTimeCheck
 
-  extension[A] (proof: => Proof[A])
+  extension [A](proof: => Proof[A])
 
     def corollaries[B](using => Corollary[A, B]): Proof[A And B] = unchecked
 
-    def and[B](b: => Proof[B]): Proof[A And B] = unchecked
+    def and[B](other: => Proof[B]): Proof[A And B] = unchecked
