@@ -62,14 +62,14 @@ import scala.util.Random
 
   // independent constraints on collections example
   {
-    val alphanumerics: Iterable[Char] = Random.alphanumeric.take(9)
+    val alphanumerics = Random.alphanumeric.take(9)
 
     trait Alphanumeric[C]
-    alphanumerics.map(Refinement(_)(using Proof.unchecked)): Iterable[Char Refinement Alphanumeric]
+    alphanumerics.map(Refinement(_)(using Proof.unchecked)): LazyList[Char Refinement Alphanumeric]
 
     trait Letter[C]
     given letterRuntimeCheck[C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
-    RuntimeCheck.all(alphanumerics)(c => letterRuntimeCheck[c.type]): (Iterable[Char Refinement Inverse[Letter]], Iterable[Char Refinement Letter])
+    RuntimeCheck.all(alphanumerics)(c => letterRuntimeCheck[c.type]): (LazyList[Char Refinement Inverse[Letter]], LazyList[Char Refinement Letter])
   }
 
   // dependent constraints on collections examples
