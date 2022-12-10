@@ -21,7 +21,7 @@ import scala.util.Random
     // type alias for brevity
     type Divisible = divisor.type !== 0 And (dividend.type !== Int.MinValue.type Or divisor.type !== -1)
     // we check the operands at runtime in case the random numbers violate the constraints
-    Proof.runtimeCheck[Divisible] match
+    Proof.checkAtRuntime[Divisible] match
       case Right(given Proof[Divisible]) => divide(dividend, divisor) // compiles since a proof is now in scope
       case Left(_) => println(s"cannot divide($dividend, $divisor)")
   }
@@ -74,10 +74,10 @@ import scala.util.Random
 
   // dependent constraints on collections examples
   {
-    Proof.compileTimeCheck[Unique[(1, 2, 3)]]
-    Proof.compileTimeCheck[Not[Unique[(1, 2, 2)]]]
-    Proof.compileTimeCheck[Unique["abc"]]
-    Proof.compileTimeCheck[Not[Unique["abb"]]]
+    Proof.checkAtCompileTime[Unique[(1, 2, 3)]]
+    Proof.checkAtCompileTime[Not[Unique[(1, 2, 2)]]]
+    Proof.checkAtCompileTime[Unique["abc"]]
+    Proof.checkAtCompileTime[Not[Unique["abb"]]]
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
     if summon[RuntimeCheck[Unique[list.type]]].succeeds
@@ -90,7 +90,7 @@ import scala.util.Random
     import constraints.nonEmptyTupleValueOf // not sure why the standard library doesn't provide this...
     val tuple: Tupled = valueOf
     type DoubleCheckUniqueness = Unique[tuple.type] And Unique[(a.type, b.type, 3)]
-    Proof.compileTimeCheck[DoubleCheckUniqueness]
+    Proof.checkAtCompileTime[DoubleCheckUniqueness]
   }
 
   // joining proofs example
@@ -102,8 +102,7 @@ import scala.util.Random
 
   // corollaries example
   {
-    given [A <: Int, B <: Int]: Corollary[A !== B, B !== A] = Corollary
-    val proof = Proof[1 !== 2]
-    proof.corollaries: Proof[2 !== 1]
+    def flip[A, B](proof: Proof[A !== B]): Proof[B !== A] = Proof.unchecked
+    flip(Proof[1 !== 2]): Proof[2 !== 1]
   }
 

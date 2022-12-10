@@ -7,7 +7,7 @@ trait Unique[A]
 
 object Unique:
 
-  given [I: ValueOf, A](using Iterate[I, A]): RuntimeCheck[Unique[I]] = RuntimeCheck {
+  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): RuntimeCheck[Unique[I]] = RuntimeCheck {
     val soFar = collection.mutable.Set.empty[A]
     valueOf[I].toIterable.forall(soFar.add)
   }
