@@ -56,7 +56,7 @@ import scala.util.Random
     ): Int = dividend / divisor.value
 
     val dividend = Random.nextInt()
-    val divisor = Refinement[NonZero](1) // compiles since 1 != 0
+    val divisor = Refinement(1)[NonZero] // compiles since 1 != 0
     divide(dividend, divisor) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
@@ -100,9 +100,18 @@ import scala.util.Random
     a and b: Proof[1 !== 2 And 3 !== 4]
   }
 
-  // corollaries example
+  // corollary example
   {
     def flip[A, B](proof: Proof[A !== B]): Proof[B !== A] = Proof.unchecked
     flip(Proof[1 !== 2]): Proof[2 !== 1]
+  }
+
+  // non-primitive (lossless value representation) example
+  {
+    val fraction = Fraction(1, 2)
+    divide(fraction.numerator, fraction.denominator)
+
+    type NonOverflowingOnDivide[F <: Fraction] = Numerator[F] !== Int.MinValue.type Or Denominator[F] !== -1
+    Refinement(fraction)[NonOverflowingOnDivide]
   }
 
