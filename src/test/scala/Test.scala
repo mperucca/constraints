@@ -65,7 +65,7 @@ import scala.util.Random
     val alphanumerics = Random.alphanumeric.take(9)
 
     trait Alphanumeric[C]
-    alphanumerics.map(Refinement(_)(using Proof.unchecked)): LazyList[Char Refinement Alphanumeric]
+    alphanumerics.map(Refinement[Alphanumeric](_)(using Proof.unchecked)): LazyList[Char Refinement Alphanumeric]
 
     trait Letter[C]
     given letterRuntimeCheck[C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
@@ -108,10 +108,21 @@ import scala.util.Random
 
   // non-primitive (lossless value representation) example
   {
-    val fraction = Fraction(1, 2)
+    val numerator: 1 = valueOf
+    val denominator: 2 = valueOf
+    val fraction = Fraction(numerator, denominator)
     divide(fraction.numerator, fraction.denominator)
 
-    type NonOverflowingOnDivide[F <: Fraction] = Numerator[F] !== Int.MinValue.type Or Denominator[F] !== -1
+    type NonOverflowingOnDivide[F <: Fraction] = Fraction.Numerator[F] !== Int.MinValue.type Or Fraction.Denominator[F] !== -1
     Refinement(fraction)[NonOverflowingOnDivide]
+
+    val fraction2 = Fraction(1, 3)
+    Proof.checkAtCompileTime[fraction.Tupled !== Fraction.Tupled[fraction2.type]]
+
+    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(using Proof.unchecked)
+    Fraction(6, fraction3.denominator)(using fraction3.nonZeroDenominatorProof)
+    import fraction3.nonZeroDenominatorProof
+    Fraction(6, fraction3.denominator)
+    divide(6, fraction3.denominator)(using summon and Proof.checkAtCompileTime)
   }
 
