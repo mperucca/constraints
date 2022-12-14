@@ -26,7 +26,7 @@ object Iterate:
               cur = tail
               head.asInstanceOf[A]
 
-  given [A]: Iterate[Iterable[A], A] = identity
+  given [A]: Iterate[Iterable[A], A] = identity(_)
 
   given Iterate[String, Int] = string =>
     new Iterable[Int]:

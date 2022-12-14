@@ -12,7 +12,7 @@ object Proof:
   def checkAtRuntime[A](using runtimeCheck: RuntimeCheck[A]): Either[Proof[Not[A]], Proof[A]] =
     Either.cond(runtimeCheck.succeeds, unchecked, unchecked)
 
-  inline given checkAtCompileTime[A](using inline compileTimeCheck: CompileTimeCheck[A]): Proof[A] =
+  inline def checkAtCompileTime[A](using inline compileTimeCheck: CompileTimeCheck[A]): Proof[A] =
     inline compileTimeCheck.valid match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")

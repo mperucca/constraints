@@ -5,14 +5,14 @@ import scala.util.Random
 
   // safer divide method
   def divide(dividend: Int, divisor: Int)(
-    using Proof[divisor.type !== 0 And (dividend.type !== Int.MinValue.type Or divisor.type !== -1)]
+    divisibleProof: Proof[divisor.type !== 0 And (dividend.type !== Int.MinValue.type Or divisor.type !== -1)]
   ): Int = dividend / divisor
 
   // trust example
   {
     val dividend, divisor = Random.between(3, 8)
     // we trust the operands to be between 3 and 8 which meet the proof constraints
-    divide(dividend, divisor)(using Proof.unchecked)
+    divide(dividend, divisor)(Proof.unchecked)
   }
 
   // runtime check example
@@ -29,14 +29,14 @@ import scala.util.Random
   // can still prove with unknown if simplification makes knowledge unnecessary
   {
     val dividend = Random.nextInt()
-    divide(dividend, divisor = 4) // compiles since a positive divisor meets sufficient constraints
+    divide(dividend, divisor = 4)(Proof.checkAtCompileTime) // compiles since a positive divisor meets sufficient constraints
   }
 
   // can provide just a sufficient part of the whole proof options
   {
     val dividend: Int = Random.nextInt()
     val divisor: 4 = valueOf
-    divide(dividend, divisor)(using Proof[divisor.type !== 0 And divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    divide(dividend, divisor)(Proof[divisor.type !== 0 And divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // proof equivalence/satisfaction examples
@@ -51,13 +51,13 @@ import scala.util.Random
   // refinement example
   {
     type NonZero = [V] =>> V !== 0
-    def divide(dividend: Int, divisor: Int Refinement NonZero)(
-      using Proof[dividend.type !== Int.MinValue.type Or divisor.value.type !== -1]
+    def divide(dividend: Int, divisor: Int Constrained NonZero)(
+      noOverflowProof: Proof[dividend.type !== Int.MinValue.type Or divisor.value.type !== -1]
     ): Int = dividend / divisor.value
 
     val dividend = Random.nextInt()
-    val divisor = Refinement(1)[NonZero] // compiles since 1 != 0
-    divide(dividend, divisor) // compiles since refinement on divisor exposes value as a literal 1 type
+    val divisor = Constrained[NonZero](1)(Proof.checkAtCompileTime) // compiles since 1 != 0
+    divide(dividend, divisor)(Proof.checkAtCompileTime) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
   // independent constraints on collections example
@@ -65,11 +65,11 @@ import scala.util.Random
     val alphanumerics = Random.alphanumeric.take(9)
 
     trait Alphanumeric[C]
-    alphanumerics.map(Refinement[Alphanumeric](_)(using Proof.unchecked)): LazyList[Char Refinement Alphanumeric]
+    alphanumerics.map(Constrained[Alphanumeric](_)(Proof.unchecked)): LazyList[Char Constrained Alphanumeric]
 
     trait Letter[C]
     given letterRuntimeCheck[C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
-    RuntimeCheck.all(alphanumerics)(c => letterRuntimeCheck[c.type]): (LazyList[Char Refinement Inverse[Letter]], LazyList[Char Refinement Letter])
+    Constrained.partition(alphanumerics)(c => letterRuntimeCheck[c.type]): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
 
   // dependent constraints on collections examples
@@ -110,19 +110,16 @@ import scala.util.Random
   {
     val numerator: 1 = valueOf
     val denominator: 2 = valueOf
-    val fraction = Fraction(numerator, denominator)
-    divide(fraction.numerator, fraction.denominator)
+    val fraction = Fraction(numerator, denominator)(Proof.checkAtCompileTime)
+    divide(fraction.numerator, fraction.denominator)(Proof.checkAtCompileTime)
 
     type NonOverflowingOnDivide[F <: Fraction] = Fraction.Numerator[F] !== Int.MinValue.type Or Fraction.Denominator[F] !== -1
-    Refinement(fraction)[NonOverflowingOnDivide]
+    Constrained(fraction)[NonOverflowingOnDivide]
 
-    val fraction2 = Fraction(1, 3)
+    val fraction2 = Fraction(1, 3)(Proof.checkAtCompileTime)
     Proof.checkAtCompileTime[fraction.Tupled !== Fraction.Tupled[fraction2.type]]
 
-    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(using Proof.unchecked)
-    Fraction(6, fraction3.denominator)(using fraction3.nonZeroDenominatorProof)
-    import fraction3.nonZeroDenominatorProof
-    Fraction(6, fraction3.denominator)
-    divide(6, fraction3.denominator)(using summon and Proof.checkAtCompileTime)
+    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Proof.unchecked)
+    Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominatorProof)
+    divide(6, fraction3.denominator)(fraction3.nonZeroDenominatorProof and Proof.checkAtCompileTime)
   }
-
