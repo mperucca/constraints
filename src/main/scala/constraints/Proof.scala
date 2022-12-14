@@ -18,8 +18,6 @@ object Proof:
       case null => compiletime.error("unknown")
       case true => unchecked
 
-  inline def apply[A](using inline c: CompileTimeCheck[A]): Proof[A] = checkAtCompileTime
-
   extension [A](proof: => Proof[A])
 
     def and[B](other: => Proof[B]): Proof[A And B] = unchecked

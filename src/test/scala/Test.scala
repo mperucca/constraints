@@ -36,7 +36,7 @@ import scala.util.Random
   {
     val dividend: Int = Random.nextInt()
     val divisor: 4 = valueOf
-    divide(dividend, divisor)(Proof[divisor.type !== 0 And divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    divide(dividend, divisor)(Proof.checkAtCompileTime[divisor.type !== 0 And divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // proof equivalence/satisfaction examples
@@ -95,15 +95,15 @@ import scala.util.Random
 
   // joining proofs example
   {
-    val a = Proof[1 !== 2]
-    val b = Proof[3 !== 4]
+    val a = Proof.checkAtCompileTime[1 !== 2]
+    val b = Proof.checkAtCompileTime[3 !== 4]
     a and b: Proof[1 !== 2 And 3 !== 4]
   }
 
   // corollary example
   {
     def flip[A, B](proof: Proof[A !== B]): Proof[B !== A] = Proof.unchecked
-    flip(Proof[1 !== 2]): Proof[2 !== 1]
+    flip(Proof.checkAtCompileTime[1 !== 2]): Proof[2 !== 1]
   }
 
   // non-primitive (lossless value representation) example
