@@ -20,4 +20,4 @@ object Proof:
 
   extension [A](proof: => Proof[A])
 
-    def and[B](other: => Proof[B]): Proof[A And B] = unchecked
+    infix def and[B](other: => Proof[B]): Proof[A And B] = unchecked

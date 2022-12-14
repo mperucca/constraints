@@ -97,7 +97,7 @@ import scala.util.Random
   {
     val a = Proof.checkAtCompileTime[1 !== 2]
     val b = Proof.checkAtCompileTime[3 !== 4]
-    a and b: Proof[1 !== 2 And 3 !== 4]
+    a and b and Proof.checkAtCompileTime[5 !== 6] and Proof.checkAtCompileTime[7 !== 8]: Proof[1 !== 2 And 5 !== 6 And 7 !== 8 And 3 !== 4]
   }
 
   // corollary example
