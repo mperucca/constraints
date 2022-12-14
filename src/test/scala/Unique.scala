@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, Iterate, Proof, RuntimeCheck}
+import constraints.{CompileTimeCheck, Iterate, Witness, RuntimeCheck}
 
 import scala.annotation.tailrec
 import scala.quoted.*
@@ -16,20 +16,16 @@ object Unique:
     UniqueCompileTimeCheck[T]
 
   private class UniqueCompileTimeCheck[T <: Tuple] extends CompileTimeCheck[Unique[T]]:
-    override transparent inline def valid: Boolean | Null = ${implTuple[T]}
+    override transparent inline def valid: false | Null | true = ${implTuple[T]}
 
-  private def implTuple[T <: Tuple: Type](using Quotes): Expr[Boolean | Null] =
-    Type.valueOfTuple[T].fold('{null}) { t =>
-      Expr(summon[RuntimeCheck[Unique[t.type]]].succeeds)
-    }
+  private def implTuple[T <: Tuple: Type](using Quotes): Expr[false | Null | true] =
+    CompileTimeCheck.fromRuntimeCheckOnPossibleConstantTuple((t: T) => summon[RuntimeCheck[Unique[t.type]]])
 
   transparent inline given string[S <: String]: CompileTimeCheck[Unique[S]] =
     UniqueCompileTimeCheckString[S]
 
   private class UniqueCompileTimeCheckString[S <: String] extends CompileTimeCheck[Unique[S]]:
-    override transparent inline def valid: Boolean | Null = ${ implString[S] }
+    override transparent inline def valid: false | Null | true = ${implString[S]}
 
-  private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] =
-    Type.valueOfConstant[S].fold('{null}) { s =>
-      Expr(summon[RuntimeCheck[Unique[s.type]]].succeeds)
-    }
+  private def implString[S <: String: Type](using Quotes): Expr[false | Null | true] =
+    CompileTimeCheck.fromRuntimeCheckOnPossibleConstant((s: S) => summon[RuntimeCheck[Unique[s.type]]])

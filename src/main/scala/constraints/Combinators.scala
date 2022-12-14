@@ -1,17 +1,17 @@
 package constraints
 
-infix sealed trait And[A, B]
-infix sealed trait Not[A]
-infix sealed trait Or[A, B]
-infix sealed trait Xor[A, B]
-infix sealed trait True
-infix sealed trait False
+sealed trait not[A]
 
-infix type Implies[A, B] = Not[A] Or B
-infix type Nand[A, B] = Not[A And B]
-infix type Nor[A, B] = Not[A Or B]
-infix type Xnor[A, B] = Not[A Xor B]
-type ForAll[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], True, And]
-type Exists[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], False, Or]
+infix sealed trait and[A, B]
+infix sealed trait or[A, B]
+infix sealed trait xor[A, B]
 
-type Inverse[P[_]] = [X] =>> Not[P[X]]
+infix type implies[A, B] = not[A] or B
+infix type nand[A, B] = not[A and B]
+infix type nor[A, B] = not[A or B]
+infix type xnor[A, B] = not[A xor B]
+
+type ForAll[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], true, and]
+type Exists[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], false, or]
+
+type Inverse[P[_]] = [X] =>> not[P[X]]

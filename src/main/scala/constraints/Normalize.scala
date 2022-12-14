@@ -1,14 +1,14 @@
 package constraints
 
 type Normalize[A] = A match
-  case Not[Not[a]] => Normalize[a]
-  case Not[a And b] => Normalize[Not[a] Or Not[b]]
-  case Not[a Or b] => Normalize[Not[a] And Not[b]]
-  case Not[a Xor b] => Normalize[Not[TranslateXor[a, b]]]
-  case a And b => Normalize[a] & Normalize[b]
-  case a Or b => Normalize[a] | Normalize[b]
-  case a Xor b => Normalize[TranslateXor[a, b]]
-  case Not[False] => True
-  case Not[True] => False
+  case not[not[a]] => Normalize[a]
+  case not[a and b] => Normalize[not[a] or not[b]]
+  case not[a or b] => Normalize[not[a] and not[b]]
+  case not[a xor b] => Normalize[not[TranslateXor[a, b]]]
+  case a and b => Normalize[a] & Normalize[b]
+  case a or b => Normalize[a] | Normalize[b]
+  case a xor b => Normalize[TranslateXor[a, b]]
+  case not[false] => true
+  case not[true] => false
   case _ => A
-private type TranslateXor[A, B] = (A And Not[B]) Or (Not[A] And B)
+private type TranslateXor[A, B] = (A and not[B]) or (not[A] and B)

@@ -1,69 +1,74 @@
 package constraints
 
-import quoted.*
-
 trait CompileTimeCheck[-A]:
-  inline def valid: Boolean | Null
+  inline def valid: false | Null | true
 
 object CompileTimeCheck:
 
-  transparent inline given [A, B](
-    using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
-  ): CompileTimeCheck[A And B] =
-    inline a.valid match
-      case false => FalseCompileTimeCheck
-      case null => inline b.valid match
-        case false => FalseCompileTimeCheck
-        case null | true => UnknownCompileTimeCheck
-      case true => inline b.valid match
-        case false => FalseCompileTimeCheck
-        case null => UnknownCompileTimeCheck
-        case true => TrueCompileTimeCheck
+  def fromRuntimeCheckOnPossibleConstant[A: quoted.Type](runtimeCheck: (a: A) => RuntimeCheck[Nothing])(using quoted.Quotes): quoted.Expr[false | Null | true] =
+    quoted.Type.valueOfConstant[A].fold('{null})(a => fromRuntimeCheck(using runtimeCheck(a)))
 
-  transparent inline given [A](
-    using inline a: CompileTimeCheck[A]
-  ): CompileTimeCheck[Not[A]] =
-    inline a.valid match
-      case false => TrueCompileTimeCheck
-      case null => UnknownCompileTimeCheck
-      case true => FalseCompileTimeCheck
+  def fromRuntimeCheckOnPossibleConstantTuple[T <: Tuple: quoted.Type](runtimeCheck: (t: T) => RuntimeCheck[Nothing])(using quoted.Quotes): quoted.Expr[false | Null | true] =
+    quoted.Type.valueOfTuple[T].fold('{ null })(t => fromRuntimeCheck(using runtimeCheck(t)))
 
-  transparent inline given [A, B](
-    using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
-  ): CompileTimeCheck[A Or B] =
-    inline a.valid match
-      case false => inline b.valid match
-        case false => FalseCompileTimeCheck
-        case null => UnknownCompileTimeCheck
-        case true => TrueCompileTimeCheck
-      case null => inline b.valid match
-        case false | null => UnknownCompileTimeCheck
-        case true => TrueCompileTimeCheck
-      case true => TrueCompileTimeCheck
+  def fromRuntimeCheck[A](using runtimeCheck: RuntimeCheck[A])(using quoted.Quotes): quoted.Expr[true | false] =
+    if runtimeCheck.succeeded then '{true} else '{false}
 
-  transparent inline given [A, B](
-    using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
-  ): CompileTimeCheck[A Xor B] =
-    inline a.valid match
-      case false => inline b.valid match
-        case false => FalseCompileTimeCheck
-        case null => UnknownCompileTimeCheck
-        case true => TrueCompileTimeCheck
-      case null => UnknownCompileTimeCheck
-      case true => inline b.valid match
-        case false => TrueCompileTimeCheck
-        case null => UnknownCompileTimeCheck
-        case true => FalseCompileTimeCheck
-
-  transparent inline given CompileTimeCheck[True] = TrueCompileTimeCheck
-  transparent inline given CompileTimeCheck[False] = FalseCompileTimeCheck
-  transparent inline given CompileTimeCheck[Null] = UnknownCompileTimeCheck
-
-  private object FalseCompileTimeCheck extends CompileTimeCheck[Any]:
+  private object False extends CompileTimeCheck[Any]:
     override inline def valid: false = false
 
-  private object UnknownCompileTimeCheck extends CompileTimeCheck[Any]:
+  private object Unknown extends CompileTimeCheck[Any]:
     override inline def valid: Null = null
 
-  private object TrueCompileTimeCheck extends CompileTimeCheck[Any]:
+  private object True extends CompileTimeCheck[Any]:
     override inline def valid: true = true
+
+  transparent inline given falsehood: CompileTimeCheck[false] = False
+  transparent inline given unknown: CompileTimeCheck[Null] = Unknown
+  transparent inline given truth: CompileTimeCheck[true] = True
+
+  transparent inline given[A](using inline a: CompileTimeCheck[A]): CompileTimeCheck[not[A]] =
+    inline a.valid match
+      case false => True
+      case null => Unknown
+      case true => False
+
+  transparent inline given [A, B](
+    using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
+  ): CompileTimeCheck[A and B] =
+    inline a.valid match
+      case false => False
+      case null => inline b.valid match
+        case false => False
+        case null | true => Unknown
+      case true => inline b.valid match
+        case false => False
+        case null => Unknown
+        case true => True
+
+  transparent inline given [A, B](
+    using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
+  ): CompileTimeCheck[A or B] =
+    inline a.valid match
+      case false => inline b.valid match
+        case false => False
+        case null => Unknown
+        case true => True
+      case null => inline b.valid match
+        case false | null => Unknown
+        case true => True
+      case true => True
+
+  transparent inline given [A, B](
+    using inline a: CompileTimeCheck[A], inline b: CompileTimeCheck[B]
+  ): CompileTimeCheck[A xor B] =
+    inline a.valid match
+      case false => inline b.valid match
+        case false => False
+        case null => Unknown
+        case true => True
+      case null => Unknown
+      case true => inline b.valid match
+        case false => True
+        case null => Unknown
+        case true => False
