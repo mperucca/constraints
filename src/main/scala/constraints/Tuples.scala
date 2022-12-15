@@ -10,8 +10,7 @@ inline def constValueTupleRecursive[T <: Tuple]: T =
     case _: EmptyTuple => EmptyTuple
     case _: (EmptyTuple *: ts) => EmptyTuple *: constValueTupleRecursive[ts]
     case _: ((t *: hts) *: ts) => constValueTupleRecursive[t *: hts] *: constValueTupleRecursive[ts]
-    case _: (t *: ts) => constValue[T] *: constValueTupleRecursive[ts]
-    case _ => constValue[T]
+    case _: (t *: ts) => constValue[t] *: constValueTupleRecursive[ts]
   res.asInstanceOf[T]
 
 def valueOfTupleRecursive[T <: Tuple](using Type[T])(using Quotes): Option[T] =
