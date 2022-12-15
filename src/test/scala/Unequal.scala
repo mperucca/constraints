@@ -26,12 +26,6 @@ object Unequal:
     }
 
   private def implTuple[A <: Tuple: Type, B <: Tuple: Type](using Quotes): Expr[false | Null | true] =
-    if (false) // TODO doesn't work since Type.valueOfTuple isn't recursive...
-      CompileTimeCheck.fromRuntimeCheckOnPossibleConstantTuple[(A, B)] {
-        case (a, b) => runtimeCheck[a.type, b.type]
-      }
-    val checked: Option[Expr[false | true]] =
-      for a <- Type.valueOfTuple[A]
-          b <- Type.valueOfTuple[B]
-      yield CompileTimeCheck.fromRuntimeCheck[a.type !== b.type]
-    checked.getOrElse('{ null })
+    CompileTimeCheck.fromRuntimeCheckOnPossibleConstantTuple[(A, B)] {
+      case (a, b) => runtimeCheck[a.type, b.type]
+    }

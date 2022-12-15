@@ -9,7 +9,7 @@ object CompileTimeCheck:
     quoted.Type.valueOfConstant[A].fold('{null})(a => fromRuntimeCheck(using runtimeCheck(a)))
 
   def fromRuntimeCheckOnPossibleConstantTuple[T <: Tuple: quoted.Type](runtimeCheck: (t: T) => RuntimeCheck[Nothing])(using quoted.Quotes): quoted.Expr[false | Null | true] =
-    quoted.Type.valueOfTuple[T].fold('{ null })(t => fromRuntimeCheck(using runtimeCheck(t)))
+    valueOfTupleRecursive[T].fold('{ null })(t => fromRuntimeCheck(using runtimeCheck(t)))
 
   def fromRuntimeCheck[A](using runtimeCheck: RuntimeCheck[A])(using quoted.Quotes): quoted.Expr[true | false] =
     if runtimeCheck.succeeded then '{true} else '{false}
