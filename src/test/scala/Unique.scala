@@ -12,20 +12,21 @@ object Unique:
     valueOf[I].toIterable.forall(soFar.add)
   }
 
-  transparent inline given tuple[T <: Tuple]: CompileTimeCheck[Unique[T]] =
-    UniqueCompileTimeCheck[T]
+  transparent inline given compileTimeCheckTuple[T <: Tuple]: CompileTimeCheck[Unique[T]] =
+    CompileTimeCheckTuple[T]
 
-  private class UniqueCompileTimeCheck[T <: Tuple] extends CompileTimeCheck[Unique[T]]:
+  transparent inline given compileTimeCheckString[S <: String]: CompileTimeCheck[Unique[S]] =
+    CompileTimeCheckString[S]
+
+  private class CompileTimeCheckTuple[T <: Tuple] extends CompileTimeCheck[Unique[T]]:
     override transparent inline def valid: false | Null | true = ${implTuple[T]}
 
-  private def implTuple[T <: Tuple: Type](using Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnPossibleConstantTuple((t: T) => summon[RuntimeCheck[Unique[t.type]]])
+  private class CompileTimeCheckString[S <: String] extends CompileTimeCheck[Unique[S]]:
+    override transparent inline def valid: false | Null | true = ${ implString[S] }
 
-  transparent inline given string[S <: String]: CompileTimeCheck[Unique[S]] =
-    UniqueCompileTimeCheckString[S]
+  private def implTuple[T <: Tuple: Type](using Quotes): Expr[false | Null | true] = impl
 
-  private class UniqueCompileTimeCheckString[S <: String] extends CompileTimeCheck[Unique[S]]:
-    override transparent inline def valid: false | Null | true = ${implString[S]}
+  private def implString[S <: String: Type](using Quotes): Expr[false | Null | true] = impl
 
-  private def implString[S <: String: Type](using Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnPossibleConstant((s: S) => summon[RuntimeCheck[Unique[s.type]]])
+  private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[false | Null | true] =
+    CompileTimeCheck.fromRuntimeCheckOnPossibleConstant((i: I) => summon[RuntimeCheck[Unique[i.type]]])

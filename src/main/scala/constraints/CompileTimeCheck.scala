@@ -1,17 +1,16 @@
 package constraints
 
+import quoted.*
+
 trait CompileTimeCheck[-A]:
   inline def valid: false | Null | true
 
 object CompileTimeCheck:
 
-  def fromRuntimeCheckOnPossibleConstant[A: quoted.Type](runtimeCheck: (a: A) => RuntimeCheck[Nothing])(using quoted.Quotes): quoted.Expr[false | Null | true] =
-    quoted.Type.valueOfConstant[A].fold('{null})(a => fromRuntimeCheck(using runtimeCheck(a)))
+  def fromRuntimeCheckOnPossibleConstant[A: Type](runtimeCheck: (a: A) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
+    valueOfConstantRecursive[A].fold('{ null })(t => fromRuntimeCheck(using runtimeCheck(t)))
 
-  def fromRuntimeCheckOnPossibleConstantTuple[T <: Tuple: quoted.Type](runtimeCheck: (t: T) => RuntimeCheck[Nothing])(using quoted.Quotes): quoted.Expr[false | Null | true] =
-    valueOfTupleRecursive[T].fold('{ null })(t => fromRuntimeCheck(using runtimeCheck(t)))
-
-  def fromRuntimeCheck[A](using runtimeCheck: RuntimeCheck[A])(using quoted.Quotes): quoted.Expr[true | false] =
+  def fromRuntimeCheck[A](using runtimeCheck: RuntimeCheck[A])(using Quotes): quoted.Expr[true | false] =
     if runtimeCheck.succeeded then '{true} else '{false}
 
   private object False extends CompileTimeCheck[Any]:

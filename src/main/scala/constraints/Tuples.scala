@@ -5,18 +5,18 @@ import quoted.*
 
 given nonEmptyTupleValueOf[H: ValueOf, T <: Tuple: ValueOf]: ValueOf[H *: T] = ValueOf(valueOf[H] *: valueOf[T])
 
-inline def constValueTupleRecursive[T <: Tuple]: T =
+inline def constValueRecursive[T]: T =
   val res = inline erasedValue[T] match
     case _: EmptyTuple => EmptyTuple
-    case _: (EmptyTuple *: ts) => EmptyTuple *: constValueTupleRecursive[ts]
-    case _: ((t *: hts) *: ts) => constValueTupleRecursive[t *: hts] *: constValueTupleRecursive[ts]
-    case _: (t *: ts) => constValue[t] *: constValueTupleRecursive[ts]
+    case _: (EmptyTuple *: ts) => EmptyTuple *: constValueRecursive[ts]
+    case _: ((t *: hts) *: ts) => constValueRecursive[t *: hts] *: constValueRecursive[ts]
+    case _: (t *: ts) => constValue[t] *: constValueRecursive[ts]
   res.asInstanceOf[T]
 
-def valueOfTupleRecursive[T <: Tuple](using Type[T])(using Quotes): Option[T] =
-  ValueOfTupleRecursive.unapply(quotes.reflect.TypeRepr.of[T]).asInstanceOf[Option[T]]
+def valueOfConstantRecursive[T](using Type[T])(using Quotes): Option[T] =
+  ValueOfConstantRecursive.unapply(quotes.reflect.TypeRepr.of[T]).asInstanceOf[Option[T]]
 
-private object ValueOfTupleRecursive:
+private object ValueOfConstantRecursive:
   def unapply(using Quotes)(tpe: quotes.reflect.TypeRepr): Option[Any] =
     import quotes.reflect.*
     val cons = Symbol.classSymbol("scala.*:")
@@ -25,10 +25,10 @@ private object ValueOfTupleRecursive:
       case AppliedType(fn, tpes) if defn.isTupleClass(fn.typeSymbol) =>
         tpes.foldRight(Option[Tuple](EmptyTuple)) {
           case (_, None) => None
-          case (ValueOfTupleRecursive(v), Some(acc)) => Some(v *: acc)
+          case (ValueOfConstantRecursive(v), Some(acc)) => Some(v *: acc)
           case _ => None
         }
-      case AppliedType(tp, List(ValueOfTupleRecursive(headValue), tail)) if tp.derivesFrom(cons) =>
+      case AppliedType(tp, List(ValueOfConstantRecursive(headValue), tail)) if tp.derivesFrom(cons) =>
         unapply(tail) match
           case Some(tailValue) => Some(headValue *: tailValue.asInstanceOf[Tuple])
           case None => None
