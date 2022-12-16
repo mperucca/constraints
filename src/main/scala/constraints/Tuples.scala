@@ -38,8 +38,7 @@ private object ValueOfConstantRecursive:
           case (Some(v), None) => Some(v)
           case (Some(v1), Some(v2)) =>
             if v1 != v2 then
-              val error = s"intersection type ${intersectionType.show} produced two values: $v1 and $v2"
-              quotes.reflect.report.errorAndAbort(error)
+              report.errorAndAbort(s"intersection type ${intersectionType.show} produced two values: $v1 and $v2")
             else Some(v1)
       case tpe =>
         Option.when(tpe =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
