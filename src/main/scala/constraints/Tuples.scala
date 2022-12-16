@@ -20,7 +20,6 @@ private object ValueOfConstantRecursive:
   def unapply(using Quotes)(tpe: quotes.reflect.TypeRepr): Option[Any] =
     import quotes.reflect.*
     tpe.widenTermRefByName.dealias match
-      case tp if tp == Symbol.classSymbol("scala.Singleton") => None
       case ConstantType(const) => Some(const.value)
       case AppliedType(fn, tpes) if defn.isTupleClass(fn.typeSymbol) =>
         tpes.foldRight(Option[Tuple](EmptyTuple)) {
@@ -28,7 +27,7 @@ private object ValueOfConstantRecursive:
           case (ValueOfConstantRecursive(v), Some(acc)) => Some(v *: acc)
           case _ => None
         }
-      case AppliedType(tp, List(ValueOfConstantRecursive(headValue), tail)) if tp <:< TypeRepr.of[*:] =>
+      case AppliedType(tp, List(ValueOfConstantRecursive(headValue), tail)) if tp =:= TypeRepr.of[*:] =>
         unapply(tail) match
           case Some(tailValue) => Some(headValue *: tailValue.asInstanceOf[Tuple])
           case None => None

@@ -50,7 +50,7 @@ import scala.util.Random
 
   // refinement example
   {
-    type NonZero = [V] =>> V !== 0
+    type NonZero[V] = V !== 0
     def divide(dividend: Int, divisor: Int Constrained NonZero)(
       noOverflow: Witness[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
     ): Int = dividend / divisor.value
