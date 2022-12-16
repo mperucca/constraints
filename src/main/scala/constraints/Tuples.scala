@@ -19,8 +19,8 @@ def valueOfConstantRecursive[T](using Type[T])(using Quotes): Option[T] =
 private object ValueOfConstantRecursive:
   def unapply(using Quotes)(tpe: quotes.reflect.TypeRepr): Option[Any] =
     import quotes.reflect.*
-    val cons = Symbol.classSymbol("scala.*:")
     tpe.widenTermRefByName.dealias match
+      case tp if tp == Symbol.classSymbol("scala.Singleton") => None
       case ConstantType(const) => Some(const.value)
       case AppliedType(fn, tpes) if defn.isTupleClass(fn.typeSymbol) =>
         tpes.foldRight(Option[Tuple](EmptyTuple)) {
@@ -28,10 +28,19 @@ private object ValueOfConstantRecursive:
           case (ValueOfConstantRecursive(v), Some(acc)) => Some(v *: acc)
           case _ => None
         }
-      case AppliedType(tp, List(ValueOfConstantRecursive(headValue), tail)) if tp.derivesFrom(cons) =>
+      case AppliedType(tp, List(ValueOfConstantRecursive(headValue), tail)) if tp <:< TypeRepr.of[*:] =>
         unapply(tail) match
           case Some(tailValue) => Some(headValue *: tailValue.asInstanceOf[Tuple])
           case None => None
+      case intersectionType @ AndType(tp1, tp2) =>
+        (unapply(tp1), unapply(tp2)) match
+          case (None, None) => None
+          case (None, Some(v)) => Some(v)
+          case (Some(v), None) => Some(v)
+          case (Some(v1), Some(v2)) =>
+            if v1 != v2 then
+              val error = s"intersection type ${intersectionType.show} produced two values: $v1 and $v2"
+              quotes.reflect.report.errorAndAbort(error)
+            else Some(v1)
       case tpe =>
-        if tpe.derivesFrom(Symbol.classSymbol("scala.EmptyTuple")) then Some(EmptyTuple)
-        else None
+        Option.when(tpe =:= TypeRepr.of[EmptyTuple])(EmptyTuple)

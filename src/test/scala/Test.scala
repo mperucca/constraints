@@ -113,13 +113,17 @@ import scala.util.Random
     val fraction = Fraction(numerator, denominator)(Witness.compileTimeCheck)
     divide(fraction.numerator, fraction.denominator)(Witness.compileTimeCheck)
 
-    type NonOverflowingOnDivide[F <: Fraction] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
-    Constrained(fraction)[NonOverflowingOnDivide]
+    type NonOverflowingOnDivide[F <: Fraction.WhiteBox[_ <: Singleton, _ <: Singleton]] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
+    Constrained(fraction)[NonOverflowingOnDivide].apply(Witness.compileTimeCheck)
 
     val fraction2 = Fraction(1, 3)(Witness.compileTimeCheck)
-    Witness.compileTimeCheck[fraction.Tupled !== Fraction.Tupled[fraction2.type]]
+    Witness.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
     val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Witness.trust)
     Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Witness.compileTimeCheck)
+
+    type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
+    Witness.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== ((1, DealiasTest) & Singleton)]
+
   }
