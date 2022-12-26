@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, Iterate, Witness, RuntimeCheck}
+import constraints.{CompileTimeCheck, Iterate, Trust, RuntimeCheck}
 
 import scala.annotation.tailrec
 import scala.quoted.*
@@ -29,4 +29,4 @@ object Unique:
   private def implString[S <: String: Type](using Quotes): Expr[false | Null | true] = impl
 
   private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnPossibleConstant((i: I) => summon[RuntimeCheck[Unique[i.type]]])
+    CompileTimeCheck.fromRuntimeCheckOnConstant((i: I) => summon[RuntimeCheck[Unique[i.type]]])

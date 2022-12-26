@@ -34,8 +34,8 @@ private object ValueOfConstantRecursive:
       case intersectionType @ AndType(tp1, tp2) =>
         (unapply(tp1), unapply(tp2)) match
           case (None, None) => None
-          case (None, Some(v)) => Some(v)
-          case (Some(v), None) => Some(v)
+          case (None, v: Some[Any]) => v
+          case (v: Some[Any], None) => v
           case (Some(v1), Some(v2)) =>
             if v1 != v2 then
               report.errorAndAbort(s"intersection type ${intersectionType.show} produced two values: $v1 and $v2")

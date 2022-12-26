@@ -7,11 +7,13 @@ trait CompileTimeCheck[-A]:
 
 object CompileTimeCheck:
 
-  def fromRuntimeCheckOnPossibleConstant[A: Type](runtimeCheck: (a: A) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
-    valueOfConstantRecursive[A].fold('{ null })(t => fromRuntimeCheck(using runtimeCheck(t)))
-
-  def fromRuntimeCheck[A](using runtimeCheck: RuntimeCheck[A])(using Quotes): quoted.Expr[true | false] =
-    if runtimeCheck.succeeded then '{true} else '{false}
+  def fromRuntimeCheckOnConstant[A: Type](runtimeCheck: (a: A) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
+    valueOfConstantRecursive[A] match
+      case None => '{null}
+      case Some(a) =>
+        if runtimeCheck(a).succeeded
+        then '{true}
+        else '{false}
 
   private object False extends CompileTimeCheck[Any]:
     override inline def valid: false = false

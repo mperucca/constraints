@@ -17,6 +17,6 @@ object Unequal:
     override transparent inline def valid: false | Null | true = ${impl[A, B]}
 
   private def impl[A: Type, B: Type](using Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnPossibleConstant[(A, B)] {
+    CompileTimeCheck.fromRuntimeCheckOnConstant[(A, B)] {
       case (a, b) => runtimeCheck[a.type, b.type]
     }
