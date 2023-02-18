@@ -1,5 +1,8 @@
 package constraints
 
+/**
+ * Flattens out a constraint of type [[A]] into a chain of [[not]]s, [[and]]s, and [[or]]s
+ */
 type Normalize[A] = A match
   case not[not[a]] => Normalize[a]
   case not[a and b] => Normalize[not[a] or not[b]]

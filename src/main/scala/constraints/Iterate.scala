@@ -8,14 +8,28 @@ package constraints
  */
 trait Iterate[-I, +A]:
 
+  /**
+   * Get the iterable
+   * @param i the value that can be iterated over
+   * @return the iterable
+   */
   def iterable(i: I): Iterable[A]
 
   extension (i: I)
 
+    /**
+     * Alternative method that forwards to [[iterable]]
+     */
     def toIterable: Iterable[A] = iterable(i)
 
+/**
+ * Contains various [[Iterate]] type class instances
+ */
 object Iterate:
 
+  /**
+   * The type class instance of [[Iterate]] for tuples of the lowest upper bound of their type union
+   */
   given [T <: Tuple, A](using Tuple.Union[T] <:< A): Iterate[T, A] with
     override def iterable(tuple: T): Iterable[A] = new Iterable[A]:
       override def iterator: Iterator[A] =
@@ -32,8 +46,17 @@ object Iterate:
               cur = tail
               head.asInstanceOf[A]
 
+  /**
+   * The type class instance of [[Iterate]] for [[Iterable]]s
+   * @tparam A the type of items in the [[Iterable]]
+   * @return the type class instance of [[Iterate]] for [[Iterable]]s
+   */
   given [A]: Iterate[Iterable[A], A] = identity(_)
 
+  /**
+   * The type class instance of [[Iterate]] for [[String]]s
+   * @return the type class instance of [[Iterate]] for [[String]]s
+   */
   given Iterate[String, Int] = string =>
     new Iterable[Int]:
       override def iterator: Iterator[Int] = new Iterator[Int]:
