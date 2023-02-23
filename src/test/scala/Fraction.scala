@@ -7,11 +7,11 @@ object Fraction:
   type BlackBox = Fraction.WhiteBox[Int, Int]
 
   class WhiteBox[+N <: Int, +D <: Int](val numerator: N, val denominator: D)(
-    val nonZeroDenominator: Trust[denominator.type !== 0]
+    val nonZeroDenominator: Guarantee[denominator.type !== 0]
   )
 
   def apply(numerator: Int, denominator: Int)(
-    nonZeroDenominator: Trust[denominator.type !== 0]
+    nonZeroDenominator: Guarantee[denominator.type !== 0]
   ): Fraction.WhiteBox[numerator.type, denominator.type] =
     new Fraction.WhiteBox(numerator, denominator)(nonZeroDenominator)
 

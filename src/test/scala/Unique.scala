@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, Iterate, Trust, RuntimeCheck}
+import constraints.{CompileTimeCheck, Iterate, Guarantee, RuntimeCheck}
 
 import scala.annotation.tailrec
 import scala.quoted.*

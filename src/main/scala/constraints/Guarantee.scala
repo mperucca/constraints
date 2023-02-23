@@ -3,12 +3,12 @@ package constraints
 /**
  * Evidence that constraint [[A]] is met
  */
-type Trust[A] = Trust.Impl[Normalize[A]]
+type Guarantee[A] = Guarantee.Impl[Normalize[A]]
 
 /**
- * Factory methods for [[Trust]] instances
+ * Factory methods for [[Guarantee]] instances
  */
-object Trust:
+object Guarantee:
 
   /**
    * The evidence type for a constraint
@@ -26,7 +26,7 @@ object Trust:
    * @tparam A the constraint to trust
    * @return the trusted evidence
    */
-  def belief[A]: Trust[A] = Impl
+  def trust[A]: Guarantee[A] = Impl
 
   /**
    * Checks a constraint at runtime, returning evidence or negative evidence of the constraint
@@ -34,8 +34,8 @@ object Trust:
    * @tparam A the constraint
    * @return evidence that the constraint either holds or does not
    */
-  def runtimeCheck[A](using runtimeCheck: RuntimeCheck[A]): Either[Trust[not[A]], Trust[A]] =
-    Either.cond(runtimeCheck.succeeded, belief, belief)
+  def runtimeCheck[A](using runtimeCheck: RuntimeCheck[A]): Either[Guarantee[not[A]], Guarantee[A]] =
+    Either.cond(runtimeCheck.succeeded, trust, trust)
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
@@ -43,15 +43,15 @@ object Trust:
    * @tparam A the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def compileTimeCheck[A](using inline compileTimeCheck: CompileTimeCheck[A]): Trust[A] =
+  inline def compileTimeCheck[A](using inline compileTimeCheck: CompileTimeCheck[A]): Guarantee[A] =
     inline compileTimeCheck.valid match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
-      case true => belief
+      case true => trust
 
-  extension [A](trust: => Trust[A])
+  extension [A](guarantee: => Guarantee[A])
 
     /**
      * Joins two constraint evidences into one
      */
-    infix def and[B](other: => Trust[B]): Trust[A and B] = belief
+    infix def and[B](other: => Guarantee[B]): Guarantee[A and B] = trust
