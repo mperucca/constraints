@@ -32,19 +32,7 @@ object Iterate:
    */
   given [T <: Tuple, A](using Tuple.Union[T] <:< A): Iterate[T, A] with
     override def iterable(tuple: T): Iterable[A] = new Iterable[A]:
-      override def iterator: Iterator[A] =
-        new Iterator[A]:
-          var cur: Tuple = tuple
-
-          override def hasNext: Boolean = cur match
-            case EmptyTuple => false
-            case _: NonEmptyTuple => true
-
-          override def next(): A = cur match
-            case EmptyTuple => throw java.util.NoSuchElementException()
-            case head *: tail =>
-              cur = tail
-              head.asInstanceOf[A]
+      override def iterator: Iterator[A] = tuple.productIterator.asInstanceOf[Iterator[A]]
 
   /**
    * The type class instance of [[Iterate]] for [[Iterable]]s
