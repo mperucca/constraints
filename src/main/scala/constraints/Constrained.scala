@@ -5,11 +5,16 @@ import scala.collection.IterableOps
 /**
  * A value with an attached constraint
  * @param value the value constrained by [[P]]
- * @param guarantee evidence of the constraint on the [[value]]
  * @tparam A the type being constrained
  * @tparam P the constraint
  */
-class Constrained[+A, P[_ <: A]](val value: A)(val guarantee: Guarantee[P[value.type]])
+class Constrained[+A, P[_]] private (val value: A) extends AnyVal:
+
+  /**
+   * Gets the guarantee (which must exist as a factory method must have been used to construct this instance)
+   * @return evidence of the constraint
+   */
+  def guarantee: Guarantee[P[value.type]] = Guarantee.trust
 
 /**
  * Utility methods for constructing [[Constrained]] values
@@ -18,21 +23,12 @@ object Constrained:
 
   /**
    * Constructs a [[Constrained]] value with nicer inference than the constructor
-   * @note [[P]] cannot have type bounds with this construction method
    * @param a the value to constrain
    * @param guarantee evidence of the constraint
    * @tparam P the constraint
    * @return the constrained value
    */
-  def apply[P[_]](a: Any)(guarantee: Guarantee[P[a.type]]): Constrained[a.type, P] = new Constrained(a)(guarantee)
-
-  /**
-   * Constructs a function that creates [[Constrained]] values with nicer inference than the constructor
-   * @param a the value to constrain
-   * @return a function that creates a constrained value when supplied constraint evidence
-   */
-  def apply(a: Any): [P[_ <: a.type]] => Guarantee[P[a.type]] => Constrained[a.type, P] =
-    [P[_ <: a.type]] => (guarantee: Guarantee[P[a.type]]) => new Constrained[a.type, P](a)(guarantee)
+  def apply[P[_]](a: Any)(using Guarantee[P[a.type]]) = new Constrained[a.type, P](a)
 
   /**
    * Partitions an iterable into a [[Tuple2]] where
@@ -52,6 +48,6 @@ object Constrained:
   ): (I[A Constrained Inverse[P]], I[A Constrained P]) =
     iterable.partitionMap { a =>
       Guarantee.runtimeCheck(using runtimeCheck(a)) match
-        case Left(disagreement: Guarantee[not[P[a.type]]]) => Left(new Constrained(a)(disagreement))
-        case Right(guarantee: Guarantee[P[a.type]]) => Right(new Constrained(a)(guarantee))
+        case Left(given Guarantee[not[P[a.type]]]) => Left(Constrained(a))
+        case Right(given Guarantee[P[a.type]]) => Right(Constrained(a))
     }

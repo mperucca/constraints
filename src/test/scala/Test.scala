@@ -5,14 +5,14 @@ import scala.util.Random
 
   // safer divide method
   def divide(dividend: Int, divisor: Int)(
-    divisible: Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
+    using Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
   ): Int = dividend / divisor
 
   // trust example
   {
     val dividend, divisor = Random.between(3, 8)
     // we trust the operands to be between 3 and 8 which meet the constraints
-    divide(dividend, divisor)(Guarantee.trust)
+    divide(dividend, divisor)(using Guarantee.trust)
   }
 
   // runtime check example
@@ -22,21 +22,21 @@ import scala.util.Random
     type Divisible = divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)
     // we check the operands at runtime in case the random numbers violate the constraints
     Guarantee.runtimeCheck[Divisible] match
-      case Right(guarantee: Guarantee[Divisible]) => divide(dividend, divisor)(guarantee)
+      case Right(given Guarantee[Divisible]) => divide(dividend, divisor)
       case Left(_) => println(s"cannot divide($dividend, $divisor)")
   }
 
   // can still prove with unknown if simplification makes knowledge unnecessary
   {
     val dividend = Random.nextInt()
-    divide(dividend, divisor = 4)(Guarantee.compileTimeCheck) // compiles since a positive divisor meets sufficient constraints
+    divide(dividend, divisor = 4) // compiles since a positive divisor meets sufficient constraints
   }
 
   // can provide just a sufficient part of the whole constraint options
   {
     val dividend: Int = Random.nextInt()
     val divisor: 4 = valueOf
-    divide(dividend, divisor)(Guarantee.compileTimeCheck[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    divide(dividend, divisor)(using Guarantee.compileTimeCheck[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // constraint equivalence/satisfaction examples
@@ -52,12 +52,12 @@ import scala.util.Random
   {
     type NonZero[V] = V !== 0
     def divide(dividend: Int, divisor: Int Constrained NonZero)(
-      noOverflow: Guarantee[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
+      using Guarantee[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
     ): Int = dividend / divisor.value
 
     val dividend = Random.nextInt()
-    val divisor = Constrained[NonZero](1)(Guarantee.compileTimeCheck) // compiles since 1 != 0
-    divide(dividend, divisor)(Guarantee.compileTimeCheck) // compiles since refinement on divisor exposes value as a literal 1 type
+    val divisor = Constrained[NonZero](1) // compiles since 1 != 0
+    divide(dividend, divisor) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
   // independent constraints on collections example
@@ -65,7 +65,7 @@ import scala.util.Random
     val alphanumerics = Random.alphanumeric.take(9)
 
     trait Alphanumeric[C]
-    alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
+    alphanumerics.map(Constrained[Alphanumeric](_)(using Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
     trait Letter[C]
     given letterRuntimeCheck[C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
@@ -110,18 +110,18 @@ import scala.util.Random
   {
     val numerator: 1 = valueOf
     val denominator: 2 = valueOf
-    val fraction = Fraction(numerator, denominator)(Guarantee.compileTimeCheck)
-    divide(fraction.numerator, fraction.denominator)(Guarantee.compileTimeCheck)
+    val fraction = Fraction(numerator, denominator)
+    divide(fraction.numerator, fraction.denominator)
 
-    type NonOverflowingOnDivide[F <: Fraction.WhiteBox[_ <: Singleton, _ <: Singleton]] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
-    Constrained(fraction)[NonOverflowingOnDivide].apply(Guarantee.compileTimeCheck)
+    type NonOverflowingOnDivide[F] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
+    Constrained[NonOverflowingOnDivide](fraction)
 
-    val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
+    val fraction2 = Fraction(1, 3)
     Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
-    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
-    Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
-    divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
+    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(using Guarantee.trust)
+    Fraction(6, fraction3.denominator)(using fraction3.nonZeroDenominator)
+    divide(6, fraction3.denominator)(using fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
     Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== ((1, DealiasTest) & Singleton)]
