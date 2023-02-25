@@ -4,17 +4,17 @@ import scala.collection.IterableOps
 
 /**
  * A value with an attached constraint
- * @param value the value constrained by [[P]]
- * @tparam A the type being constrained
- * @tparam P the constraint
+ * @param value the value constrained by [[C]]
+ * @tparam V the type being constrained
+ * @tparam C the constraint
  */
-class Constrained[+A, P[_]] private (val value: A) extends AnyVal:
+class Constrained[+V, C[_]] private(val value: V) extends AnyVal:
 
   /**
-   * Gets the guarantee (which must exist as a factory method must have been used to construct this instance)
-   * @return evidence of the constraint
+   * Gets the guarantee (which must exist since [[Constrained.apply]] needed it to construct this instance)
+   * @return the guarantee that the constraint holds
    */
-  def guarantee: Guarantee[P[value.type]] = Guarantee.trust
+  def guarantee: Guarantee[C[value.type]] = Guarantee.trust
 
 /**
  * Utility methods for constructing [[Constrained]] values
@@ -23,31 +23,31 @@ object Constrained:
 
   /**
    * Constructs a [[Constrained]] value with nicer inference than the constructor
-   * @param a the value to constrain
-   * @param guarantee evidence of the constraint
-   * @tparam P the constraint
+   * @param v the value to constrain
+   * @param Guarantee[C[a.type]] evidence of the constraint
+   * @tparam C the constraint
    * @return the constrained value
    */
-  def apply[P[_]](a: Any)(using Guarantee[P[a.type]]) = new Constrained[a.type, P](a)
+  def apply[C[_]](v: Any)(using Guarantee[C[v.type]]) = new Constrained[v.type, C](v)
 
   /**
    * Partitions an iterable into a [[Tuple2]] where
-   * the 1st item contains values and inverse [[Guarantee]] evidences that the inverse of constraint [[P]] holds
-   * the 2nd item contains values and [[Guarantee]] evidences that the constraint [[P]] holds
+   * the 1st item contains values and inverse [[Guarantee]]s that the inverse of constraint [[C]] holds
+   * the 2nd item contains values and [[Guarantee]]s that the constraint [[C]] holds
    *
    * @param iterable the values to check constraint [[P]] on
    * @param runtimeCheck the runtime check constraint to perform
-   * @param I[A] <:< IterableOps[A, I, I[A]] evidence that the values can be iterated over
+   * @param I[V] <:< IterableOps[V, I, I[V]] evidence that the values can be iterated over
    * @tparam I the iterable type
-   * @tparam A the value type inside the iterable
-   * @tparam P the constraint to check on each value
+   * @tparam V the value type inside the iterable
+   * @tparam C the constraint to check on each value
    * @return a tuple containing
    */
-  def partition[I[_], A, P[_]](iterable: I[A])(runtimeCheck: (a: A) => RuntimeCheck[P[a.type]])(
-    using I[A] <:< IterableOps[A, I, I[A]]
-  ): (I[A Constrained Inverse[P]], I[A Constrained P]) =
-    iterable.partitionMap { a =>
-      Guarantee.runtimeCheck(using runtimeCheck(a)) match
-        case Left(given Guarantee[not[P[a.type]]]) => Left(Constrained(a))
-        case Right(given Guarantee[P[a.type]]) => Right(Constrained(a))
+  def partition[I[_], V, C[_]](iterable: I[V])(runtimeCheck: (a: V) => RuntimeCheck[C[a.type]])(
+    using I[V] <:< IterableOps[V, I, I[V]]
+  ): (I[V Constrained Inverse[C]], I[V Constrained C]) =
+    iterable.partitionMap { v =>
+      Guarantee.runtimeCheck(using runtimeCheck(v)) match
+        case Left(given Guarantee[not[C[v.type]]]) => Left(Constrained(v))
+        case Right(given Guarantee[C[v.type]]) => Right(Constrained(v))
     }

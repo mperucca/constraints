@@ -1,9 +1,9 @@
 package constraints
 
 /**
- * Type class for checking constraint [[A]] at runtime
+ * Type class for checking constraint [[C]] at runtime
  */
-opaque type RuntimeCheck[-A] = Boolean
+opaque type RuntimeCheck[-C] = Boolean
 
 /**
  * Constructor for [[RuntimeCheck]] instances and various type class instances for [[RuntimeCheck]]
@@ -13,10 +13,11 @@ object RuntimeCheck:
   /**
    * Constructs a [[RuntimeCheck]] with the provided result
    * @param succeeded whether the runtime check succeeded or not
-   * @tparam A the constraint type
+   * @tparam C the constraint type
    * @return the [[RuntimeCheck]] value
    */
-  def apply[A](succeeded: Boolean): RuntimeCheck[A] = succeeded
+  def apply[C](succeeded: Boolean): RuntimeCheck[C] = succeeded
+
   extension (runtimeCheck: RuntimeCheck[Nothing])
 
     /**
@@ -39,10 +40,10 @@ object RuntimeCheck:
   /**
    * A type class instance that inverts a runtime check
    * @param a the runtime check to invert
-   * @tparam A the constraint type
+   * @tparam C the constraint type
    * @return a runtime check that succeeds if the passed in check fails
    */
-  given [A](using a: RuntimeCheck[A]): RuntimeCheck[not[A]] = !a
+  given [C](using a: RuntimeCheck[C]): RuntimeCheck[not[C]] = !a
 
   /**
    * The type class instance for the conjunction of constraints

@@ -4,15 +4,15 @@ import quoted.*
 
 /**
  * A type class for constraint checking that is performed at compile time
- * @tparam A the constraint to check
+ * @tparam C the constraint to check
  */
-trait CompileTimeCheck[-A]:
+trait CompileTimeCheck[-C]:
 
   /**
    * The check to run at compile time.
    * If the inlining process resolves to a literal false, null, or true, then constraints can compose.
    * @return false if the constraint doesn't hold,
-   *         null if constraint satisfaction cannot be determined, and
+   *         null iC constraint satisfaction cannot be determined, and
    *         true if the constraint holds
    */
   inline def valid: false | Null | true
@@ -24,20 +24,20 @@ object CompileTimeCheck:
 
   /**
    * Utility method for [[CompileTimeCheck]] macro implementations that evaluates a constraint by attempting to
-   * to extract a constant value from type [[A]] and then calling the provided [[RuntimeCheck]] with the value
-   * @param runtimeCheck a function returning a [[RuntimeCheck]] when given the value extracted from [[A]]
-   * @param Quotes performs operations on expressions
-   * @tparam A the type from which to attempt extracting a value
+   * to extract a constant value from type [[C]] and then calling the provided [[RuntimeCheck]] with the value
+   * @param runtimeCheck a function returning a [[RuntimeCheck]] when given the value extracted from [[C]]
+   * @param Quotes       performs operations on expressions
+   * @tparam V the type from which to attempt extracting a value
    * @return an expression that is
    *         false if the extracted value fails the runtime check,
    *         null if the value cannot be extracted, and
    *         true if the extracted value passes the runtime check
    */
-  def fromRuntimeCheckOnConstant[A: Type](runtimeCheck: (a: A) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
-    valueOfConstantRecursive[A] match
+  def fromRuntimeCheckOnConstant[V: Type](runtimeCheck: (v: V) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
+    valueOfConstantRecursive[V] match
       case None => '{null}
-      case Some(a) =>
-        if runtimeCheck(a).succeeded
+      case Some(v) =>
+        if runtimeCheck(v).succeeded
         then '{true}
         else '{false}
 
@@ -79,15 +79,15 @@ object CompileTimeCheck:
 
   /**
    * Type class instance of [[CompileTimeCheck]] for [[not]]
-   * @param a the [[CompileTimeCheck]] instance to negate
-   * @tparam A the constraint to negate
-   * @return a [[CompileTimeCheck]] for the negation of [[A]]
+   * @param compileTimeCheck the [[CompileTimeCheck]] instance to negate
+   * @tparam C the constraint to negate
+   * @return a [[CompileTimeCheck]] for the negation of [[C]]
    *         [[not]] on false becomes true
    *         [[not]] on unknown stays unknown
    *         [[not]] on true becomes false
    */
-  transparent inline given [A](using inline a: CompileTimeCheck[A]): CompileTimeCheck[not[A]] =
-    inline a.valid match
+  transparent inline given [C](using inline compileTimeCheck: CompileTimeCheck[C]): CompileTimeCheck[not[C]] =
+    inline compileTimeCheck.valid match
       case false => True
       case null => Unknown
       case true => False
