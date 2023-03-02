@@ -22,14 +22,14 @@ import scala.util.Random
     type Divisible = divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)
     // we check the operands at runtime in case the random numbers violate the constraints
     Guarantee.runtimeCheck[Divisible] match
-      case Right(given Guarantee[Divisible]) => divide(dividend, divisor)
+      case Right(guarantee: Guarantee[Divisible]) => divide(dividend, divisor)(guarantee)
       case Left(_) => println(s"cannot divide($dividend, $divisor)")
   }
 
   // can still prove with unknown if simplification makes knowledge unnecessary
   {
     val dividend = Random.nextInt()
-    divide(dividend, divisor = 4) // compiles since a positive divisor meets sufficient constraints
+    divide(dividend, divisor = 4)(Guarantee.compileTimeCheck) // compiles since a positive divisor meets sufficient constraints
   }
 
   // can provide just a sufficient part of the whole constraint options
