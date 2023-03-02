@@ -30,9 +30,7 @@ object Iterate:
   /**
    * The type class instance of [[Iterate]] for tuples of the lowest upper bound of their type union
    */
-  given [T <: Tuple, V](using Tuple.Union[T] <:< V): Iterate[T, V] with
-    override def iterable(tuple: T): Iterable[V] = new Iterable[V]:
-      override def iterator: Iterator[V] = tuple.productIterator.asInstanceOf[Iterator[V]]
+  given [T <: Tuple, V](using Tuple.Union[T] <:< V): Iterate[T, V] = _.toList.asInstanceOf[Iterable[V]]
 
   /**
    * The type class instance of [[Iterate]] for [[Iterable]]s
@@ -45,10 +43,4 @@ object Iterate:
    * The type class instance of [[Iterate]] for [[String]]s
    * @return the type class instance of [[Iterate]] for [[String]]s
    */
-  given Iterate[String, Int] = string =>
-    new Iterable[Int]:
-      override def iterator: Iterator[Int] = new Iterator[Int]:
-        val it: java.util.PrimitiveIterator.OfInt = string.codePoints().iterator()
-        override def hasNext: Boolean = it.hasNext
-        override def next(): Int = it.nextInt()
-
+  given Iterate[String, Int] = _.codePoints().toArray

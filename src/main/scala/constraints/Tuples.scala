@@ -19,7 +19,7 @@ given nonEmptyTupleValueOf[H: ValueOf, T <: Tuple: ValueOf]: ValueOf[H *: T] = V
  */
 inline def constValueRecursive[T]: T =
   val res = inline erasedValue[T] match
-    case _: EmptyTuple => EmptyTuple
+    case EmptyTuple => EmptyTuple
     case _: (EmptyTuple *: ts) => EmptyTuple *: constValueRecursive[ts]
     case _: ((t *: hts) *: ts) => constValueRecursive[t *: hts] *: constValueRecursive[ts]
     case _: (t *: ts) => constValue[t] *: constValueRecursive[ts]

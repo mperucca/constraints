@@ -12,7 +12,7 @@ trait CompileTimeCheck[-C]:
    * The check to run at compile time.
    * If the inlining process resolves to a literal false, null, or true, then constraints can compose.
    * @return false if the constraint doesn't hold,
-   *         null iC constraint satisfaction cannot be determined, and
+   *         null if constraint satisfaction cannot be determined, and
    *         true if the constraint holds
    */
   inline def valid: false | Null | true

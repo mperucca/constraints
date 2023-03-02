@@ -43,7 +43,7 @@ object RuntimeCheck:
    * @tparam C the constraint type
    * @return a runtime check that succeeds if the passed in check fails
    */
-  given [C](using a: RuntimeCheck[C]): RuntimeCheck[not[C]] = !a
+  given [C: RuntimeCheck]: RuntimeCheck[not[C]] = !summon[RuntimeCheck[C]]
 
   /**
    * The type class instance for the conjunction of constraints

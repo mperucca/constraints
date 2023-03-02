@@ -24,11 +24,11 @@ object Constrained:
   /**
    * Constructs a [[Constrained]] value with nicer inference than the constructor
    * @param v the value to constrain
-   * @param Guarantee[C[a.type]] evidence of the constraint
+   * @param guarantee evidence of the constraint
    * @tparam C the constraint
    * @return the constrained value
    */
-  def apply[C[_]](v: Any)(using Guarantee[C[v.type]]) = new Constrained[v.type, C](v)
+  def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]) = new Constrained[v.type, C](v)
 
   /**
    * Partitions an iterable into a [[Tuple2]] where
@@ -48,6 +48,6 @@ object Constrained:
   ): (I[V Constrained Inverse[C]], I[V Constrained C]) =
     iterable.partitionMap { v =>
       Guarantee.runtimeCheck(using runtimeCheck(v)) match
-        case Left(given Guarantee[not[C[v.type]]]) => Left(Constrained(v))
-        case Right(given Guarantee[C[v.type]]) => Right(Constrained(v))
+        case Left(invertedGuarantee: Guarantee[not[C[v.type]]]) => Left(Constrained(v)(invertedGuarantee))
+        case Right(guarantee: Guarantee[C[v.type]]) => Right(Constrained(v)(guarantee))
     }

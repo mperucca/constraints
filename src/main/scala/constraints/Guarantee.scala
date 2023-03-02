@@ -43,7 +43,7 @@ object Guarantee:
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline given compileTimeCheck[C](using inline compileTimeCheck: CompileTimeCheck[C]): Guarantee[C] =
+  inline def compileTimeCheck[C](using inline compileTimeCheck: CompileTimeCheck[C]): Guarantee[C] =
     inline compileTimeCheck.valid match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
