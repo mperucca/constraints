@@ -44,8 +44,9 @@ import scala.util.Random
     type A
     type B
     summon[Guarantee[not[not[A]]] =:= Guarantee[A]]
-    summon[Guarantee[(A, B) ForAll ([X] =>> X !== 5)] <:< Guarantee[B !== 5]]
+    summon[Guarantee[ForAll[(A, B), [X] =>> X !== 5]] <:< Guarantee[B !== 5]]
     summon[Guarantee[not[A xor B]] <:< Guarantee[(A and not[B]) implies not[A or B]]]
+    summon[Guarantee[ForAll[(A, B), [X] =>> true]] =:= Guarantee[not[Exists[(A, B), [X] =>> false]]]]
   }
 
   // refinement example
@@ -125,4 +126,17 @@ import scala.util.Random
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
     Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== ((1, DealiasTest) & Singleton)]
+  }
+
+  // Type class and bounds interplay
+  {
+    val minimum = Percentage(0)(Guarantee.compileTimeCheck)
+    val maximum = Percentage(1)(Guarantee.compileTimeCheck)
+    val average = Percentage(.5)(Guarantee.compileTimeCheck)
+  }
+
+  // Compile time API helpers
+  {
+    val minimum = Percentage.compileTimeCheck(0)
+    val maximum = Constrained.compileTimeCheck[Percentage.Constraint](1d)
   }

@@ -31,6 +31,15 @@ object Constrained:
   def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]) = new Constrained[v.type, C](v)
 
   /**
+   * Constructs a [[Constrained]] value if the compile time check succeeds; otherwise, fails with a compile time error
+   * @param v the value the constrain
+   * @tparam C the constraint to check
+   * @return the constrained value
+   */
+  inline def compileTimeCheck[C[_]](v: Any): Constrained[v.type, C] =
+    Constrained(v)(Guarantee.compileTimeCheck(using compiletime.summonInline))
+
+  /**
    * Partitions an iterable into a [[Tuple2]] where
    * the 1st item contains values and inverse [[Guarantee]]s that the inverse of constraint [[C]] holds
    * the 2nd item contains values and [[Guarantee]]s that the constraint [[C]] holds
