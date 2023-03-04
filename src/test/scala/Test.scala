@@ -139,4 +139,7 @@ import scala.util.Random
   {
     val minimum = Percentage.compileTimeCheck(0)
     val maximum = Constrained.compileTimeCheck[Percentage.Constraint](1d)
+    val myGrade: 'B' = valueOf
+    val passing: myGrade.type Constrained Grade.Passing = Constrained.compileTimeCheck(myGrade)
+    val widened: Char Constrained Grade = passing
   }

@@ -58,19 +58,19 @@ infix type xnor[A, B] = not[A xor B]
 /**
  * Universal quantification sometimes represented by the symbol ∀
  * @tparam T the set of terms
- * @tparam P the predicate that holds for each term
+ * @tparam C the constraint that holds for each term
  */
-type ForAll[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], true, and]
+type ForAll[T <: Tuple, C[_]] = Tuple.Fold[Tuple.Map[T, C], true, and]
 
 /**
  * Existential quantification sometimes represented by the symbol ∃
  * @tparam T the set of terms
- * @tparam P the predicate that holds for at least one term
+ * @tparam C the constraint that holds for at least one term
  */
-type Exists[T <: Tuple, P[_]] = Tuple.Fold[Tuple.Map[T, P], false, or]
+type Exists[T <: Tuple, C[_]] = Tuple.Fold[Tuple.Map[T, C], false, or]
 
 /**
  * The inverse of a predicate
- * @tparam P the predicate to invert
+ * @tparam C the constraint to invert
  */
-type Inverse[P[_]] = [X] =>> not[P[X]]
+type Inverse[C[_]] = [X] =>> not[C[X]]
