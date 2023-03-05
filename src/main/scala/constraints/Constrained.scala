@@ -8,7 +8,7 @@ import scala.collection.IterableOps
  * @tparam V the type being constrained
  * @tparam C the constraint
  */
-infix class Constrained[+V, C[_]] private(val value: V):
+infix class Constrained[+V, C[_]] private(val value: V) extends AnyVal:
 
   /**
    * Gets the guarantee (which must exist since [[Constrained.apply]] needed it to construct this instance)
@@ -21,11 +21,6 @@ infix class Constrained[+V, C[_]] private(val value: V):
  */
 object Constrained:
 
-  given widen[V1 <: V2, C1[_], V2, C2[_]](
-    using Normalize[C1[V1]] <:< Normalize[C2[V2]]
-  ): Conversion[Constrained[V1, C1], Constrained[V2, C2]] =
-    c => new Constrained(c.value)
-
   /**
    * Constructs a [[Constrained]] value with nicer inference than the constructor
    * @param v the value to constrain
@@ -35,17 +30,6 @@ object Constrained:
    */
   def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]) =
     new Constrained[v.type, C](v)
-
-  /**
-   * Constructs a [[Constrained]] value if the compile time check succeeds; otherwise, fails with a compile time error
-   * @param v the value the constrain
-   * @tparam C the constraint to check
-   * @return the constrained value
-   */
-  inline def compileTimeCheck[C[_]](v: Any)(
-    using compileTimeCheck: CompileTimeCheck[C[v.type]]
-  ): Constrained[v.type, C] =
-    Constrained(v)(Guarantee.compileTimeCheck)
 
   /**
    * Partitions an iterable into a [[Tuple2]] where

@@ -46,7 +46,7 @@ import scala.util.Random
     summon[Guarantee[not[not[A]]] =:= Guarantee[A]]
     summon[Guarantee[ForAll[(A, B), [X] =>> X !== 5]] <:< Guarantee[B !== 5]]
     summon[Guarantee[not[A xor B]] <:< Guarantee[(A and not[B]) implies not[A or B]]]
-    summon[Guarantee[ForAll[(A, B), [X] =>> true]] =:= Guarantee[not[Exists[(A, B), [X] =>> false]]]]
+    summon[Guarantee[ForAll[(A, B), [_] =>> true]] =:= Guarantee[not[Exists[(A, B), [_] =>> false]]]]
   }
 
   // refinement example
@@ -138,8 +138,10 @@ import scala.util.Random
   // Compile time API helpers
   {
     val minimum = Percentage.compileTimeCheck(0)
-    val maximum = Constrained.compileTimeCheck[Percentage.Constraint](1d)
+    val maximum = Constrained[Percentage.Constraint](1d)(Guarantee.compileTimeCheck)
     val myGrade: 'B' = valueOf
-    val passing: myGrade.type Constrained Grade.Passing = Constrained.compileTimeCheck(myGrade)
-    val widened: Char Constrained Grade = passing
+    val passing: Guarantee[Grade.Passing[myGrade.type]] = Guarantee.compileTimeCheck
+    import Grade.*
+    val widened: Char Constrained Grade = Constrained(myGrade)(passing.toGrade)
+    val failing: Char Constrained Grade.Failing = Constrained('F')(Guarantee.compileTimeCheck)
   }

@@ -9,4 +9,4 @@ object Percentage:
   def apply(d: Double)(guarantee: Guarantee[Percentage.Constraint[d.type]]): Percentage[d.type] =
     Constrained(d)(guarantee)
 
-  inline def compileTimeCheck(d: Double): Percentage[d.type] = Constrained.compileTimeCheck(d)
+  inline def compileTimeCheck(d: Double): Percentage[d.type] = Constrained(d)(Guarantee.compileTimeCheck)
