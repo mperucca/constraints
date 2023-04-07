@@ -42,7 +42,7 @@ infix type implies[A, B] = not[A] or B
 infix type nand[A, B] = not[A and B]
 
 /**
- * The NOR operator somethime represented by the symbol ⊽
+ * The NOR operator sometimes represented by the symbol ⊽
  * @tparam A the first term
  * @tparam B the second term
  */

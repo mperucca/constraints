@@ -120,7 +120,7 @@ import scala.util.Random
     val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
     Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
-    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
+    val fraction3: Fraction.BlackBox = Fraction(7, Random.between(8, 9))(Guarantee.trust)
     Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
 

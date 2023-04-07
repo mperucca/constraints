@@ -1,12 +1,10 @@
 import constraints.*
 
-type Fraction = Fraction.BlackBox
-
 object Fraction:
 
-  type BlackBox = Fraction.WhiteBox[Int, Int]
+  type BlackBox = Fraction.WhiteBox[?, ?]
 
-  class WhiteBox[+N <: Int, +D <: Int](val numerator: N, val denominator: D)(
+  class WhiteBox[N <: Int, D <: Int](val numerator: N, val denominator: D)(
     val nonZeroDenominator: Guarantee[denominator.type !== 0]
   )
 

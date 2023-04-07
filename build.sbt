@@ -11,5 +11,6 @@ libraryDependencies ++= Seq(
 )
 
 scalacOptions ++= Seq(
-//  "-Xfatal-warnings"
+  "-Xfatal-warnings",
+  "-Yexplicit-nulls"
 )
