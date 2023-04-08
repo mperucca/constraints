@@ -34,7 +34,7 @@ object Guarantee:
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def runtimeCheck[C](using runtimeCheck: RuntimeCheck[C]): Either[Guarantee[not[C]], Guarantee[C]] =
+  def runtimeCheck[C](using runtimeCheck: RuntimeCheck[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
     Either.cond(runtimeCheck.succeeded, trust, trust)
 
   /**

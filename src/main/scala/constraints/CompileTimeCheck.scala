@@ -78,15 +78,16 @@ object CompileTimeCheck:
   transparent inline given truth: CompileTimeCheck[true] = True
 
   /**
-   * Type class instance of [[CompileTimeCheck]] for [[not]]
+   * Type class instance of [[CompileTimeCheck]] for [[Not]]
+   *
    * @param compileTimeCheck the [[CompileTimeCheck]] instance to negate
    * @tparam C the constraint to negate
    * @return a [[CompileTimeCheck]] for the negation of [[C]]
-   *         [[not]] on false becomes true
-   *         [[not]] on unknown stays unknown
-   *         [[not]] on true becomes false
+   *         [[Not]] on false becomes true
+   *         [[Not]] on unknown stays unknown
+   *         [[Not]] on true becomes false
    */
-  transparent inline given [C](using inline compileTimeCheck: CompileTimeCheck[C]): CompileTimeCheck[not[C]] =
+  transparent inline given [C](using inline compileTimeCheck: CompileTimeCheck[C]): CompileTimeCheck[Not[C]] =
     inline compileTimeCheck.valid match
       case false => True
       case null => Unknown

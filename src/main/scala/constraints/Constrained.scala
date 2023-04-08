@@ -49,7 +49,7 @@ object Constrained:
   ): (I[V Constrained Inverse[C]], I[V Constrained C]) =
     iterable.partitionMap { v =>
       Guarantee.runtimeCheck(using runtimeCheck(v)) match
-        case Left(invertedGuarantee: Guarantee[not[C[v.type]]]) =>
+        case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
           Left(Constrained(v)(invertedGuarantee))
         case Right(guarantee: Guarantee[C[v.type]]) =>
           Right(Constrained(v)(guarantee))

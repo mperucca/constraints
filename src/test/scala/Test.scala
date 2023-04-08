@@ -43,10 +43,10 @@ import scala.util.Random
   {
     type A
     type B
-    summon[Guarantee[not[not[A]]] =:= Guarantee[A]]
+    summon[Guarantee[Not[Not[A]]] =:= Guarantee[A]]
     summon[Guarantee[ForAll[(A, B), [X] =>> X !== 5]] <:< Guarantee[B !== 5]]
-    summon[Guarantee[not[A xor B]] <:< Guarantee[(A and not[B]) implies not[A or B]]]
-    summon[Guarantee[ForAll[(A, B), [_] =>> true]] =:= Guarantee[not[Exists[(A, B), [_] =>> false]]]]
+    summon[Guarantee[Not[A xor B]] <:< Guarantee[(A and Not[B]) implies Not[A or B]]]
+    summon[Guarantee[ForAll[(A, B), [_] =>> true]] =:= Guarantee[Not[Exists[(A, B), [_] =>> false]]]]
   }
 
   // refinement example
@@ -76,9 +76,9 @@ import scala.util.Random
   // dependent constraints on collections examples
   {
     Guarantee.compileTimeCheck[Unique[(1, 2, 3)]]
-    Guarantee.compileTimeCheck[not[Unique[(1, 2, 2)]]]
+    Guarantee.compileTimeCheck[Not[Unique[(1, 2, 2)]]]
     Guarantee.compileTimeCheck[Unique["abc"]]
-    Guarantee.compileTimeCheck[not[Unique["abb"]]]
+    Guarantee.compileTimeCheck[Not[Unique["abb"]]]
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
     if summon[RuntimeCheck[Unique[list.type]]].succeeded
@@ -120,7 +120,7 @@ import scala.util.Random
     val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
     Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
-    val fraction3: Fraction.BlackBox = Fraction(7, Random.between(8, 9))(Guarantee.trust)
+    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
     Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
 

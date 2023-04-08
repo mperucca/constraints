@@ -4,7 +4,7 @@ package constraints
  * Represents negation sometimes represented by the symbol ¬
  * @tparam A the term to negate
  */
-sealed trait not[A]
+sealed trait Not[A]
 
 /**
  * Logical conjunction sometimes represented by the symbol ∧
@@ -32,28 +32,28 @@ infix sealed trait xor[A, B]
  * @tparam A the antecedent term
  * @tparam B the consequent term
  */
-infix type implies[A, B] = not[A] or B
+infix type implies[A, B] = Not[A] or B
 
 /**
  * The NAND operator sometimes represented by the symbol ⊼
  * @tparam A the first term
  * @tparam B the second term
  */
-infix type nand[A, B] = not[A and B]
+infix type nand[A, B] = Not[A and B]
 
 /**
  * The NOR operator sometimes represented by the symbol ⊽
  * @tparam A the first term
  * @tparam B the second term
  */
-infix type nor[A, B] = not[A or B]
+infix type nor[A, B] = Not[A or B]
 
 /**
  * Material equivalence sometimes represented by the symbol ⇔
  * @tparam A the first term of the equivalence
  * @tparam B the second term of the equivalence
  */
-infix type xnor[A, B] = not[A xor B]
+infix type xnor[A, B] = Not[A xor B]
 
 /**
  * Universal quantification sometimes represented by the symbol ∀
@@ -73,4 +73,4 @@ type Exists[T <: Tuple, C[_]] = Tuple.Fold[Tuple.Map[T, C], false, or]
  * The inverse of a predicate
  * @tparam C the constraint to invert
  */
-type Inverse[C[_]] = [X] =>> not[C[X]]
+type Inverse[C[_]] = [X] =>> Not[C[X]]

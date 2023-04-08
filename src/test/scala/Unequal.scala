@@ -2,6 +2,6 @@ import constraints.*
 
 import scala.annotation.targetName
 
-type Unequal[A, B] = not[Equal[A, B]]
+type Unequal[A, B] = Not[Equal[A, B]]
 @targetName("Unequal")
-type !==[A, B] = not[A === B]
+type !==[A, B] = Not[A === B]
