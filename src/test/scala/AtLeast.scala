@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, RuntimeCheck}
+import constraints.{CompileTimeCheck, Extractable, RuntimeCheck}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -45,8 +45,8 @@ object AtLeast:
   private def implChar[Value <: Char: Type, Minimum <: Char: Type](using Quotes): Expr[false | Null | true] =
     impl[Value, Minimum, Char]
 
-  private def impl[Value <: Orderable: Type, Minimum <: Orderable: Type, Orderable: Ordering](using Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnConstant[(Value, Minimum)] {
+  private def impl[Value <: Orderable & Extractable: Type, Minimum <: Orderable & Extractable: Type, Orderable: Ordering](using Quotes): Expr[false | Null | true] =
+    CompileTimeCheck.fromRuntimeCheckOnTuple[(Value, Minimum)] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 

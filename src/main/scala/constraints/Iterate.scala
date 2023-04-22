@@ -41,6 +41,7 @@ object Iterate:
 
   /**
    * The type class instance of [[Iterate]] for [[String]]s
+   * @note the [[Int]]s it iterates over are code points, not [[Char]]s
    * @return the type class instance of [[Iterate]] for [[String]]s
    */
   given Iterate[String, Int] = _.codePoints().nn.toArray.nn

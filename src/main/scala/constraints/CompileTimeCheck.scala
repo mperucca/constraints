@@ -33,13 +33,19 @@ object CompileTimeCheck:
    *         null if the value cannot be extracted, and
    *         true if the extracted value passes the runtime check
    */
-  def fromRuntimeCheckOnConstant[V: Type](runtimeCheck: (v: V) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
-    valueOfConstantRecursive[V] match
-      case None => '{null}
-      case Some(v) =>
-        if runtimeCheck(v).succeeded
-        then '{true}
-        else '{false}
+  def fromRuntimeCheckOnConstant[V <: Extractable: Type](runtimeCheck: (v: V) => RuntimeCheck[Nothing])(using Quotes): Expr[false | Null | true] =
+    fromRuntimeCheck(Extractable.extract[V].map(runtimeCheck))
+
+  def fromRuntimeCheckOnTuple[T <: Tuple : Type](runtimeCheck: (v: T) => RuntimeCheck[Nothing])(using Quotes, Tuple.Union[T] <:< Extractable): Expr[false | Null | true] =
+    fromRuntimeCheck(Extractable.extract[Group.FromTuple[T]].map(v => runtimeCheck(v.toTuple.asInstanceOf[T])))
+
+  def fromRuntimeCheck(possibleRuntimeCheck: Option[RuntimeCheck[Nothing]])(using Quotes): Expr[false | Null | true] =
+    possibleRuntimeCheck match
+      case None => '{ null }
+      case Some(runtimeCheck) =>
+        if runtimeCheck.succeeded
+        then '{ true }
+        else '{ false }
 
   /**
    * A check that inlines false (constraint satisfaction invalidated)

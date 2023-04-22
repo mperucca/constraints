@@ -75,8 +75,8 @@ import scala.util.Random
 
   // dependent constraints on collections examples
   {
-    Guarantee.compileTimeCheck[Unique[(1, 2, 3)]]
-    Guarantee.compileTimeCheck[Not[Unique[(1, 2, 2)]]]
+    Guarantee.compileTimeCheck[Unique[Group.FromTuple[(1, 2, 3)]]]
+    Guarantee.compileTimeCheck[Not[Unique[Group.FromTuple[(1, 2, 2)]]]]
     Guarantee.compileTimeCheck[Unique["abc"]]
     Guarantee.compileTimeCheck[Not[Unique["abb"]]]
 
@@ -87,10 +87,10 @@ import scala.util.Random
 
     val a: 1 = 1
     val b: 2 = valueOf
-    type Tupled = (a.type, b.type, 3)
+    type Tupled = Group.FromTuple[(a.type, b.type, 3)]
     import constraints.nonEmptyTupleValueOf // not sure why the standard library doesn't provide this...
     val tuple: Tupled = valueOf
-    type DoubleCheckUniqueness = Unique[tuple.type] and Unique[(a.type, b.type, 3)]
+    type DoubleCheckUniqueness = Unique[tuple.type] and Unique[Group.FromTuple[(a.type, b.type, 3)]]
     Guarantee.compileTimeCheck[DoubleCheckUniqueness]
   }
 
@@ -125,7 +125,7 @@ import scala.util.Random
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
-    Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== ((1, DealiasTest) & Singleton)]
+    Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== Group.FromTuple[(1, DealiasTest)]]
   }
 
   // Type class and bounds interplay
