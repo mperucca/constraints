@@ -12,13 +12,13 @@ object Unique:
     valueOf[I].toIterable.forall(soFar.add)
   }
 
-  transparent inline given compileTimeCheckTuple[T <: Group]: CompileTimeCheck[Unique[T]] =
-    CompileTimeCheckTuple[T]
+  transparent inline given compileTimeCheckGroup[T <: Group]: CompileTimeCheck[Unique[T]] =
+    CompileTimeCheckGroup[T]
 
   transparent inline given compileTimeCheckString[S <: String]: CompileTimeCheck[Unique[S]] =
     CompileTimeCheckString[S]
 
-  private class CompileTimeCheckTuple[T <: Group] extends CompileTimeCheck[Unique[T]]:
+  private class CompileTimeCheckGroup[T <: Group] extends CompileTimeCheck[Unique[T]]:
     override transparent inline def valid: false | Null | true = ${implTuple[T]}
 
   private class CompileTimeCheckString[S <: String] extends CompileTimeCheck[Unique[S]]:

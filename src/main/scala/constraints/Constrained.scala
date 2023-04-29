@@ -1,7 +1,5 @@
 package constraints
 
-import scala.collection.IterableOps
-
 /**
  * A value with an attached constraint
  * @param value the value constrained by [[C]]
@@ -32,25 +30,20 @@ object Constrained:
     new Constrained[v.type, C](v)
 
   /**
-   * Partitions an iterable into a [[Tuple2]] where
-   * the 1st item contains values and inverse [[Guarantee]]s that the inverse of constraint [[C]] holds
-   * the 2nd item contains values and [[Guarantee]]s that the constraint [[C]] holds
+   * Checks constraint [[C]] on value [[v]] at runtime
    *
-   * @param iterable the values to check constraint [[P]] on
-   * @param runtimeCheck the runtime check constraint to perform
-   * @param I[V] <:< IterableOps[V, I, I[V]] evidence that the values can be iterated over
-   * @tparam I the iterable type
-   * @tparam V the value type inside the iterable
-   * @tparam C the constraint to check on each value
-   * @return a tuple containing
+   * @param v the value to check
+   * @param RuntimeCheck[C[v.type]] the runtime check to run
+   * @tparam C the constraint to check
+   * @return a constrained value:
+   *         if the constraint check fails
+   *          - a [[Left]] containing the value and an inverse [[Guarantee]] that the inverse of constraint [[C]] holds
+   *         otherwise
+   *          - a [[Right]] containing the value and a [[Guarantee]] that constraint [[C]] holds
    */
-  def partition[I[_], V, C[_]](iterable: I[V])(runtimeCheck: (a: V) => RuntimeCheck[C[a.type]])(
-    using I[V] <:< IterableOps[V, I, I[V]]
-  ): (I[V Constrained Inverse[C]], I[V Constrained C]) =
-    iterable.partitionMap { v =>
-      Guarantee.runtimeCheck(using runtimeCheck(v)) match
-        case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
-          Left(Constrained(v)(invertedGuarantee))
-        case Right(guarantee: Guarantee[C[v.type]]) =>
-          Right(Constrained(v)(guarantee))
-    }
+  def runtimeCheck[C[_]](v: Any)(using RuntimeCheck[C[v.type]]): Either[v.type Constrained Inverse[C], v.type Constrained C] =
+    Guarantee.runtimeCheck[C[v.type]] match
+      case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
+        Left(Constrained(v)(invertedGuarantee))
+      case Right(guarantee: Guarantee[C[v.type]]) =>
+        Right(Constrained(v)(guarantee))

@@ -45,7 +45,7 @@ object AtLeast:
   private def implChar[Value <: Char: Type, Minimum <: Char: Type](using Quotes): Expr[false | Null | true] =
     impl[Value, Minimum, Char]
 
-  private def impl[Value <: Orderable & Extractable: Type, Minimum <: Orderable & Extractable: Type, Orderable: Ordering](using Quotes): Expr[false | Null | true] =
+  private def impl[Value <: Orderable: Type, Minimum <: Orderable: Type, Orderable <: Extractable: Ordering](using Quotes): Expr[false | Null | true] =
     CompileTimeCheck.fromRuntimeCheckOnTuple[(Value, Minimum)] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }

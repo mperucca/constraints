@@ -9,7 +9,7 @@ type Primitive = Boolean | Byte | Short | Int | Long | Float | Double | Char | S
 object Extractable:
 
   /**
-   * Extracts the value of a constant type during macro expansion, possible recursively from nested tuples
+   * Extracts the value of a constant type during macro expansion, possible recursively from nested [[Group]]s
    *
    * @param Quotes for macro operations
    * @tparam T the type to extract the value from

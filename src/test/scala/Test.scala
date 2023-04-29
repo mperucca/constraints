@@ -69,8 +69,8 @@ import scala.util.Random
     alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
     trait Letter[C]
-    given letterRuntimeCheck[C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
-    Constrained.partition(alphanumerics)(c => letterRuntimeCheck[c.type]): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
+    given [C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
+    alphanumerics.partitionMap(c => Constrained.runtimeCheck[Letter](c)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
 
   // dependent constraints on collections examples
