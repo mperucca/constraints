@@ -65,10 +65,10 @@ import scala.util.Random
   {
     val alphanumerics = Random.alphanumeric.take(9)
 
-    trait Alphanumeric[C]
+    type Alphanumeric[C]
     alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
-    trait Letter[C]
+    type Letter[C]
     given [C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
     alphanumerics.partitionMap(c => Constrained.runtimeCheck[Letter](c)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
@@ -87,10 +87,9 @@ import scala.util.Random
 
     val a: 1 = 1
     val b: 2 = valueOf
-    type Tupled = Group.FromTuple[(a.type, b.type, 3)]
-    import constraints.nonEmptyTupleValueOf // not sure why the standard library doesn't provide this...
-    val tuple: Tupled = valueOf
-    type DoubleCheckUniqueness = Unique[tuple.type] and Unique[Group.FromTuple[(a.type, b.type, 3)]]
+    type Grouped = Group.FromTuple[(a.type, b.type, 3)]
+    val group: Grouped = valueOf
+    type DoubleCheckUniqueness = Unique[group.type] and Unique[Group.FromTuple[(a.type, b.type, 3)]]
     Guarantee.compileTimeCheck[DoubleCheckUniqueness]
   }
 
