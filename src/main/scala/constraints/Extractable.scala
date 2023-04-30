@@ -2,21 +2,30 @@ package constraints
 
 import scala.quoted.*
 
+/**
+ * Types for which value extraction has been implemented
+ */
 type Extractable = Primitive | Group
 
+/**
+ * The primitive types builtin to Scala
+ */
 type Primitive = Boolean | Byte | Short | Int | Long | Float | Double | Char | String
 
+/**
+ * Holds the extraction method
+ */
 object Extractable:
 
   /**
    * Extracts the value of a constant type during macro expansion, possible recursively from nested [[Group]]s
    *
    * @param Quotes for macro operations
-   * @tparam T the type to extract the value from
+   * @tparam V the type to extract the value from
    * @return [[Some]] value if it can be extracted from the constant type or [[None]] otherwise
    */
-  def extract[T <: Extractable : Type](using Quotes): Option[T] =
-    Extract.unapply(quotes.reflect.TypeRepr.of[T]).map(_.asInstanceOf[T])
+  def extract[V <: Extractable : Type](using Quotes): Option[V] =
+    Extract.unapply(quotes.reflect.TypeRepr.of[V]).map(_.asInstanceOf[V])
 
   private object Extract:
     def unapply(using Quotes)(tpe: quotes.reflect.TypeRepr): Option[Extractable] =

@@ -12,41 +12,46 @@ object RuntimeCheck:
 
   /**
    * Constructs a [[RuntimeCheck]] with the provided result
-   * @param succeeded whether the runtime check succeeded or not
+   *
+   * @param succeeds whether or not the runtime check passes
    * @tparam C the constraint type
    * @return the [[RuntimeCheck]] value
    */
-  def apply[C](succeeded: Boolean): RuntimeCheck[C] = succeeded
+  def apply[C](succeeds: Boolean): RuntimeCheck[C] = succeeds
 
   extension (runtimeCheck: RuntimeCheck[Nothing])
 
     /**
-     * Unwraps result from the [[RuntimeCheck]]
+     * Unwraps the result from the [[RuntimeCheck]]
      */
     def succeeded: Boolean = runtimeCheck
 
   /**
-   * A type class instance for that always returns true
+   * A type class instance that always returns true
+   *
    * @return the [[RuntimeCheck]] instance for true
    */
   given success: RuntimeCheck[true] = true
 
   /**
-   * A type class instance for that always returns false
+   * A type class instance that always returns false
+   *
    * @return the [[RuntimeCheck]] instance for false
    */
   given failure: RuntimeCheck[false] = false
 
   /**
-   * A type class instance that inverts a runtime check
-   * @param a the runtime check to invert
-   * @tparam C the constraint type
-   * @return a runtime check that succeeds if the passed in check fails
+   * The type class instance for the negation of constraints: [[Not]]
+   *
+   * @param runtimeCheck the runtime check to invert
+   * @tparam C the constraint
+   * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */
-  given [C: RuntimeCheck]: RuntimeCheck[Not[C]] = !summon[RuntimeCheck[C]]
+  given [C](using runtimeCheck: RuntimeCheck[C]): RuntimeCheck[Not[C]] = !runtimeCheck
 
   /**
-   * The type class instance for the conjunction of constraints
+   * The type class instance for the conjunction of constraints: [[and]]
+   *
    * @param a runtime check for the first constraint
    * @param b runtime check for the second constraint (by-name as it's unnecessary if the first runtime check fails)
    * @tparam A the first constraint
@@ -56,7 +61,8 @@ object RuntimeCheck:
   given [A, B](using a: RuntimeCheck[A], b: => RuntimeCheck[B]): RuntimeCheck[A and B] = a && b
 
   /**
-   * The type class instance for the inclusive disjunction of constraints
+   * The type class instance for the inclusive disjunction of constraints [[or]]
+   *
    * @param a runtime check for the first constraint
    * @param b runtime check for the second constraint (by-name as it's unnecessary if the first runtime check succeeds)
    * @tparam A the first constraint
@@ -66,7 +72,8 @@ object RuntimeCheck:
   given [A, B](using a: RuntimeCheck[A], b: => RuntimeCheck[B]): RuntimeCheck[A or B] = a || b
 
   /**
-   * The type class instance for the exclusive disjunction of constraints
+   * The type class instance for the exclusive disjunction of constraints [[xor]]
+   *
    * @param a a runtime check for the first constraint
    * @param b a runtime check for the second constraint
    * @tparam A the first constraint

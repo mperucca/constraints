@@ -10,6 +10,7 @@ trait Iterate[-I, +V]:
 
   /**
    * Get the iterable
+   *
    * @param i the value that can be iterated over
    * @return the iterable
    */
@@ -28,12 +29,8 @@ trait Iterate[-I, +V]:
 object Iterate:
 
   /**
-   * The type class instance of [[Iterate]] for tuples of the lowest upper bound of their type union
-   */
-  given [T <: Tuple, V](using Tuple.Union[T] <:< V): Iterate[T, V] = _.toList.asInstanceOf[Iterable[V]]
-
-  /**
    * The type class instance of [[Iterate]] for [[Iterable]]s
+   * 
    * @tparam V the type of items in the [[Iterable]]
    * @return the type class instance of [[Iterate]] for [[Iterable]]s
    */
@@ -41,6 +38,7 @@ object Iterate:
 
   /**
    * The type class instance of [[Iterate]] for [[String]]s
+   * 
    * @note the [[Int]]s it iterates over are code points, not [[Char]]s
    * @return the type class instance of [[Iterate]] for [[String]]s
    */

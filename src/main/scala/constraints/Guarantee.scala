@@ -11,7 +11,8 @@ type Guarantee[C] = Guarantee.Impl[Normalize[C]]
 object Guarantee:
 
   /**
-   * The evidence type for a constraint
+   * The (hidden) evidence type for a constraint
+   * 
    * @tparam C the constraint (covariant so that more specific constraints satisfy more general constraints)
    */
   private[constraints] sealed trait Impl[+C]
@@ -23,6 +24,7 @@ object Guarantee:
 
   /**
    * Returns a guarantee based on blind trust
+   * 
    * @tparam C the constraint to trust
    * @return the trusted guarantee
    */
@@ -30,6 +32,7 @@ object Guarantee:
 
   /**
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
+   * 
    * @param runtimeCheck the runtime check to perform
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
@@ -39,6 +42,7 @@ object Guarantee:
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
+   * 
    * @param compileTimeCheck the compile time check to perform
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
