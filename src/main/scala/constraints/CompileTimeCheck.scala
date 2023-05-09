@@ -12,7 +12,7 @@ trait CompileTimeCheck[-C]:
   /**
    * The check to run at compile time.
    * If the inlining process resolves to a literal false, null, or true, then constraints can compose.
-   * 
+   *
    * @return false if the constraint doesn't hold,
    *         null if constraint satisfaction cannot be determined, and
    *         true if the constraint holds
@@ -43,7 +43,7 @@ object CompileTimeCheck:
    * Utility method for [[CompileTimeCheck]] macro implementations that evaluates a constraint by attempting to
    * extract constant values from [[Tuple]] type [[T]] and then calling the provided [[RuntimeCheck]] with the values
    * 
-   * @param runtimeChecka function returning a [[RuntimeCheck]] when given the values extracted from [[V]]
+   * @param runtimeCheck a function returning a [[RuntimeCheck]] when given the values extracted from [[V]]
    * @param Quotes performs operations on expressions
    * @param Tuple.Union[T] <:< Extractable
    * @tparam T the [[Tuple]] type from which to extract values
@@ -156,7 +156,7 @@ object CompileTimeCheck:
 
   /**
    * Type class instance of [[CompileTimeCheck]] for [[or]]
-   * 
+   *
    * @param a the first [[CompileTimeCheck]] of the inclusive disjunction
    * @param b the second [[CompileTimeCheck]] of the inclusive disjunction
    * @tparam A the first constraint of the inclusive disjunction
@@ -181,7 +181,7 @@ object CompileTimeCheck:
 
   /**
    * Type class instance of [[CompileTimeCheck]] for [[xor]]
-   * 
+   *
    * @param a the first [[CompileTimeCheck]] of the exclusive disjunction
    * @param b the second [[CompileTimeCheck]] of the exclusive disjunction
    * @tparam A the first constraint of the exclusive disjunction

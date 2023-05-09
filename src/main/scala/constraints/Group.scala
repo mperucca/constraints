@@ -1,5 +1,7 @@
 package constraints
 
+import scala.quoted.{Expr, Quotes, ToExpr, Type}
+
 /**
  * A group of extractable types/values.
  * This is equivalent to a [[Tuple]] except that it is guaranteed to be made up of only extractable types.
@@ -31,6 +33,10 @@ object Group:
      *  @return [[EmptyTuple]]
      */
     def toTuple: ToTuple[this.type] = EmptyTuple
+
+    given toExpr: ToExpr[Group.End.type] with
+      def apply(group: Group.End.type)(using Quotes): Expr[Group.End.type] =
+        '{ _root_.constraints.Group.End }
 
   /**
    * A non-empty [[Group]], analogous to [[*:]]
@@ -64,6 +70,14 @@ object Group:
      * @return a [[ValueOf]] instance to generate a runtime value of a non-empty [[Group]] type
      */
     given linkValueOf[H <: Extractable : ValueOf, T <: Group : ValueOf]: ValueOf[Link[H, T]] = ValueOf(Link(valueOf[H], valueOf[T]))
+
+    given toExpr[H <: Extractable: Type: ToExpr, T <: Group: Type: ToExpr]: ToExpr[Link[H, T]] with
+      def apply(group: Link[H, T])(using Quotes): Expr[Link[H, T]] =
+        group match
+          case Group.Link(h, t) =>
+            val head = Expr[H](h)
+            val tail = Expr[T](t)
+            '{ _root_.constraints.Group.Link($head, $tail) }
 
   /**
    * Converts a [[Tuple]] type to its corresponding [[Group]] type

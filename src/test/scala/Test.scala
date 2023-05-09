@@ -144,3 +144,48 @@ import scala.util.Random
     val widened: Char Constrained Grade = Constrained(myGrade)(passing.toGrade)
     val failing: Char Constrained Grade.Failing = Constrained('F')(Guarantee.compileTimeCheck)
   }
+
+  {
+    val low: 1 = valueOf
+    val high: 2 = valueOf
+    Guarantee.compileTimeCheck[low.type AtMost high.type]
+
+    type Low = 1
+    type High = 2
+    Guarantee.compileTimeCheck[Low AtMost High]
+  }
+
+  {
+    val s: "12345" = valueOf
+    val i: 3 = valueOf
+    summon[RuntimeComputation[i.type]]
+    Length.runtimeComputation[s.type]
+    summon[RuntimeComputation[Length[s.type]]].result: Int
+    val c = summon[RuntimeComputation[i.type LessThan Length[s.type]]]
+    println(summon[CompileTimeComputation[i.type]].result: 3)
+    println(summon[CompileTimeComputation[Length[s.type]]].result: 5)
+    println(!c.result)
+    summon[RuntimeComputation[i.type LessThan Length[s.type]]].result: Boolean
+    println(summon[CompileTimeComputation[Length[s.type]]].result: 5)
+    println(Length.compileTimeComputation[s.type].result: 5)
+    val t: "hi" = valueOf
+    println(LessThan.compileTimeComputation[Length[t.type], Length[s.type]].result: true)
+    println(LessThan.compileTimeComputation[Length[s.type], Length[t.type]].result: false)
+    val rs = Random.nextString(6)
+    println(LessThan.compileTimeComputation[Length[rs.type], Length[t.type]].result: Null)
+    println(summon[CompileTimeComputation[Length[t.type] LessThan Length[s.type]]].result: true)
+    val mys: String = Random.nextString(5)
+    inline def ex = CompileTimeComputation.constant[mys.type]
+//    println(Length.compileTimeComputation[mys.type](using ex)(using summon[ex.Result <:< String]).result)
+    println(summon[CompileTimeComputation[Length[s.type]]].result)
+    summon[CompileTimeComputation[mys.type]].result
+    val jkgk: Null = summon[CompileTimeComputation[mys.type]].result
+    summon[CompileTimeComputation[Length[s.type]]]
+    summon[CompileTimeComputation[Length[mys.type]]]
+    Length.compileTimeComputation[s.type]
+    Length.compileTimeComputation[mys.type]
+    val oj: CompileTimeComputation[Length[mys.type]] = summon[CompileTimeComputation[Length[mys.type]]]
+    println(summon[CompileTimeComputation[Length[mys.type]]].result)
+    println(LessThan.compileTimeComputation[Int, Int].result)
+    println(summon[CompileTimeComputation[String]].result: Null)
+  }

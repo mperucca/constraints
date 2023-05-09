@@ -47,3 +47,19 @@ object Extractable:
               else Some(v1)
         case tpe =>
           Option.when(tpe =:= TypeRepr.of[Group.End.type])(Group.End)
+
+  given toExpr[E <: Extractable]: ToExpr[E] with
+    def apply(extractable: E)(using Quotes): Expr[E] =
+      val expr = (extractable: Extractable) match
+        case b: Boolean => ToExpr.BooleanToExpr(b)
+        case b: Byte => ToExpr.ByteToExpr(b)
+        case s: Short => ToExpr.ShortToExpr(s)
+        case i: Int => ToExpr.IntToExpr(i)
+        case l: Long => ToExpr.LongToExpr(l)
+        case f: Float => ToExpr.FloatToExpr(f)
+        case d: Double => ToExpr.DoubleToExpr(d)
+        case c: Char => ToExpr.CharToExpr(c)
+        case s: String => ToExpr.StringToExpr(s)
+        case ge: Group.End.type => Group.End.toExpr(ge)
+        case Group.Link(h, t) => Group.Link.toExpr[Extractable, Group].apply(Group.Link(h, t))
+      (expr: Expr[Extractable]).asInstanceOf[Expr[E]]
