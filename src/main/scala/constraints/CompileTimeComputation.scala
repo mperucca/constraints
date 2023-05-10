@@ -19,8 +19,9 @@ object CompileTimeComputation:
     override type Result = Nothing
     override inline def result: Null = null
 
+  // necessary for type class inference to not widen
   transparent inline given constantSingleton[R <: Extractable & Singleton]: CompileTimeComputation.Typed[R, R] =
-    Constant[R]
+    constant[R]
 
   transparent inline given constant[R <: Extractable]: CompileTimeComputation.Typed[R, R] =
     Constant[R]
