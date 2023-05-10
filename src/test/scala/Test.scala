@@ -162,6 +162,7 @@ import scala.util.Random
     Length.runtimeComputation[s.type]
     summon[RuntimeComputation[Length[s.type]]].result: Int
     val c = summon[RuntimeComputation[i.type LessThan Length[s.type]]]
+    println(summon[CompileTimeComputation[i.type]])
     println(summon[CompileTimeComputation[i.type]].result: 3)
     println(summon[CompileTimeComputation[Length[s.type]]].result: 5)
     println(!c.result)

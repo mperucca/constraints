@@ -10,7 +10,7 @@ object Length:
 
   transparent inline given compileTimeComputation[S](using inline c: CompileTimeComputation[S])(using c.Result <:< String): CompileTimeComputation.Typed[Length[S], Int] =
     inline c.result match
-      case null => CompileTimeComputation.Unknown[Length[S], Int]
+      case null => CompileTimeComputation.Unknown
       case s: String => CompileTimeComputationImpl[s.type, S]
 
   class CompileTimeComputationImpl[S <: String, L] extends CompileTimeComputation[Length[L]]:

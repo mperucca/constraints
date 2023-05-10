@@ -2,7 +2,7 @@ package constraints
 
 import scala.quoted.*
 
-trait CompileTimeComputation[E]:
+trait CompileTimeComputation[-E]:
 
   type Result
 
@@ -10,14 +10,17 @@ trait CompileTimeComputation[E]:
 
 object CompileTimeComputation:
 
-  type Typed[E, R] = CompileTimeComputation[E] { type Result = R }
+  type Typed[-E, +R] = CompileTimeComputation[E] { type Result <: R }
 
-  transparent inline given unknown[R]: CompileTimeComputation.Typed[Null, R] =
-    Unknown[Null, R]
+  transparent inline given unknown: CompileTimeComputation.Typed[Null, Null] =
+    Unknown
 
-  class Unknown[E, R] extends CompileTimeComputation[E]:
-    override type Result = R
+  object Unknown extends CompileTimeComputation[Any]:
+    override type Result = Nothing
     override inline def result: Null = null
+
+  transparent inline given constantSingleton[R <: Extractable & Singleton]: CompileTimeComputation.Typed[R, R] =
+    Constant[R]
 
   transparent inline given constant[R <: Extractable]: CompileTimeComputation.Typed[R, R] =
     Constant[R]

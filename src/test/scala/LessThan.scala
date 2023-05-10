@@ -13,10 +13,10 @@ object LessThan:
     using inline a: CompileTimeComputation[A], inline b: CompileTimeComputation[B]
   )(using a.Result <:< Int, b.Result <:< Int): CompileTimeComputation.Typed[LessThan[A, B], Boolean] =
     inline a.result match
-      case null => CompileTimeComputation.Unknown[LessThan[A, B], Boolean]
+      case null => CompileTimeComputation.Unknown
       case l: Int =>
         inline b.result match
-          case null => CompileTimeComputation.Unknown[LessThan[A, B], Boolean]
+          case null => CompileTimeComputation.Unknown
           case h: Int => CompileTimeComputationImpl[l.type, h.type, A, B]
 
   class CompileTimeComputationImpl[A <: Int, B <: Int, Y, Z] extends CompileTimeComputation[LessThan[Y, Z]]:
@@ -24,7 +24,6 @@ object LessThan:
     override transparent inline def result: Null | Boolean = ${ impl[A, B] }
 
   private def impl[A <: Int : Type, B <: Int: Type](using Quotes): Expr[Null | Boolean] =
-    scala.quoted.quotes.reflect.report.info(scala.quoted.quotes.reflect.TypeRepr.of[B].show)
     CompileTimeComputation.fromRuntimeCheckOnTuple[(A, B), Boolean] { case (a, b) =>
       runtimeComputation[a.type, b.type]
     }
