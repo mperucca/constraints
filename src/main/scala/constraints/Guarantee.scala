@@ -33,12 +33,12 @@ object Guarantee:
   /**
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
    * 
-   * @param runtimeCheck the runtime check to perform
+   * @param c the runtime check to perform
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def runtimeCheck[C](using runtimeCheck: RuntimeCheck[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
-    Either.cond(runtimeCheck.succeeded, trust, trust)
+  def runtimeCheck[C](using c: RuntimeComputation[C])(using c.Result <:< Boolean): Either[Guarantee[Not[C]], Guarantee[C]] =
+    Either.cond(c.result, trust, trust)
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold

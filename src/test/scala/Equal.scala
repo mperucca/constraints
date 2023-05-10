@@ -9,15 +9,15 @@ type ===[A, B] = Equal[A, B]
 
 object Equal:
 
-  given runtimeCheck[A: ValueOf, B: ValueOf]: RuntimeCheck[A === B] = RuntimeCheck(valueOf[A] == valueOf[B])
+  given runtimeCheck[A: ValueOf, B: ValueOf]: RuntimeComputation.Typed[A === B, Boolean] = RuntimeComputation(valueOf[A] == valueOf[B])
 
   transparent inline given compileTimeCheckEqual[A <: Extractable, B <: Extractable]: CompileTimeComputation.Typed[A === B, Boolean] = CompileTimeCheckEqual[A, B]
 
   private class CompileTimeCheckEqual[A <: Extractable, B <: Extractable] extends CompileTimeComputation[A === B]:
     override type Result = Boolean
-    override transparent inline def result: false | Null | true = ${impl[A, B]}
+    override transparent inline def result: Null | Boolean = ${impl[A, B]}
 
-  private def impl[A <: Extractable: Type, B <: Extractable: Type](using Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnTuple[(A, B)] {
+  private def impl[A <: Extractable: Type, B <: Extractable: Type](using Quotes): Expr[Null | Boolean] =
+    CompileTimeComputation.fromRuntimeCheckOnTuple[(A, B), Boolean] {
       case (a, b) => runtimeCheck[a.type, b.type]
     }

@@ -69,7 +69,7 @@ import scala.util.Random
     alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
     type Letter[C]
-    given [C <: Char: ValueOf]: RuntimeCheck[Letter[C]] = RuntimeCheck(valueOf[C].isLetter)
+    given [C <: Char: ValueOf]: RuntimeComputation.Typed[Letter[C], Boolean] = RuntimeComputation(valueOf[C].isLetter)
     alphanumerics.partitionMap(c => Constrained.runtimeCheck[Letter](c)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
 
@@ -81,7 +81,7 @@ import scala.util.Random
     Guarantee.compileTimeCheck[Not[Unique["abb"]]]
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
-    if summon[RuntimeCheck[Unique[list.type]]].succeeded
+    if summon[RuntimeComputation[Unique[list.type]]].result
       then println(s"$list has no duplicate values")
       else println(s"$list has duplicate values")
 

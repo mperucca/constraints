@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, CompileTimeComputation, Extractable, Group, Guarantee, Iterate, RuntimeCheck}
+import constraints.{CompileTimeComputation, Extractable, Group, Guarantee, Iterate, RuntimeComputation}
 
 import scala.annotation.tailrec
 import scala.quoted.*
@@ -7,7 +7,7 @@ trait Unique[A]
 
 object Unique:
 
-  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): RuntimeCheck[Unique[I]] = RuntimeCheck {
+  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): RuntimeComputation.Typed[Unique[I], Boolean] = RuntimeComputation {
     val soFar = collection.mutable.Set.empty[A]
     valueOf[I].toIterable.forall(soFar.add)
   }
@@ -20,15 +20,15 @@ object Unique:
 
   private class CompileTimeCheckGroup[T <: Group] extends CompileTimeComputation[Unique[T]]:
     override type Result = Boolean
-    override transparent inline def result: false | Null | true = ${implTuple[T]}
+    override transparent inline def result: Null | Boolean = ${implTuple[T]}
 
   private class CompileTimeCheckString[S <: String] extends CompileTimeComputation[Unique[S]]:
     override type Result = Boolean
-    override transparent inline def result: false | Null | true = ${ implString[S] }
+    override transparent inline def result: Null | Boolean = ${ implString[S] }
 
-  private def implTuple[T <: Group: Type](using Quotes): Expr[false | Null | true] = impl
+  private def implTuple[T <: Group: Type](using Quotes): Expr[Null | Boolean] = impl
 
-  private def implString[S <: String: Type](using Quotes): Expr[false | Null | true] = impl
+  private def implString[S <: String: Type](using Quotes): Expr[Null | Boolean] = impl
 
-  private def impl[I <: Extractable: Type, A](using Iterate[I, A], Quotes): Expr[false | Null | true] =
-    CompileTimeCheck.fromRuntimeCheckOnConstant((i: I) => summon[RuntimeCheck[Unique[i.type]]])
+  private def impl[I <: Extractable: Type, A](using Iterate[I, A], Quotes): Expr[Null | Boolean] =
+    CompileTimeComputation.fromRuntimeComputationOnConstant((i: I) => summon[RuntimeComputation[Unique[i.type]]])

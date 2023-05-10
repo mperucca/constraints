@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, Constrained, Guarantee, and}
+import constraints.{Constrained, Guarantee, and}
 
 type Percentage[D <: Double] = Constrained[D, Percentage.Constraint]
 
