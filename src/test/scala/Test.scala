@@ -176,7 +176,7 @@ import scala.util.Random
     println(LessThan.compileTimeComputation[Length[rs.type], Length[t.type]].result: Null)
     println(summon[CompileTimeComputation[Length[t.type] LessThan Length[s.type]]].result: true)
     val mys: String = Random.nextString(5)
-    inline def ex = CompileTimeComputation.constant[mys.type]
+    inline def ex = CompileTimeComputation.literal[mys.type]
 //    println(Length.compileTimeComputation[mys.type](using ex)(using summon[ex.Result <:< String]).result)
     println(summon[CompileTimeComputation[Length[s.type]]].result)
     summon[CompileTimeComputation[mys.type]].result

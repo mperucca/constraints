@@ -1,4 +1,4 @@
-import constraints.{CompileTimeCheck, Extractable, RuntimeCheck}
+import constraints.{CompileTimeCheck, CompileTimeComputation, Extractable, RuntimeCheck}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -9,29 +9,33 @@ object AtLeast:
   given runtimeCheck[Value <: Orderable: ValueOf, Minimum <: Orderable: ValueOf, Orderable: Ordering]: RuntimeCheck[Value AtLeast Minimum] =
     RuntimeCheck(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
 
-  transparent inline given compileTimeCheckDouble[Value <: Double, Minimum <: Double]: CompileTimeCheck[Value AtLeast Minimum] =
+  transparent inline given compileTimeCheckDouble[Value <: Double, Minimum <: Double]: CompileTimeComputation.Typed[Value AtLeast Minimum, Boolean] =
     CompileTimeCheckDouble[Value, Minimum]
 
-  transparent inline given compileTimeCheckInt[Value <: Int, Minimum <: Int]: CompileTimeCheck[Value AtLeast Minimum] =
+  transparent inline given compileTimeCheckInt[Value <: Int, Minimum <: Int]: CompileTimeComputation.Typed[Value AtLeast Minimum, Boolean] =
     CompileTimeCheckInt[Value, Minimum]
 
-  transparent inline given compileTimeCheckString[Value <: String, Minimum <: String]: CompileTimeCheck[Value AtLeast Minimum] =
+  transparent inline given compileTimeCheckString[Value <: String, Minimum <: String]: CompileTimeComputation.Typed[Value AtLeast Minimum, Boolean] =
     CompileTimeCheckString[Value, Minimum]
 
-  transparent inline given compileTimeCheckChar[Value <: Char, Minimum <: Char]: CompileTimeCheck[Value AtLeast Minimum] =
+  transparent inline given compileTimeCheckChar[Value <: Char, Minimum <: Char]: CompileTimeComputation.Typed[Value AtLeast Minimum, Boolean] =
     CompileTimeCheckChar[Value, Minimum]
 
-  private class CompileTimeCheckDouble[Value <: Double, Minimum <: Double] extends CompileTimeCheck[Value AtLeast Minimum]:
-    override transparent inline def valid: false | Null | true = ${ implDouble[Value, Minimum] }
+  class CompileTimeCheckDouble[Value <: Double, Minimum <: Double] extends CompileTimeComputation[Value AtLeast Minimum]:
+    override type Result = Boolean
+    override transparent inline def result: false | Null | true = ${ implDouble[Value, Minimum] }
 
-  private class CompileTimeCheckChar[Value <: Char, Minimum <: Char] extends CompileTimeCheck[Value AtLeast Minimum]:
-    override transparent inline def valid: false | Null | true = ${ implChar[Value, Minimum] }
+  class CompileTimeCheckChar[Value <: Char, Minimum <: Char] extends CompileTimeComputation[Value AtLeast Minimum]:
+    override type Result = Boolean
+    override transparent inline def result: false | Null | true = ${ implChar[Value, Minimum] }
 
-  private class CompileTimeCheckInt[Value <: Int, Minimum <: Int] extends CompileTimeCheck[Value AtLeast Minimum]:
-    override transparent inline def valid: false | Null | true = ${ implInt[Value, Minimum] }
+  class CompileTimeCheckInt[Value <: Int, Minimum <: Int] extends CompileTimeComputation[Value AtLeast Minimum]:
+    override type Result = Boolean
+    override transparent inline def result: false | Null | true = ${ implInt[Value, Minimum] }
 
-  private class CompileTimeCheckString[Value <: String, Minimum <: String] extends CompileTimeCheck[Value AtLeast Minimum]:
-    override transparent inline def valid: false | Null | true = ${ implString[Value, Minimum] }
+  class CompileTimeCheckString[Value <: String, Minimum <: String] extends CompileTimeComputation[Value AtLeast Minimum]:
+    override type Result = Boolean
+    override transparent inline def result: false | Null | true = ${ implString[Value, Minimum] }
 
   private def implDouble[Value <: Double : Type, Minimum <: Double : Type](using Quotes): Expr[false | Null | true] =
     impl[Value, Minimum, Double]

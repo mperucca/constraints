@@ -43,12 +43,12 @@ object Guarantee:
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
    * 
-   * @param compileTimeCheck the compile time check to perform
+   * @param c the compile time check to perform
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def compileTimeCheck[C](using inline compileTimeCheck: CompileTimeCheck[C]): Guarantee[C] =
-    inline compileTimeCheck.valid match
+  inline def compileTimeCheck[C](using inline c: CompileTimeComputation[C])(using c.Result <:< Boolean): Guarantee[C] =
+    inline c.result match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
       case true => trust
