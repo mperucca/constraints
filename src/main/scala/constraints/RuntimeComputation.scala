@@ -19,7 +19,7 @@ object RuntimeComputation:
   /**
    * The type class instance for the negation of constraints: [[Not]]
    *
-   * @param runtimeCheck the runtime check to invert
+   * @param c the runtime check to invert
    * @tparam C the constraint
    * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */

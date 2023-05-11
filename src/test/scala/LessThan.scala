@@ -14,12 +14,17 @@ object LessThan:
   )(using a.Result <:< Int, b.Result <:< Int): CompileTimeComputation.Typed[LessThan[A, B], Boolean] =
     inline a.result match
       case null => CompileTimeComputation.Unknown
-      case l: Int =>
-        inline b.result match
-          case null => CompileTimeComputation.Unknown
-          case h: Int => CompileTimeComputationImpl[l.type, h.type, A, B]
+      case l: Int => continue[l.type, B]
 
-  class CompileTimeComputationImpl[A <: Int, B <: Int, Y, Z] extends CompileTimeComputation[LessThan[Y, Z]]:
+  // intermediary inline method needed since nested inline match doesn't reduce as intended
+  transparent inline def continue[L <: Int, B](
+    using inline b: CompileTimeComputation[B]
+  )(using b.Result <:< Int): CompileTimeComputation.Typed[Any, Boolean] =
+    inline b.result match
+      case null => CompileTimeComputation.Unknown
+      case h: Int => CompileTimeComputationImpl[L, h.type]
+
+  class CompileTimeComputationImpl[A <: Int, B <: Int] extends CompileTimeComputation[Any]:
     override type Result = Boolean
     override transparent inline def result: Null | Boolean = ${ impl[A, B] }
 

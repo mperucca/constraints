@@ -36,7 +36,7 @@ object Constrained:
    * Checks constraint [[C]] on value [[v]] at runtime
    *
    * @param v the value to check
-   * @param RuntimeCheck[C[v.type]] the runtime check to run
+   * @param c the runtime check to run
    * @tparam C the constraint to check
    * @return a constrained value:
    *         if the constraint check fails
