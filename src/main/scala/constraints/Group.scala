@@ -34,9 +34,11 @@ object Group:
      */
     def toTuple: ToTuple[this.type] = EmptyTuple
 
-    given toExpr: ToExpr[Group.End.type] with
-      def apply(group: Group.End.type)(using Quotes): Expr[Group.End.type] =
-        '{ _root_.constraints.Group.End }
+    def toExpr(using Quotes): Expr[Group.End.type] =
+      '{ _root_.constraints.Group.End }
+
+    given ToExpr[Group.End.type] with
+      def apply(group: Group.End.type)(using Quotes): Expr[Group.End.type] = toExpr
 
   /**
    * A non-empty [[Group]], analogous to [[*:]]
@@ -53,9 +55,11 @@ object Group:
      *
      *  @return the tuple
      */
-    def toTuple: ToTuple[this.type] = this match
-      case Link(Link(f, s), t) => (Link(f, s).toTuple *: t.toTuple).asInstanceOf[ToTuple[this.type]]
-      case Link(f, s) => (f *: s.toTuple).asInstanceOf[ToTuple[this.type]]
+    def toTuple: ToTuple[this.type] =
+      val recursivelyTupled = this match
+        case Link(Link(f, s), t) => Link(f, s).toTuple *: t.toTuple
+        case Link(f, s) => f *: s.toTuple
+      recursivelyTupled.asInstanceOf[ToTuple[this.type]]
 
   /**
    * Contains [[Link]] helpers
@@ -69,14 +73,15 @@ object Group:
      * @tparam T the type of the tail
      * @return a [[ValueOf]] instance to generate a runtime value of a non-empty [[Group]] type
      */
-    given linkValueOf[H <: Extractable : ValueOf, T <: Group : ValueOf]: ValueOf[Link[H, T]] = ValueOf(Link(valueOf[H], valueOf[T]))
+    given linkValueOf[H <: Extractable : ValueOf, T <: Group : ValueOf]: ValueOf[Link[H, T]] =
+      ValueOf(Link(valueOf[H], valueOf[T]))
 
     given toExpr[H <: Extractable: Type: ToExpr, T <: Group: Type: ToExpr]: ToExpr[Link[H, T]] with
       def apply(group: Link[H, T])(using Quotes): Expr[Link[H, T]] =
         group match
           case Group.Link(h, t) =>
-            val head = Expr[H](h)
-            val tail = Expr[T](t)
+            val head = Expr(h)
+            val tail = Expr(t)
             '{ _root_.constraints.Group.Link($head, $tail) }
 
   /**

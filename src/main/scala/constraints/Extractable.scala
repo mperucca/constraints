@@ -8,9 +8,18 @@ import scala.quoted.*
 type Extractable = Primitive | Group
 
 /**
- * The primitive types builtin to Scala
+ * The primitive types built in to Scala
  */
-type Primitive = Boolean | Byte | Short | Int | Long | Float | Double | Char | String
+type Primitive =
+  String
+    | Boolean
+    | Byte
+    | Char
+    | Double
+    | Float
+    | Int
+    | Long
+    | Short
 
 /**
  * Holds the extraction method
@@ -42,8 +51,8 @@ object Extractable:
             case (None, v: Some[Any]) => v
             case (v: Some[Any], None) => v
             case (Some(v1), Some(v2)) =>
-              if v1 != v2 then
-                report.errorAndAbort(s"intersection type ${intersectionType.show} produced two values: $v1 and $v2")
+              if v1 != v2
+              then report.errorAndAbort(s"intersection type ${intersectionType.show} produced two values: $v1 and $v2")
               else Some(v1)
         case tpe =>
           Option.when(tpe =:= TypeRepr.of[Group.End.type])(Group.End)
@@ -60,6 +69,6 @@ object Extractable:
         case d: Double => ToExpr.DoubleToExpr(d)
         case c: Char => ToExpr.CharToExpr(c)
         case s: String => ToExpr.StringToExpr(s)
-        case ge: Group.End.type => Group.End.toExpr(ge)
+        case Group.End => Group.End.toExpr
         case Group.Link(h, t) => Group.Link.toExpr[Extractable, Group].apply(Group.Link(h, t))
       (expr: Expr[Extractable]).asInstanceOf[Expr[E]]

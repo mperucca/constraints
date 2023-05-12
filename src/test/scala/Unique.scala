@@ -7,15 +7,16 @@ trait Unique[A]
 
 object Unique:
 
-  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): RuntimeComputation.Typed[Unique[I], Boolean] = RuntimeComputation {
-    val soFar = collection.mutable.Set.empty[A]
-    valueOf[I].toIterable.forall(soFar.add)
-  }
+  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): RuntimeComputation.Predicate[Unique[I]] =
+    RuntimeComputation {
+      val soFar = collection.mutable.Set.empty[A]
+      valueOf[I].toIterable.forall(soFar.add)
+    }
 
-  transparent inline given compileTimeCheckGroup[T <: Group]: CompileTimeComputation.Typed[Unique[T], Boolean] =
+  transparent inline given compileTimeCheckGroup[T <: Group]: CompileTimeComputation.Predicate[Unique[T]] =
     CompileTimeCheckGroup[T]
 
-  transparent inline given compileTimeCheckString[S <: String]: CompileTimeComputation.Typed[Unique[S], Boolean] =
+  transparent inline given compileTimeCheckString[S <: String]: CompileTimeComputation.Predicate[Unique[S]] =
     CompileTimeCheckString[S]
 
   private class CompileTimeCheckGroup[T <: Group] extends CompileTimeComputation[Unique[T]]:

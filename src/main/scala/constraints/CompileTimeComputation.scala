@@ -12,6 +12,8 @@ object CompileTimeComputation:
 
   type Typed[-E, +R] = CompileTimeComputation[E] { type Result <: R }
 
+  type Predicate[-E] = Typed[E, Boolean]
+
   transparent inline given unknown: CompileTimeComputation.Typed[Null, Null] =
     Unknown
 
@@ -20,13 +22,13 @@ object CompileTimeComputation:
     override inline def result: Null = null
 
   // necessary for type class inference to not widen
-  transparent inline given literalSingleton[R <: Extractable & Singleton]: CompileTimeComputation.Typed[R, R] =
-    literal[R]
+  transparent inline given literal[R <: Extractable & Singleton]: CompileTimeComputation.Typed[R, R] =
+    value[R]
 
-  transparent inline given literal[R <: Extractable]: CompileTimeComputation.Typed[R, R] =
-    Literal[R]
+  transparent inline given value[R <: Extractable]: CompileTimeComputation.Typed[R, R] =
+    Value[R]
 
-  class Literal[R <: Extractable] extends CompileTimeComputation[R]:
+  class Value[R <: Extractable] extends CompileTimeComputation[R]:
     override type Result = R
     override transparent inline def result: Null | Result = ${ impl[R] }
 
@@ -39,13 +41,21 @@ object CompileTimeComputation:
       case None => '{null}
       case Some(value) => Extractable.toExpr(value)
 
-  def fromRuntimeComputationOnConstant[E <: Extractable: Type, R <: Extractable](runtimeComputation: (e: E) => RuntimeComputation.Typed[_, R])(using Quotes): Expr[Null | R] =
+  def fromRuntimeComputationOnConstant[E <: Extractable: Type, R <: Extractable](
+    runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
+  )(using Quotes): Expr[Null | R] =
     fromRuntimeComputation(Extractable.extract[E].map(runtimeComputation))
 
-  def fromRuntimeCheckOnTuple[T <: Tuple : Type, R <: Extractable](runtimeComputation: (v: T) => RuntimeComputation.Typed[_, R])(using Quotes, Tuple.Union[T] <:< Extractable): Expr[Null | R] =
-    fromRuntimeComputation(Extractable.extract[Group.FromTuple[T]].map(v => runtimeComputation(v.toTuple.asInstanceOf[T])))
+  def fromRuntimeCheckOnTuple[T <: Tuple : Type, R <: Extractable](
+    runtimeComputation: T => RuntimeComputation.Typed[Nothing, R]
+  )(using Quotes, Tuple.Union[T] <:< Extractable): Expr[Null | R] =
+    fromRuntimeComputation(
+      Extractable.extract[Group.FromTuple[T]].map(v => runtimeComputation(v.toTuple.asInstanceOf[T]))
+    )
 
-  def fromRuntimeComputation[R <: Extractable](possibleRuntimeComputation: Option[RuntimeComputation.Typed[_, R]])(using Quotes): Expr[Null | R] =
+  def fromRuntimeComputation[R <: Extractable](
+    possibleRuntimeComputation: Option[RuntimeComputation.Typed[Nothing, R]]
+  )(using Quotes): Expr[Null | R] =
     possibleRuntimeComputation match
       case None => '{ null }
       case Some(runtimeComputation) => Extractable.toExpr(runtimeComputation.result)
@@ -60,9 +70,9 @@ object CompileTimeComputation:
    *         [[Not]] on unknown stays unknown
    *         [[Not]] on true becomes false
    */
-  transparent inline given[C](using inline c: CompileTimeComputation[C])(
-    using c.Result <:< Boolean
-  ): CompileTimeComputation.Typed[Not[C], Boolean] =
+  transparent inline given[C](
+    using inline c: CompileTimeComputation.Predicate[C]
+  ): CompileTimeComputation.Predicate[Not[C]] =
     inline c.result match
       case false => CompileTimeComputation.Constant[true]
       case null => CompileTimeComputation.Unknown
@@ -81,8 +91,8 @@ object CompileTimeComputation:
    *         both being true results in true
    */
   transparent inline given[A, B](
-    using inline a: CompileTimeComputation[A], inline b: CompileTimeComputation[B]
-  )(using a.Result <:< Boolean, b.Result <:< Boolean): CompileTimeComputation.Typed[A and B, Boolean] =
+    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
+  ): CompileTimeComputation.Predicate[A and B] =
     inline a.result match
       case false => CompileTimeComputation.Constant[false]
       case null => inline b.result match
@@ -106,8 +116,8 @@ object CompileTimeComputation:
    *         both being false results in false
    */
   transparent inline given[A, B](
-    using inline a: CompileTimeComputation[A], inline b: CompileTimeComputation[B]
-  )(using a.Result <:< Boolean, b.Result <:< Boolean): CompileTimeComputation.Typed[A or B, Boolean] =
+    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
+  ): CompileTimeComputation.Predicate[A or B] =
     inline a.result match
       case false => inline b.result match
         case false => CompileTimeComputation.Constant[false]
@@ -130,8 +140,8 @@ object CompileTimeComputation:
    *         both being known results in false if they are the same and true if they are different
    */
   transparent inline given[A, B](
-    using inline a: CompileTimeComputation[A], inline b: CompileTimeComputation[B]
-  )(using a.Result <:< Boolean, b.Result <:< Boolean): CompileTimeComputation.Typed[A xor B, Boolean] =
+    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
+  ): CompileTimeComputation.Predicate[A xor B] =
     inline a.result match
       case false => inline b.result match
         case false => CompileTimeComputation.Constant[false]

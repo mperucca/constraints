@@ -5,10 +5,14 @@ sealed trait Length[I]
 
 object Length:
 
-  given runtimeComputation[S](using c: RuntimeComputation[S])(using c.Result <:< String): RuntimeComputation.Typed[Length[S], Int] =
+  given runtimeComputation[S](
+    using c: RuntimeComputation.Typed[S, String]
+  ): RuntimeComputation.Typed[Length[S], Int] =
     RuntimeComputation(c.result.length)
 
-  transparent inline given compileTimeComputation[S](using inline c: CompileTimeComputation[S])(using c.Result <:< String): CompileTimeComputation.Typed[Length[S], Int] =
+  transparent inline given compileTimeComputation[S](
+    using inline c: CompileTimeComputation.Typed[S, String]
+  ): CompileTimeComputation.Typed[Length[S], Int] =
     inline c.result match
       case null => CompileTimeComputation.Unknown
       case s: String => CompileTimeComputationImpl[s.type, S]
