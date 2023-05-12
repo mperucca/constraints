@@ -57,6 +57,9 @@ object Extractable:
         case tpe =>
           Option.when(tpe =:= TypeRepr.of[Group.End.type])(Group.End)
 
+  /**
+   * Lift an extractable value to its literal expression
+   */
   given toExpr[E <: Extractable]: ToExpr[E] with
     def apply(extractable: E)(using Quotes): Expr[E] =
       val expr = (extractable: Extractable) match

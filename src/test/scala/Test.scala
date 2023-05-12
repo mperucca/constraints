@@ -155,6 +155,7 @@ import scala.util.Random
     Guarantee.compileTimeCheck[Low AtMost High]
   }
 
+  // constraint that uses non-boolean expressions in the computation
   {
     def charAt(string: String, index: Int)(
       withinBounds: Guarantee[(index.type AtLeast 0) and (index.type LessThan Length[string.type])]

@@ -2,7 +2,7 @@ package constraints
 
 /**
  * Flattens out a constraint of type [[C]] into a chain of [[Not]]s, [[and]]s, and [[or]]s
- * @note Although [[xor]] is not written in terms of [[Not]]s, [[and]]s, and [[or]]s, it still normalizes as such.
+ * @note Although [[xor]] is not implemented in terms of [[Not]], [[and]], and [[or]], this still normalizes it as such.
  */
 type Normalize[C] = C match
   case Not[Not[c]] => Normalize[c]

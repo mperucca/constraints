@@ -2,38 +2,110 @@ package constraints
 
 import scala.quoted.*
 
+/**
+ * Type class for computing [[E]] at compile time through inlining.
+ * Only the input is exposed as a type parameter so that the output [[Result]] is inferred.
+ */
 trait CompileTimeComputation[-E]:
 
+  /**
+   * The result type of the computation
+   */
   type Result
 
+  /**
+   * Inlines the result if it can be computed; otherwise, inlines null
+   * @return
+   */
   inline def result: Null | Result
 
 object CompileTimeComputation:
 
+  /**
+   * Type alias exposing the [[Result]] type to support the Aux pattern.
+   *
+   * @tparam E the expression to compute
+   * @tparam R the computation result
+   */
   type Typed[-E, +R] = CompileTimeComputation[E] { type Result <: R }
 
+  /**
+   * Type alias for computations returning [[Boolean]]s
+   *
+   * @tparam E the expression to compute
+   */
   type Predicate[-E] = Typed[E, Boolean]
 
+  /**
+   * Type class instance of a compile time computation result being unknown, represented by null
+   * @return the type class instance for unknown computation results
+   */
   transparent inline given unknown: CompileTimeComputation.Typed[Null, Null] =
     Unknown
 
+  /**
+   * Used when a compile time computation cannot reduce to a definitive result
+   */
   object Unknown extends CompileTimeComputation[Any]:
+    /**
+     * Will never be return so typed a [[Nothing]] for covariance reasons
+     */
     override type Result = Nothing
+    /**
+     * Hardcoded to always return null
+     *  @return null
+     */
     override inline def result: Null = null
 
-  // necessary for type class inference to not widen
+  /**
+   * Type class instance to infer singleton types instead of their widened types when possible
+   * @tparam R the result type from which to extract a value
+   * @return a compile time computation that attempt to extract a result value from the result type
+   */
   transparent inline given literal[R <: Extractable & Singleton]: CompileTimeComputation.Typed[R, R] =
     value[R]
 
+  /**
+   * Type class instance for leaf types
+   *
+   * @tparam R the result type from which to extract a value
+   * @return a compile time computation that attempt to extract a result value from the result type
+   */
   transparent inline given value[R <: Extractable]: CompileTimeComputation.Typed[R, R] =
     Value[R]
 
+  /**
+   * Used when attempting to extract a value from a type
+   * @tparam R the result to attempt value extraction from
+   */
   class Value[R <: Extractable] extends CompileTimeComputation[R]:
+    /**
+     * The result type that a value might be extracted from
+     */
     override type Result = R
+
+    /**
+     * Runs the value extraction macro to attempt to extract a value from [[R]]
+     *  @return the extracted value or null
+     */
     override transparent inline def result: Null | Result = ${ impl[R] }
 
+  /**
+   * Used when it is known what type to attempt extracting the value from
+   * @tparam R the result to attempt value extraction from
+   * @note similar to [[Value]] but with the expression typed as [[Any]] for contravariance
+   */
   class Constant[R <: Extractable] extends CompileTimeComputation[Any]:
+    /**
+     * The result type that a value might be extracted from
+     */
     override type Result = R
+
+    /**
+     * Runs the value extraction macro to attempt to extract a value from [[R]]
+     *
+     * @return the extracted value or null
+     */
     override transparent inline def result: Null | Result = ${ impl[R] }
 
   private def impl[E <: Extractable: Type](using Quotes): Expr[Null | E] =
@@ -41,11 +113,31 @@ object CompileTimeComputation:
       case None => '{null}
       case Some(value) => Extractable.toExpr(value)
 
+  /**
+   * Utility method for [[CompileTimeComputation]] implementations that evaluate a computation by attempting to
+   * extract a constant value from type [[E]] and then calling the provided [[RuntimeComputation]] with the value
+   *
+   * @param runtimeComputation a function returning a [[RuntimeComputation]] when given the value extracted from [[E]]
+   * @param Quotes performs operations in macro contexts
+   * @tparam E the expression being computed
+   * @tparam R the result type of the expression
+   * @return an expression that either contains the literal result or null
+   */
   def fromRuntimeComputationOnConstant[E <: Extractable: Type, R <: Extractable](
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes): Expr[Null | R] =
     fromRuntimeComputation(Extractable.extract[E].map(runtimeComputation))
 
+  /**
+   * Utility method for [[CompileTimeComputation]] implementations that evaluates an expression type by attempting to
+   * extract values from [[Tuple]] type [[T]] and then calling the provided [[RuntimeComputation]] with the values
+   *
+   * @param runtimeComputation a function returning a [[RuntimeComputation]] when given the values extracted from [[T]]
+   * @param Quotes             performs operations in macro contexts
+   * @tparam T the tuple to extract values from
+   * @tparam R the result type of the expression
+   * @return an expression that either contains the literal result or null
+   */
   def fromRuntimeCheckOnTuple[T <: Tuple : Type, R <: Extractable](
     runtimeComputation: T => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes, Tuple.Union[T] <:< Extractable): Expr[Null | R] =
@@ -59,97 +151,3 @@ object CompileTimeComputation:
     possibleRuntimeComputation match
       case None => '{ null }
       case Some(runtimeComputation) => Extractable.toExpr(runtimeComputation.result)
-
-  /**
-   * Type class instance of [[CompileTimeComputation]] for [[Not]]
-   *
-   * @param c the [[CompileTimeComputation]] instance to negate
-   * @tparam C the constraint to negate
-   * @return a [[CompileTimeComputation]] for the negation of [[C]]
-   *         [[Not]] on false becomes true
-   *         [[Not]] on unknown stays unknown
-   *         [[Not]] on true becomes false
-   */
-  transparent inline given[C](
-    using inline c: CompileTimeComputation.Predicate[C]
-  ): CompileTimeComputation.Predicate[Not[C]] =
-    inline c.result match
-      case false => CompileTimeComputation.Constant[true]
-      case null => CompileTimeComputation.Unknown
-      case true => CompileTimeComputation.Constant[false]
-
-  /**
-   * Type class instance of [[CompileTimeComputation]] for [[and]]
-   *
-   * @param a the first [[CompileTimeComputation]] of the conjunction
-   * @param b the second [[CompileTimeComputation]] of the conjunction
-   * @tparam A the first constraint of the conjunction
-   * @tparam B the second constraint of the conjunction
-   * @return a [[CompileTimeComputation]] for the conjunction of [[A]] and [[B]]
-   *         either being false results in false
-   *         neither being false and at least one being unknown results in unknown
-   *         both being true results in true
-   */
-  transparent inline given[A, B](
-    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
-  ): CompileTimeComputation.Predicate[A and B] =
-    inline a.result match
-      case false => CompileTimeComputation.Constant[false]
-      case null => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null | true => CompileTimeComputation.Unknown
-      case true => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[true]
-
-  /**
-   * Type class instance of [[CompileTimeComputation]] for [[or]]
-   *
-   * @param a the first [[CompileTimeComputation]] of the inclusive disjunction
-   * @param b the second [[CompileTimeComputation]] of the inclusive disjunction
-   * @tparam A the first constraint of the inclusive disjunction
-   * @tparam B the second constraint of the inclusive disjunction
-   * @return a [[CompileTimeComputation]] for the inclusive disjunction of [[A]] or [[B]]
-   *         either being true results in true
-   *         neither being true and at least one being unknown results in unknown
-   *         both being false results in false
-   */
-  transparent inline given[A, B](
-    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
-  ): CompileTimeComputation.Predicate[A or B] =
-    inline a.result match
-      case false => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[true]
-      case null => inline b.result match
-        case false | null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[true]
-      case true => CompileTimeComputation.Constant[true]
-
-  /**
-   * Type class instance of [[CompileTimeComputation]] for [[xor]]
-   *
-   * @param a the first [[CompileTimeComputation]] of the exclusive disjunction
-   * @param b the second [[CompileTimeComputation]] of the exclusive disjunction
-   * @tparam A the first constraint of the exclusive disjunction
-   * @tparam B the second constraint of the exclusive disjunction
-   * @return a [[CompileTimeComputation]] for the exclusive disjunction of [[A]] xor [[B]]
-   *         either being unknown results in unknown
-   *         both being known results in false if they are the same and true if they are different
-   */
-  transparent inline given[A, B](
-    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
-  ): CompileTimeComputation.Predicate[A xor B] =
-    inline a.result match
-      case false => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[true]
-      case null => CompileTimeComputation.Unknown
-      case true => inline b.result match
-        case false => CompileTimeComputation.Constant[true]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[false]
-
