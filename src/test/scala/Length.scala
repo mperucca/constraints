@@ -1,7 +1,7 @@
 import constraints.*
 import scala.quoted.{Expr, Quotes, Type}
 
-sealed trait Length[I]
+type Length[I]
 
 object Length:
 
@@ -15,9 +15,9 @@ object Length:
   ): CompileTimeComputation.Typed[Length[S], Int] =
     inline c.result match
       case null => CompileTimeComputation.Unknown
-      case s: String => CompileTimeComputationImpl[s.type, S]
+      case s: String => CompileTimeComputationImpl[s.type]
 
-  class CompileTimeComputationImpl[S <: String, L] extends CompileTimeComputation[Length[L]]:
+  class CompileTimeComputationImpl[S <: String] extends CompileTimeComputation[Any]:
     override type Result = Int
     override transparent inline def result: Null | Int = ${ impl[S] }
 

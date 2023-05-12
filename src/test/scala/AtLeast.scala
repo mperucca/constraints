@@ -2,7 +2,7 @@ import constraints.{CompileTimeComputation, Extractable, RuntimeComputation}
 
 import scala.quoted.{Expr, Quotes, Type}
 
-sealed trait AtLeast[Value, Minimum]
+type AtLeast[Value, Minimum]
 
 object AtLeast:
 

@@ -3,7 +3,7 @@ import constraints.*
 import quoted.*
 import scala.annotation.targetName
 
-sealed trait Equal[A, B]
+type Equal[A, B]
 @targetName("Equal")
 type ===[A, B] = Equal[A, B]
 

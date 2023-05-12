@@ -2,7 +2,7 @@ import constraints.{CompileTimeComputation, RuntimeComputation}
 
 import scala.quoted.*
 
-sealed trait LessThan[A, B]
+type LessThan[A, B]
 
 object LessThan:
 

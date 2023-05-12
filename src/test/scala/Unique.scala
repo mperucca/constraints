@@ -3,7 +3,7 @@ import constraints.{CompileTimeComputation, Extractable, Group, Guarantee, Itera
 import scala.annotation.tailrec
 import scala.quoted.*
 
-trait Unique[A]
+type Unique[A]
 
 object Unique:
 
