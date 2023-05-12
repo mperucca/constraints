@@ -19,7 +19,7 @@ object Length:
 
   class CompileTimeComputationImpl[S <: String] extends CompileTimeComputation[Any]:
     override type Result = Int
-    override transparent inline def result: Null | Int = ${ impl[S] }
+    override transparent inline def result: Int | Null = ${ impl[S] }
 
-  private def impl[S <: String : Type](using Quotes): Expr[Null | Int] =
+  private def impl[S <: String : Type](using Quotes): Expr[Int | Null] =
     CompileTimeComputation.fromRuntimeComputationOnConstant((s: S) => runtimeComputation[s.type])

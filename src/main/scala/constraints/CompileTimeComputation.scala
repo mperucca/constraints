@@ -17,7 +17,7 @@ trait CompileTimeComputation[-E]:
    * Inlines the result if it can be computed; otherwise, inlines null
    * @return
    */
-  inline def result: Null | Result
+  inline def result: Result | Null
 
 object CompileTimeComputation:
 
@@ -88,7 +88,7 @@ object CompileTimeComputation:
      * Runs the value extraction macro to attempt to extract a value from [[R]]
      *  @return the extracted value or null
      */
-    override transparent inline def result: Null | Result = ${ impl[R] }
+    override transparent inline def result: Result | Null = ${ impl[R] }
 
   /**
    * Used when it is known what type to attempt extracting the value from
@@ -106,9 +106,9 @@ object CompileTimeComputation:
      *
      * @return the extracted value or null
      */
-    override transparent inline def result: Null | Result = ${ impl[R] }
+    override transparent inline def result: Result | Null = ${ impl[R] }
 
-  private def impl[E <: Extractable: Type](using Quotes): Expr[Null | E] =
+  private def impl[E <: Extractable: Type](using Quotes): Expr[E | Null] =
     Extractable.extract[E] match
       case None => '{null}
       case Some(value) => Extractable.toExpr(value)
@@ -125,7 +125,7 @@ object CompileTimeComputation:
    */
   def fromRuntimeComputationOnConstant[E <: Extractable: Type, R <: Extractable](
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
-  )(using Quotes): Expr[Null | R] =
+  )(using Quotes): Expr[R | Null] =
     fromRuntimeComputation(Extractable.extract[E].map(runtimeComputation))
 
   /**
@@ -140,14 +140,14 @@ object CompileTimeComputation:
    */
   def fromRuntimeCheckOnTuple[T <: Tuple : Type, R <: Extractable](
     runtimeComputation: T => RuntimeComputation.Typed[Nothing, R]
-  )(using Quotes, Tuple.Union[T] <:< Extractable): Expr[Null | R] =
+  )(using Quotes, Tuple.Union[T] <:< Extractable): Expr[R | Null] =
     fromRuntimeComputation(
       Extractable.extract[Group.FromTuple[T]].map(v => runtimeComputation(v.toTuple.asInstanceOf[T]))
     )
 
   def fromRuntimeComputation[R <: Extractable](
     possibleRuntimeComputation: Option[RuntimeComputation.Typed[Nothing, R]]
-  )(using Quotes): Expr[Null | R] =
+  )(using Quotes): Expr[R | Null] =
     possibleRuntimeComputation match
       case None => '{ null }
       case Some(runtimeComputation) => Extractable.toExpr(runtimeComputation.result)

@@ -21,15 +21,15 @@ object Unique:
 
   private class CompileTimeCheckGroup[T <: Group] extends CompileTimeComputation[Unique[T]]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${implTuple[T]}
+    override transparent inline def result: Boolean | Null = ${implTuple[T]}
 
   private class CompileTimeCheckString[S <: String] extends CompileTimeComputation[Unique[S]]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${ implString[S] }
+    override transparent inline def result: Boolean | Null = ${ implString[S] }
 
-  private def implTuple[T <: Group: Type](using Quotes): Expr[Null | Boolean] = impl
+  private def implTuple[T <: Group: Type](using Quotes): Expr[Boolean | Null] = impl
 
-  private def implString[S <: String: Type](using Quotes): Expr[Null | Boolean] = impl
+  private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] = impl
 
-  private def impl[I <: Extractable: Type, A](using Iterate[I, A], Quotes): Expr[Null | Boolean] =
+  private def impl[I <: Extractable: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
     CompileTimeComputation.fromRuntimeComputationOnConstant((i: I) => summon[RuntimeComputation[Unique[i.type]]])

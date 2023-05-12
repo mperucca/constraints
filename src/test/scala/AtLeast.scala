@@ -42,58 +42,58 @@ object AtLeast:
     Minimum <: Double
   ] extends CompileTimeComputation[Value AtLeast Minimum]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${ implDouble[Value, Minimum] }
+    override transparent inline def result: Boolean | Null = ${ implDouble[Value, Minimum] }
 
   class CompileTimeCheckChar[
     Value <: Char,
     Minimum <: Char
   ] extends CompileTimeComputation[Value AtLeast Minimum]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${ implChar[Value, Minimum] }
+    override transparent inline def result: Boolean | Null = ${ implChar[Value, Minimum] }
 
   class CompileTimeCheckInt[
     Value <: Int,
     Minimum <: Int
   ] extends CompileTimeComputation[Value AtLeast Minimum]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${ implInt[Value, Minimum] }
+    override transparent inline def result: Boolean | Null = ${ implInt[Value, Minimum] }
 
   class CompileTimeCheckString[
     Value <: String,
     Minimum <: String
   ] extends CompileTimeComputation[Value AtLeast Minimum]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${ implString[Value, Minimum] }
+    override transparent inline def result: Boolean | Null = ${ implString[Value, Minimum] }
 
   private def implDouble[
     Value <: Double : Type,
     Minimum <: Double : Type
-  ](using Quotes): Expr[Null | Boolean] =
+  ](using Quotes): Expr[Boolean | Null] =
     impl[Value, Minimum, Double]
 
   private def implInt[
     Value <: Int : Type,
     Minimum <: Int : Type
-  ](using Quotes): Expr[Null | Boolean] =
+  ](using Quotes): Expr[Boolean | Null] =
     impl[Value, Minimum, Int]
 
   private def implString[
     Value <: String: Type,
     Minimum <: String: Type
-  ](using Quotes): Expr[Null | Boolean] =
+  ](using Quotes): Expr[Boolean | Null] =
     impl[Value, Minimum, String]
 
   private def implChar[
     Value <: Char: Type,
     Minimum <: Char: Type
-  ](using Quotes): Expr[Null | Boolean] =
+  ](using Quotes): Expr[Boolean | Null] =
     impl[Value, Minimum, Char]
 
   private def impl[
     Value <: Orderable: Type,
     Minimum <: Orderable: Type,
     Orderable <: Extractable: Ordering
-  ](using Quotes): Expr[Null | Boolean] =
+  ](using Quotes): Expr[Boolean | Null] =
     CompileTimeComputation.fromRuntimeCheckOnTuple[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }

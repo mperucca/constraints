@@ -23,12 +23,12 @@ object Equal:
     B <: Extractable
   ] extends CompileTimeComputation[A === B]:
     override type Result = Boolean
-    override transparent inline def result: Null | Boolean = ${impl[A, B]}
+    override transparent inline def result: Boolean | Null = ${impl[A, B]}
 
   private def impl[
     A <: Extractable: Type,
     B <: Extractable: Type
-  ](using Quotes): Expr[Null | Boolean] =
+  ](using Quotes): Expr[Boolean | Null] =
     CompileTimeComputation.fromRuntimeCheckOnTuple[(A, B), Boolean] {
       case (a, b) => runtimeCheck[a.type, b.type]
     }
