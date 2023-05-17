@@ -47,11 +47,21 @@ object Guarantee:
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def compileTimeCheck[C](using inline c: CompileTimeComputation.Predicate[C]): Guarantee[C] =
+  inline given compileTimeCheck[C](using inline c: CompileTimeComputation.Predicate[C]): Guarantee[C] =
     inline c.result match
-      case false => compiletime.error("invalid")
-      case null => compiletime.error("unknown")
+      case false => compiletime.error("guarantee invalidated at compile time")
+      case null => compiletime.error("guarantee unknown at compile time")
       case true => trust
+
+  /**
+   * Given two [[Guarantee]]s, join them into a single [[Guarantee]]
+   * @param a a guarantee
+   * @param b another guarantee
+   * @tparam A the constraint of the first guarantee
+   * @tparam B the constraint of the second guarantee
+   * @return a [[Guarantee]] containing both guarantees joined by [[and]]
+   */
+  given conjunction[A, B](using a: Guarantee[A], b: Guarantee[B]): Guarantee[A and B] = a and b
 
   extension [A](guarantee: => Guarantee[A])
 
