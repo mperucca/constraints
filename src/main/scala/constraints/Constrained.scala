@@ -25,11 +25,11 @@ object Constrained:
    * Constructs a [[Constrained]] value with nicer inference than the constructor
    * 
    * @param v the value to constrain
-   * @param Guarantee[C[v.type]] evidence of the constraint
+   * @param guarantee evidence of the constraint
    * @tparam C the constraint
    * @return the constrained value
    */
-  def apply[C[_]](v: Any)(using Guarantee[C[v.type]]) =
+  def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]) =
     new Constrained[v.type, C](v)
 
   /**
@@ -48,7 +48,7 @@ object Constrained:
     using c: RuntimeComputation.Predicate[C[v.type]]
   ): Either[v.type Constrained Inverse[C], v.type Constrained C] =
     Guarantee.runtimeCheck[C[v.type]] match
-      case Left(given Guarantee[Not[C[v.type]]]) =>
-        Left(Constrained(v))
-      case Right(given Guarantee[C[v.type]]) =>
-        Right(Constrained(v))
+      case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
+        Left(Constrained(v)(invertedGuarantee))
+      case Right(guarantee: Guarantee[C[v.type]]) =>
+        Right(Constrained(v)(guarantee))

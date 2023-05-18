@@ -5,14 +5,14 @@ import scala.util.Random
 
   // safer divide method
   def divide(dividend: Int, divisor: Int)(
-    using Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
+    guarantee: Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
   ): Int = dividend / divisor
 
   // trust example
   {
     val dividend, divisor = Random.between(3, 8)
     // we trust the operands to be between 3 and 8 which meet the constraints
-    divide(dividend, divisor)(using Guarantee.trust)
+    divide(dividend, divisor)(Guarantee.trust)
   }
 
   // runtime check example
@@ -20,25 +20,23 @@ import scala.util.Random
     val dividend, divisor = Random.nextInt()
     // type alias for brevity
     type Divisible = divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)
-    def fallback(using Guarantee[Not[Divisible]]) = 0
     // we check the operands at runtime in case the random numbers violate the constraints
     Guarantee.runtimeCheck[Divisible] match
-      case Right(given Guarantee[Divisible]) => divide(dividend, divisor)
-      case Left(given Guarantee[Not[Divisible]]) => fallback
+      case Right(guarantee: Guarantee[Divisible]) => divide(dividend, divisor)(guarantee)
+      case Left(_) => println(s"cannot divide($dividend, $divisor)")
   }
 
   // can still prove with unknown if simplification makes knowledge unnecessary
   {
     val dividend = Random.nextInt()
-    divide(dividend, divisor = 4) // compiles since a positive divisor meets sufficient constraints
+    divide(dividend, divisor = 4)(Guarantee.compileTimeCheck) // compiles since a positive divisor meets sufficient constraints
   }
 
   // can provide just a sufficient part of the whole constraint options
   {
     val dividend: Int = Random.nextInt()
     val divisor: 4 = valueOf
-    given Guarantee[divisor.type !== 0 and divisor.type !== -1] = Guarantee.compileTimeCheck
-    divide(dividend, divisor) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    divide(dividend, divisor)(Guarantee.compileTimeCheck[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // constraint equivalence/satisfaction examples
@@ -55,12 +53,12 @@ import scala.util.Random
   {
     type NonZero[V] = V !== 0
     def divide(dividend: Int, divisor: Int Constrained NonZero)(
-      using Guarantee[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
+      guarantee: Guarantee[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
     ): Int = dividend / divisor.value
 
     val dividend = Random.nextInt()
-    val divisor = Constrained[NonZero](1) // compiles since 1 != 0
-    divide(dividend, divisor) // compiles since refinement on divisor exposes value as a literal 1 type
+    val divisor = Constrained[NonZero](1)(Guarantee.compileTimeCheck) // compiles since 1 != 0
+    divide(dividend, divisor)(Guarantee.compileTimeCheck) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
   // independent constraints on collections example
@@ -68,7 +66,7 @@ import scala.util.Random
     val alphanumerics = Random.alphanumeric.take(9)
 
     type Alphanumeric[C]
-    alphanumerics.map(Constrained[Alphanumeric](_)(using Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
+    alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
     type Letter[C]
     given [C <: Char: ValueOf]: RuntimeComputation.Predicate[Letter[C]] = RuntimeComputation(valueOf[C].isLetter)
@@ -112,19 +110,18 @@ import scala.util.Random
   {
     val numerator: 1 = valueOf
     val denominator: 2 = valueOf
-    val fraction = Fraction(numerator, denominator)
-    divide(fraction.numerator, fraction.denominator)
+    val fraction = Fraction(numerator, denominator)(Guarantee.compileTimeCheck)
+    divide(fraction.numerator, fraction.denominator)(Guarantee.compileTimeCheck)
 
     type NonOverflowingOnDivide[F] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
-    Constrained[NonOverflowingOnDivide](fraction)
+    Constrained[NonOverflowingOnDivide](fraction)(Guarantee.compileTimeCheck)
 
-    val fraction2 = Fraction(1, 3)
+    val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
     Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
-    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(using Guarantee.trust)
-    import fraction3.nonZeroDenominator
-    Fraction(6, fraction3.denominator)
-    divide(6, fraction3.denominator)
+    val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
+    Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
+    divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
     Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== Group.FromTuple[(1, DealiasTest)]]
@@ -132,20 +129,20 @@ import scala.util.Random
 
   // Type class and bounds interplay
   {
-    val minimum = Percentage(0)
-    val maximum = Percentage(1)
-    val average = Percentage(.5)
+    val minimum = Percentage(0)(Guarantee.compileTimeCheck)
+    val maximum = Percentage(1)(Guarantee.compileTimeCheck)
+    val average = Percentage(.5)(Guarantee.compileTimeCheck)
   }
 
   // Compile time API helpers
   {
-    val minimum = Percentage(0)
-    val maximum = Constrained[Percentage.Constraint](1d)
+    val minimum = Percentage.compileTimeCheck(0)
+    val maximum = Constrained[Percentage.Constraint](1d)(Guarantee.compileTimeCheck)
     val myGrade: 'B' = valueOf
     val passing: Guarantee[Grade.Passing[myGrade.type]] = Guarantee.compileTimeCheck
     import Grade.*
-    val widened: Char Constrained Grade = Constrained(myGrade)(using passing.toGrade)
-    val failing: Char Constrained Grade.Failing = Constrained('F')
+    val widened: Char Constrained Grade = Constrained(myGrade)(passing.toGrade)
+    val failing: Char Constrained Grade.Failing = Constrained('F')(Guarantee.compileTimeCheck)
   }
 
   {
@@ -161,8 +158,8 @@ import scala.util.Random
   // constraint that uses non-boolean expressions in the computation
   {
     def charAt(string: String, index: Int)(
-      using Guarantee[(index.type AtLeast 0) and (index.type LessThan Length[string.type])]
+      withinBounds: Guarantee[(index.type AtLeast 0) and (index.type LessThan Length[string.type])]
     ): Char = string.charAt(index)
 
-    charAt("abcde", 3)
+    charAt("abcde", 3)(Guarantee.compileTimeCheck)
   }
