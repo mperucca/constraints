@@ -20,10 +20,11 @@ import scala.util.Random
     val dividend, divisor = Random.nextInt()
     // type alias for brevity
     type Divisible = divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)
+    def fallback(guarantee: Guarantee[Not[Divisible]]) = 0
     // we check the operands at runtime in case the random numbers violate the constraints
     Guarantee.runtimeCheck[Divisible] match
       case Right(guarantee: Guarantee[Divisible]) => divide(dividend, divisor)(guarantee)
-      case Left(_) => println(s"cannot divide($dividend, $divisor)")
+      case Left(guarantee: Guarantee[Not[Divisible]]) => fallback(guarantee)
   }
 
   // can still prove with unknown if simplification makes knowledge unnecessary
