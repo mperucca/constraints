@@ -15,12 +15,7 @@ object Guarantee:
    * 
    * @tparam C the constraint (covariant so that more specific constraints satisfy more general constraints)
    */
-  private[constraints] sealed trait Impl[+C]
-
-  /**
-   * The guarantee implementation (constraint type is [[Nothing]] so that it satisfies all constraints)
-   */
-  private[constraints] object Impl extends Impl[Nothing]
+  private[constraints] opaque type Impl[+C] = Guarantee.type
 
   /**
    * Returns a guarantee based on blind trust
@@ -28,7 +23,7 @@ object Guarantee:
    * @tparam C the constraint to trust
    * @return the trusted guarantee
    */
-  def trust[C]: Guarantee[C] = Impl
+  def trust[C]: Guarantee[C] = Guarantee
 
   /**
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
