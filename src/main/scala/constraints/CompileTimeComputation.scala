@@ -112,7 +112,7 @@ object CompileTimeComputation:
     override transparent inline def result: Result | Null = ${ impl[R] }
 
   private def impl[E: Type](using Quotes): Expr[E | Null] =
-    given Extractable[E] = Extractable.apply
+    given Extractable[E] = Extractable.evidenceOrAbort
     Extractable.extract[E] match
       case None => '{null}
       case Some(value) => '{null.asInstanceOf[E]} // Don't need an actual value since only the type is inspected
@@ -130,7 +130,7 @@ object CompileTimeComputation:
   def fromRuntime[E: Type, R: Type](
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
-    given Extractable[E] = Extractable.apply
+    given Extractable[E] = Extractable.evidenceOrAbort
     fromRuntime(Extractable.extract[E].map(runtimeComputation))
 
   def fromRuntime[R: Type](
@@ -139,5 +139,5 @@ object CompileTimeComputation:
     possibleRuntimeComputation match
       case None => '{ null }
       case Some(runtimeComputation) =>
-        given Extractable[R] = Extractable.apply
+        given Extractable[R] = Extractable.evidenceOrAbort
         Extractable.toExpr[R].apply(runtimeComputation.result)

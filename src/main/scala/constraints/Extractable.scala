@@ -42,11 +42,11 @@ object Primitive:
  */
 object Extractable:
 
-  def apply[E: Type](using Quotes): Extractable[E] =
+  def evidenceOrAbort[E: Type](using Quotes): Extractable[E] =
     Expr.summon[Extractable[E]] match
       case None =>
         import quoted.quotes.reflect.*
-        report.errorAndAbort(TypeRepr.of[E].show + " cannot have values extracted from it")
+        report.errorAndAbort("cannot extract value from type " + TypeRepr.of[E].show)
       case Some(extractable) => new Extractable[E] {}
 
   given Extractable[Primitive] = new Extractable[Primitive] {}
@@ -62,7 +62,7 @@ object Extractable:
    * @tparam V the type to extract the value from
    * @return [[Some]] value if it can be extracted from the constant type or [[None]] otherwise
    */
-  def extract[V : Type](using Extractable[V], Quotes): Option[V] =
+  def extract[V : Type: Extractable](using Quotes): Option[V] =
     Extract.unapply(quotes.reflect.TypeRepr.of[V]).map(_.asInstanceOf[V])
 
   private object Extract:
@@ -95,10 +95,15 @@ object Extractable:
   /**
    * Lift an extractable value to its literal expression
    */
-  given toExpr[E: Type: Extractable]: ToExpr[E] with
+  given toExpr[E: Extractable]: ToExpr[E] with
     def apply(extractable: E)(using Quotes): Expr[E] =
       val expr = extractable match
         case p: Primitive => Primitive.toExpr[Primitive].apply(p)
         case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)
-        case h *: t => '{null.asInstanceOf[E]} // TODO make this return exact types
+        case h *: t =>
+          given Extractable[h.type] = null.asInstanceOf
+          given Extractable[t.type] = null.asInstanceOf
+          val he = toExpr[h.type].apply(h)
+          val te = toExpr[t.type].apply(t)
+          '{${he} *: ${te}}
       expr.asInstanceOf[Expr[E]]
