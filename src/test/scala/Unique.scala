@@ -32,4 +32,4 @@ object Unique:
   private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] = impl
 
   private def impl[I <: Extractable: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimeComputationOnConstant((i: I) => summon[RuntimeComputation[Unique[i.type]]])
+    CompileTimeComputation.fromRuntime((i: I) => summon[RuntimeComputation[Unique[i.type]]])

@@ -1,4 +1,6 @@
 import constraints.*
+import constraints.RuntimeComputation.Typed
+
 import scala.quoted.{Expr, Quotes, Type}
 
 type Length[I]
@@ -17,9 +19,8 @@ object Length:
       case null => CompileTimeComputation.Unknown
       case s: String => CompileTimeComputationImpl[s.type]
 
-  class CompileTimeComputationImpl[S <: String] extends CompileTimeComputation[Any]:
-    override type Result = Int
+  class CompileTimeComputationImpl[S <: String] extends CompileTimeComputation.Impl[Int]:
     override transparent inline def result: Int | Null = ${ impl[S] }
 
   private def impl[S <: String : Type](using Quotes): Expr[Int | Null] =
-    CompileTimeComputation.fromRuntimeComputationOnConstant((s: S) => runtimeComputation[s.type])
+    CompileTimeComputation.fromRuntime((s: S) => runtimeComputation[s.type])

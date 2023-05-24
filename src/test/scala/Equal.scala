@@ -29,6 +29,6 @@ object Equal:
     A <: Extractable: Type,
     B <: Extractable: Type
   ](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimeCheckOnTuple[(A, B), Boolean] {
+    CompileTimeComputation.fromRuntimeOnTuple[(A, B), Boolean] {
       case (a, b) => runtimeCheck[a.type, b.type]
     }

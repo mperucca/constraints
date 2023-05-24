@@ -31,7 +31,7 @@ object LessThan:
     override transparent inline def result: Boolean | Null = ${ impl[A, B] }
 
   private def impl[A <: Int : Type, B <: Int: Type](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimeCheckOnTuple[(A, B), Boolean] { case (a, b) =>
+    CompileTimeComputation.fromRuntimeOnTuple[(A, B), Boolean] { case (a, b) =>
       runtimeComputation[a.type, b.type]
     }
 

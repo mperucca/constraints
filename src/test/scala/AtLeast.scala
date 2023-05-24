@@ -94,7 +94,7 @@ object AtLeast:
     Minimum <: Orderable: Type,
     Orderable <: Extractable: Ordering
   ](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimeCheckOnTuple[(Value, Minimum), Boolean] {
+    CompileTimeComputation.fromRuntimeOnTuple[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 

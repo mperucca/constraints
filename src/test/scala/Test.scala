@@ -3,6 +3,26 @@ import scala.util.Random
 
 @main def test(): Unit =
 
+  {
+    def divide(dividend: Int, divisor: Int)(
+      nonZero: Guarantee[divisor.type !== 0],
+      noOverflowOnDivide: Guarantee[
+        dividend.type !== Int.MinValue.type or divisor.type !== -1
+      ]
+    ): Int = dividend / divisor
+
+    val divisor = io.StdIn.readInt()
+    Guarantee.runtimeCheck[divisor.type !== 0].foreach(
+      divide(6, divisor)(
+        _,
+        noOverflowOnDivide = Guarantee.compileTimeCheck
+      )
+    )
+
+    val guarantee: Either[Guarantee[Not[divisor.type !== 0]], Guarantee[divisor.type !== 0]] =
+      Guarantee.runtimeCheck
+  }
+
   // safer divide method
   def divide(dividend: Int, divisor: Int)(
     guarantee: Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
@@ -71,7 +91,7 @@ import scala.util.Random
 
     type Letter[C]
     given [C <: Char: ValueOf]: RuntimeComputation.Predicate[Letter[C]] = RuntimeComputation(valueOf[C].isLetter)
-    alphanumerics.partitionMap(c => Constrained.runtimeCheck[Letter](c)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
+    alphanumerics.partitionMap(Constrained.runtimeCheck[Letter](_)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
 
   // dependent constraints on collections examples

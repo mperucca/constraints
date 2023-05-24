@@ -21,6 +21,9 @@ trait CompileTimeComputation[-E]:
 
 object CompileTimeComputation:
 
+  trait Impl[R] extends CompileTimeComputation[Any]:
+    override type Result = R
+
   /**
    * Type alias exposing the [[Result]] type to support the Aux pattern.
    *
@@ -123,10 +126,10 @@ object CompileTimeComputation:
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromRuntimeComputationOnConstant[E <: Extractable: Type, R <: Extractable](
+  def fromRuntime[E <: Extractable: Type, R <: Extractable](
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
-    fromRuntimeComputation(Extractable.extract[E].map(runtimeComputation))
+    fromRuntime(Extractable.extract[E].map(runtimeComputation))
 
   /**
    * Utility method for [[CompileTimeComputation]] implementations that evaluates an expression type by attempting to
@@ -138,14 +141,14 @@ object CompileTimeComputation:
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromRuntimeCheckOnTuple[T <: Tuple : Type, R <: Extractable](
+  def fromRuntimeOnTuple[T <: Tuple : Type, R <: Extractable](
     runtimeComputation: T => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes, Tuple.Union[T] <:< Extractable): Expr[R | Null] =
-    fromRuntimeComputation(
+    fromRuntime(
       Extractable.extract[Group.FromTuple[T]].map(v => runtimeComputation(v.toTuple.asInstanceOf[T]))
     )
 
-  def fromRuntimeComputation[R <: Extractable](
+  def fromRuntime[R <: Extractable](
     possibleRuntimeComputation: Option[RuntimeComputation.Typed[Nothing, R]]
   )(using Quotes): Expr[R | Null] =
     possibleRuntimeComputation match
