@@ -1,7 +1,11 @@
-import constraints.*
+import constraints.{*, given}
 import scala.util.Random
 
 @main def test(): Unit =
+
+  Equal.compileTimeComputation[1, Int.MinValue.type]
+  summon[CompileTimeComputation[Int !== Int.MinValue.type]]
+  summon[RuntimeComputation[1 !== Int.MinValue.type]]
 
   {
     def divide(dividend: Int, divisor: Int)(
@@ -13,7 +17,7 @@ import scala.util.Random
 
     val divisor = io.StdIn.readInt()
     Guarantee.runtimeCheck[divisor.type !== 0].foreach(
-      divide(6, divisor)(
+      divide(5, divisor)(
         _,
         noOverflowOnDivide = Guarantee.compileTimeCheck
       )
@@ -96,8 +100,8 @@ import scala.util.Random
 
   // dependent constraints on collections examples
   {
-    Guarantee.compileTimeCheck[Unique[Group.FromTuple[(1, 2, 3)]]]
-    Guarantee.compileTimeCheck[Not[Unique[Group.FromTuple[(1, 2, 2)]]]]
+    Guarantee.compileTimeCheck[Unique[(1, 2, 3)]]
+    Guarantee.compileTimeCheck[Not[Unique[(1, 2, 2)]]]
     Guarantee.compileTimeCheck[Unique["abc"]]
     Guarantee.compileTimeCheck[Not[Unique["abb"]]]
 
@@ -108,9 +112,9 @@ import scala.util.Random
 
     val a: 1 = 1
     val b: 2 = valueOf
-    type Grouped = Group.FromTuple[(a.type, b.type, 3)]
+    type Grouped = (a.type, b.type, 3)
     val group: Grouped = valueOf
-    type DoubleCheckUniqueness = Unique[group.type] and Unique[Group.FromTuple[(a.type, b.type, 3)]]
+    type DoubleCheckUniqueness = Unique[group.type] and Unique[(a.type, b.type, 3)]
     Guarantee.compileTimeCheck[DoubleCheckUniqueness]
   }
 
@@ -138,6 +142,8 @@ import scala.util.Random
     Constrained[NonOverflowingOnDivide](fraction)(Guarantee.compileTimeCheck)
 
     val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
+    CompileTimeComputation.value[Fraction.Tupled[fraction.type]].result: Fraction.Tupled[fraction.type]
+    Guarantee.compileTimeCheck[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
     Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
     val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
@@ -145,7 +151,7 @@ import scala.util.Random
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
-    Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== Group.FromTuple[(1, DealiasTest)]]
+    Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== (1, DealiasTest)]
   }
 
   // Type class and bounds interplay
@@ -183,4 +189,23 @@ import scala.util.Random
     ): Char = string.charAt(index)
 
     charAt("abcde", 3)(Guarantee.compileTimeCheck)
+
+    type CW = (
+      "abcde",
+      "fghij",
+      "kllmn"
+    )
+    type G[T <: NonEmptyTuple] = ForAll[Tuple.Tail[T], [Row] =>> Length[Row] === Length[Tuple.Head[T]]]
+    def f(t: NonEmptyTuple)(using Tuple.Union[t.type] <:< String)(
+      guarantee: Guarantee[G[t.type]]
+    ) = ???
+    val t: CW = ???
+    val jlfd: RuntimeComputation.Predicate[
+      Equal[Length["fghij"], Length["abcde"]]
+    ] = Equal.runtimeComputation[Length["fghij"], Length["abcde"]]
+//    Equal.runtimeCheck[Length["fghij"], Length["abcde"]].result
+    f(t)(Guarantee.runtimeCheck[G[t.type]].getOrElse(???))
+    f(t)(Guarantee.compileTimeCheck)
+//    type G[T <: NonEmptyTuple] = ForAll[Tuple.Tail[T], [Row] =>> Length[Row] === Length[Tuple.Head[T]]]
+//    Guarantee.runtimeCheck[G[CW]]
   }

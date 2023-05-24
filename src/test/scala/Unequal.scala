@@ -4,4 +4,4 @@ import scala.annotation.targetName
 
 type Unequal[A, B] = Not[Equal[A, B]]
 @targetName("Unequal")
-type !==[A, B] = Not[A === B]
+type !==[A, B] = Unequal[A, B]

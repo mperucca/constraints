@@ -1,4 +1,4 @@
-import constraints.{CompileTimeComputation, Extractable, Group, Guarantee, Iterate, RuntimeComputation}
+import constraints.*
 
 import scala.annotation.tailrec
 import scala.quoted.*
@@ -13,13 +13,13 @@ object Unique:
       valueOf[I].toIterable.forall(soFar.add)
     }
 
-  transparent inline given compileTimeCheckGroup[T <: Group]: CompileTimeComputation.Predicate[Unique[T]] =
+  transparent inline given compileTimeCheckGroup[T <: Tuple]: CompileTimeComputation.Predicate[Unique[T]] =
     CompileTimeCheckGroup[T]
 
   transparent inline given compileTimeCheckString[S <: String]: CompileTimeComputation.Predicate[Unique[S]] =
     CompileTimeCheckString[S]
 
-  private class CompileTimeCheckGroup[T <: Group] extends CompileTimeComputation[Unique[T]]:
+  private class CompileTimeCheckGroup[T <: Tuple] extends CompileTimeComputation[Unique[T]]:
     override type Result = Boolean
     override transparent inline def result: Boolean | Null = ${implTuple[T]}
 
@@ -27,9 +27,9 @@ object Unique:
     override type Result = Boolean
     override transparent inline def result: Boolean | Null = ${ implString[S] }
 
-  private def implTuple[T <: Group: Type](using Quotes): Expr[Boolean | Null] = impl
+  private def implTuple[T <: Tuple: Type](using Quotes): Expr[Boolean | Null] = impl
 
   private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] = impl
 
-  private def impl[I <: Extractable: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
+  private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
     CompileTimeComputation.fromRuntime((i: I) => summon[RuntimeComputation[Unique[i.type]]])

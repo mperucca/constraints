@@ -65,7 +65,7 @@ object CompileTimeComputation:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given literal[R <: Extractable & Singleton]: CompileTimeComputation.Typed[R, R] =
+  transparent inline given literal[R <: Singleton]: CompileTimeComputation.Typed[R, R] =
     value[R]
 
   /**
@@ -74,14 +74,14 @@ object CompileTimeComputation:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given value[R <: Extractable]: CompileTimeComputation.Typed[R, R] =
+  transparent inline given value[R]: CompileTimeComputation.Typed[R, R] =
     Value[R]
 
   /**
    * Used when attempting to extract a value from a type
    * @tparam R the result to attempt value extraction from
    */
-  class Value[R <: Extractable] extends CompileTimeComputation[R]:
+  class Value[R] extends CompileTimeComputation[R]:
     /**
      * The result type that a value might be extracted from
      */
@@ -98,7 +98,7 @@ object CompileTimeComputation:
    * @tparam R the result to attempt value extraction from
    * @note similar to [[Value]] but with the expression typed as [[Any]] for contravariance
    */
-  class Constant[R <: Extractable] extends CompileTimeComputation[Any]:
+  class Constant[R] extends CompileTimeComputation[Any]:
     /**
      * The result type that a value might be extracted from
      */
@@ -111,10 +111,11 @@ object CompileTimeComputation:
      */
     override transparent inline def result: Result | Null = ${ impl[R] }
 
-  private def impl[E <: Extractable: Type](using Quotes): Expr[E | Null] =
+  private def impl[E: Type](using Quotes): Expr[E | Null] =
+    given Extractable[E] = Extractable.apply
     Extractable.extract[E] match
       case None => '{null}
-      case Some(value) => Extractable.toExpr(value)
+      case Some(value) => '{null.asInstanceOf[E]} // Don't need an actual value since only the type is inspected
 
   /**
    * Utility method for [[CompileTimeComputation]] implementations that evaluate a computation by attempting to
@@ -126,31 +127,17 @@ object CompileTimeComputation:
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromRuntime[E <: Extractable: Type, R <: Extractable](
+  def fromRuntime[E: Type, R: Type](
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
+    given Extractable[E] = Extractable.apply
     fromRuntime(Extractable.extract[E].map(runtimeComputation))
 
-  /**
-   * Utility method for [[CompileTimeComputation]] implementations that evaluates an expression type by attempting to
-   * extract values from [[Tuple]] type [[T]] and then calling the provided [[RuntimeComputation]] with the values
-   *
-   * @param runtimeComputation a function returning a [[RuntimeComputation]] when given the values extracted from [[T]]
-   * @param Quotes             performs operations in macro contexts
-   * @tparam T the tuple to extract values from
-   * @tparam R the result type of the expression
-   * @return an expression that either contains the literal result or null
-   */
-  def fromRuntimeOnTuple[T <: Tuple : Type, R <: Extractable](
-    runtimeComputation: T => RuntimeComputation.Typed[Nothing, R]
-  )(using Quotes, Tuple.Union[T] <:< Extractable): Expr[R | Null] =
-    fromRuntime(
-      Extractable.extract[Group.FromTuple[T]].map(v => runtimeComputation(v.toTuple.asInstanceOf[T]))
-    )
-
-  def fromRuntime[R <: Extractable](
+  def fromRuntime[R: Type](
     possibleRuntimeComputation: Option[RuntimeComputation.Typed[Nothing, R]]
   )(using Quotes): Expr[R | Null] =
     possibleRuntimeComputation match
       case None => '{ null }
-      case Some(runtimeComputation) => Extractable.toExpr(runtimeComputation.result)
+      case Some(runtimeComputation) =>
+        given Extractable[R] = Extractable.apply
+        Extractable.toExpr[R].apply(runtimeComputation.result)

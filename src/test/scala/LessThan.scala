@@ -26,12 +26,11 @@ object LessThan:
       case null => CompileTimeComputation.Unknown
       case h: Int => CompileTimeComputationImpl[L, h.type]
 
-  class CompileTimeComputationImpl[A <: Int, B <: Int] extends CompileTimeComputation[Any]:
-    override type Result = Boolean
+  class CompileTimeComputationImpl[A <: Int, B <: Int] extends CompileTimeComputation.Impl[Boolean]:
     override transparent inline def result: Boolean | Null = ${ impl[A, B] }
 
   private def impl[A <: Int : Type, B <: Int: Type](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimeOnTuple[(A, B), Boolean] { case (a, b) =>
+    CompileTimeComputation.fromRuntime[(A, B), Boolean] { case (a, b) =>
       runtimeComputation[a.type, b.type]
     }
 

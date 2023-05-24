@@ -15,4 +15,4 @@ object Fraction:
 
   type Numerator[F] = F match { case Fraction.WhiteBox[n, ?] => n }
   type Denominator[F] = F match { case Fraction.WhiteBox[?, d] => d }
-  type Tupled[F] = F match { case Fraction.WhiteBox[n, d] => Group.FromTuple[(n, d)] }
+  type Tupled[F] = F match { case Fraction.WhiteBox[n, d] => (n, d) }

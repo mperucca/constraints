@@ -1,4 +1,4 @@
-import constraints.{CompileTimeComputation, Extractable, RuntimeComputation}
+import constraints.{CompileTimeComputation, RuntimeComputation}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -92,9 +92,9 @@ object AtLeast:
   private def impl[
     Value <: Orderable: Type,
     Minimum <: Orderable: Type,
-    Orderable <: Extractable: Ordering
+    Orderable: Ordering
   ](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimeOnTuple[(Value, Minimum), Boolean] {
+    CompileTimeComputation.fromRuntime[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 
