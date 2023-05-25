@@ -21,22 +21,6 @@ type Primitive =
     | Long
     | Short
 
-object Primitive:
-
-  given toExpr[P <: Primitive: Type]: ToExpr[P] with
-    def apply(primitive: P)(using Quotes): Expr[P] =
-      val expr = (primitive: Primitive) match
-        case b: Boolean => ToExpr.BooleanToExpr(b)
-        case b: Byte => ToExpr.ByteToExpr(b)
-        case s: Short => ToExpr.ShortToExpr(s)
-        case i: Int => ToExpr.IntToExpr(i)
-        case l: Long => ToExpr.LongToExpr(l)
-        case f: Float => ToExpr.FloatToExpr(f)
-        case d: Double => ToExpr.DoubleToExpr(d)
-        case c: Char => ToExpr.CharToExpr(c)
-        case s: String => ToExpr.StringToExpr(s)
-      expr.asInstanceOf[Expr[P]]
-
 /**
  * Holds the extraction method
  */
@@ -92,18 +76,30 @@ object Extractable:
         case tpe =>
           Option.when(tpe =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
 
-  /**
-   * Lift an extractable value to its literal expression
-   */
-  given toExpr[E: Extractable]: ToExpr[E] with
-    def apply(extractable: E)(using Quotes): Expr[E] =
-      val expr = extractable match
-        case p: Primitive => Primitive.toExpr[Primitive].apply(p)
-        case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)
-        case h *: t =>
-          given Extractable[h.type] = null.asInstanceOf
-          given Extractable[t.type] = null.asInstanceOf
-          val he = toExpr[h.type].apply(h)
-          val te = toExpr[t.type].apply(t)
-          '{${he} *: ${te}}
-      expr.asInstanceOf[Expr[E]]
+  def toType[E: Extractable](e: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
+    e match
+      case p: Primitive => toPrimitiveType(p)
+      case t: Tuple => toTupleType(t)
+
+  def toPrimitiveType(primitive: Primitive)(using Quotes): quoted.quotes.reflect.ConstantType =
+    val constant = primitive match
+      case b: Boolean => quoted.quotes.reflect.BooleanConstant(b)
+      case b: Byte => quoted.quotes.reflect.ByteConstant(b)
+      case s: Short => quoted.quotes.reflect.ShortConstant(s)
+      case i: Int => quoted.quotes.reflect.IntConstant(i)
+      case l: Long => quoted.quotes.reflect.LongConstant(l)
+      case f: Float => quoted.quotes.reflect.FloatConstant(f)
+      case d: Double => quoted.quotes.reflect.DoubleConstant(d)
+      case c: Char => quoted.quotes.reflect.CharConstant(c)
+      case s: String => quoted.quotes.reflect.StringConstant(s)
+    quoted.quotes.reflect.ConstantType(constant)
+
+  def toTupleType(tuple: Tuple)(using Quotes): quoted.quotes.reflect.TypeRepr =
+    import quoted.quotes.reflect.*
+    (tuple: Tuple) match
+      case EmptyTuple => TypeRepr.of[EmptyTuple]
+      case h *: t =>
+        val head = h match
+          case p: Primitive => toPrimitiveType(p)
+          case n: Tuple => toTupleType(n)
+        AppliedType(TypeRepr.of[*:[_, _]], List(head, toTupleType(t)))

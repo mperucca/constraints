@@ -131,13 +131,9 @@ object CompileTimeComputation:
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
     given Extractable[E] = Extractable.evidenceOrAbort
-    fromRuntime(Extractable.extract[E].map(runtimeComputation))
-
-  def fromRuntime[R: Type](
-    possibleRuntimeComputation: Option[RuntimeComputation.Typed[Nothing, R]]
-  )(using Quotes): Expr[R | Null] =
-    possibleRuntimeComputation match
+    given Extractable[R] = Extractable.evidenceOrAbort
+    Extractable.extract[E].map(runtimeComputation) match
       case None => '{ null }
       case Some(runtimeComputation) =>
-        given Extractable[R] = Extractable.evidenceOrAbort
-        Extractable.toExpr[R].apply(runtimeComputation.result)
+        Extractable.toType(runtimeComputation.result).asType match
+          case '[r] => '{ null.asInstanceOf[r] }.asExprOf[R]
