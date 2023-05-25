@@ -76,8 +76,11 @@ object Extractable:
         case tpe =>
           Option.when(tpe =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
 
-  def toType[E: Extractable](e: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
-    e match
+  /**
+   * Lift an extractable value to its literal type
+   */
+  def toType[E: Extractable](extractable: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
+    extractable match
       case p: Primitive => toPrimitiveType(p)
       case t: Tuple => toTupleType(t)
 
@@ -99,7 +102,43 @@ object Extractable:
     (tuple: Tuple) match
       case EmptyTuple => TypeRepr.of[EmptyTuple]
       case h *: t =>
-        val head = h match
-          case p: Primitive => toPrimitiveType(p)
-          case n: Tuple => toTupleType(n)
+        given Extractable[h.type] = null.asInstanceOf
+        val head = toType[h.type](h)
         AppliedType(TypeRepr.of[*:[_, _]], List(head, toTupleType(t)))
+
+  /**
+   * Lift an extractable value to its literal expression
+   */
+  def toExpr[E: Extractable](extractable: E)(using Quotes): Expr[E] =
+    extractable match
+      case p: Primitive => primitiveToExpr(p)
+      case t: Tuple =>
+        given Extractable[t.type] = null.asInstanceOf
+        tupleToExpr[t.type](t)
+
+  def primitiveToExpr[P <: Primitive](primitive: P)(using Quotes): Expr[P] =
+    val expr = (primitive: Primitive) match
+      case b: Boolean => ToExpr.BooleanToExpr(b)
+      case b: Byte => ToExpr.ByteToExpr(b)
+      case s: Short => ToExpr.ShortToExpr(s)
+      case i: Int => ToExpr.IntToExpr(i)
+      case l: Long => ToExpr.LongToExpr(l)
+      case f: Float => ToExpr.FloatToExpr(f)
+      case d: Double => ToExpr.DoubleToExpr(d)
+      case c: Char => ToExpr.CharToExpr(c)
+      case s: String => ToExpr.StringToExpr(s)
+    expr.asInstanceOf[Expr[P]]
+
+  def tupleToExpr[T <: Tuple: Extractable](tuple: T)(using Quotes): Expr[T] =
+    val expr = tuple match
+      case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)
+      case h *: t =>
+        val head = h match
+          case p: Primitive => primitiveToExpr(p)
+          case t: Tuple =>
+            given Extractable[t.type] = null.asInstanceOf
+            tupleToExpr[t.type](t)
+        given Extractable[t.type] = null.asInstanceOf
+        val tail = tupleToExpr[t.type](t)
+        '{ $head *: $tail }
+    expr.asInstanceOf[Expr[T]]

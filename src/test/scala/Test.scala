@@ -3,10 +3,6 @@ import scala.util.Random
 
 @main def test(): Unit =
 
-  Equal.compileTimeComputation[1, Int.MinValue.type]
-  summon[CompileTimeComputation[Int !== Int.MinValue.type]]
-  summon[RuntimeComputation[1 !== Int.MinValue.type]]
-
   {
     def divide(dividend: Int, divisor: Int)(
       nonZero: Guarantee[divisor.type !== 0],
@@ -189,23 +185,4 @@ import scala.util.Random
     ): Char = string.charAt(index)
 
     charAt("abcde", 3)(Guarantee.compileTimeCheck)
-
-    type CW = (
-      "abcde",
-      "fghij",
-      "kllmn"
-    )
-    type G[T <: NonEmptyTuple] = ForAll[Tuple.Tail[T], [Row] =>> Length[Row] === Length[Tuple.Head[T]]]
-    def f(t: NonEmptyTuple)(using Tuple.Union[t.type] <:< String)(
-      guarantee: Guarantee[G[t.type]]
-    ) = ???
-    val t: CW = ???
-    val jlfd: RuntimeComputation.Predicate[
-      Equal[Length["fghij"], Length["abcde"]]
-    ] = Equal.runtimeComputation[Length["fghij"], Length["abcde"]]
-//    Equal.runtimeCheck[Length["fghij"], Length["abcde"]].result
-    f(t)(Guarantee.runtimeCheck[G[t.type]].getOrElse(???))
-    f(t)(Guarantee.compileTimeCheck)
-//    type G[T <: NonEmptyTuple] = ForAll[Tuple.Tail[T], [Row] =>> Length[Row] === Length[Tuple.Head[T]]]
-//    Guarantee.runtimeCheck[G[CW]]
   }
