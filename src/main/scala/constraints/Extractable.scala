@@ -110,11 +110,16 @@ object Extractable:
    * Lift an extractable value to its literal expression
    */
   def toExpr[E: Extractable](extractable: E)(using Quotes): Expr[E] =
-    extractable match
+    val expr = extractable match
       case p: Primitive => primitiveToExpr(p)
       case t: Tuple =>
         given Extractable[t.type] = null.asInstanceOf
         tupleToExpr[t.type](t)
+    val tpe = toType(extractable)
+    tpe.asType match
+      case '[e] =>
+        val typedExpr = '{ $expr.asInstanceOf[e] } // asInstanceOf needed to further reduce inlining
+        typedExpr.asInstanceOf[Expr[E]]
 
   def primitiveToExpr[P <: Primitive](primitive: P)(using Quotes): Expr[P] =
     val expr = (primitive: Primitive) match

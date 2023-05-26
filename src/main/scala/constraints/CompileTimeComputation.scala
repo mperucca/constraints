@@ -115,9 +115,7 @@ object CompileTimeComputation:
     given Extractable[E] = Extractable.evidenceOrAbort
     Extractable.extract[E] match
       case None => '{null}
-      case Some(value) =>
-        val expr = Extractable.toExpr(value)
-        '{$expr.asInstanceOf[E]} // asInstanceOf needed to further reduce inlining
+      case Some(value) => Extractable.toExpr(value)
 
   /**
    * Utility method for [[CompileTimeComputation]] implementations that evaluate a computation by attempting to
@@ -137,8 +135,4 @@ object CompileTimeComputation:
     Extractable.extract[E].map(runtimeComputation) match
       case None => '{ null }
       case Some(runtimeComputation) =>
-        val result = runtimeComputation.result
-        val expr = Extractable.toExpr[R](result)
-        val tpe = Extractable.toType(result)
-        tpe.asType match
-          case '[r] => '{ $expr.asInstanceOf[r] }.asExprOf[R]
+        Extractable.toExpr(runtimeComputation.result)
