@@ -135,4 +135,5 @@ object CompileTimeComputation:
     Extractable.extract[E].map(runtimeComputation) match
       case None => '{ null }
       case Some(runtimeComputation) =>
+        given Type[runtimeComputation.Result] = Type.of[R].asInstanceOf[Type[runtimeComputation.Result]]
         Extractable.toExpr(runtimeComputation.result)

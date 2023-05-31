@@ -109,7 +109,7 @@ object Extractable:
   /**
    * Lift an extractable value to its literal expression
    */
-  def toExpr[E: Extractable](extractable: E)(using Quotes): Expr[E] =
+  def toExpr[E: Extractable: Type](extractable: E)(using Quotes): Expr[E] =
     val expr = extractable match
       case p: Primitive => primitiveToExpr(p)
       case t: Tuple =>

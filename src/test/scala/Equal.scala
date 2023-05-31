@@ -24,7 +24,7 @@ object Equal:
 
   // intermediary inline method needed since nested inline match doesn't reduce as intended
   transparent inline def continue[A, B](
-    using inline b: CompileTimeComputation.Typed[B, Any]
+    using b: CompileTimeComputation.Typed[B, Any]
   ): CompileTimeComputation.Predicate[Any] =
     inline b.result match
       case null => CompileTimeComputation.Unknown
