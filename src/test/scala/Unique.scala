@@ -19,7 +19,7 @@ object Unique:
   transparent inline given compileTimeCheckString[S <: String]: CompileTimeComputation.Predicate[Unique[S]] =
     CompileTimeCheckString[S]
 
-  private class CompileTimeCheckGroup[T <: Tuple] extends CompileTimeComputation[Unique[T]]:
+  class CompileTimeCheckGroup[T <: Tuple] extends CompileTimeComputation[Unique[T]]:
     override type Result = Boolean
     override transparent inline def result: Boolean | Null = ${implTuple[T]}
 

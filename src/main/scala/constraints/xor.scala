@@ -38,7 +38,7 @@ object xor:
    *         both being known results in false if they are the same and true if they are different
    */
   transparent inline given[A, B](
-    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
+    using a: CompileTimeComputation.Predicate[A], b: CompileTimeComputation.Predicate[B]
   ): CompileTimeComputation.Predicate[A xor B] =
     inline a.result match
       case false => inline b.result match

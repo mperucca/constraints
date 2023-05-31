@@ -30,7 +30,7 @@ object Not:
    *         [[Not]] on true becomes false
    */
   transparent inline given[C](
-    using inline c: CompileTimeComputation.Predicate[C]
+    using c: CompileTimeComputation.Predicate[C]
   ): CompileTimeComputation.Predicate[Not[C]] =
     inline c.result match
       case false => CompileTimeComputation.Constant[true]

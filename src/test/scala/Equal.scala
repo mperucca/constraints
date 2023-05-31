@@ -22,7 +22,6 @@ object Equal:
       case r1: Primitive => continue[r1.type, B] // use literal type for primitive
       case r1: Tuple => continue[a.Result, B] // literal types don't reduce for tuples
 
-  // intermediary inline method needed since nested inline match doesn't reduce as intended
   transparent inline def continue[A, B](
     using b: CompileTimeComputation.Typed[B, Any]
   ): CompileTimeComputation.Predicate[Any] =

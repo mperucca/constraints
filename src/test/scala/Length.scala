@@ -13,7 +13,7 @@ object Length:
     RuntimeComputation(c.result.length)
 
   transparent inline given compileTimeComputation[S](
-    using inline c: CompileTimeComputation.Typed[S, String]
+    using c: CompileTimeComputation.Typed[S, String]
   ): CompileTimeComputation.Typed[Length[S], Int] =
     inline c.result match
       case null => CompileTimeComputation.Unknown

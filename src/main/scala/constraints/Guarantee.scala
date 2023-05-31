@@ -42,7 +42,7 @@ object Guarantee:
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def compileTimeCheck[C](using inline c: CompileTimeComputation.Predicate[C]): Guarantee[C] =
+  inline def compileTimeCheck[C](using c: CompileTimeComputation.Predicate[C]): Guarantee[C] =
     inline c.result match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")

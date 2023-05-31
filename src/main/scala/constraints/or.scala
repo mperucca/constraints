@@ -37,7 +37,7 @@ object or:
    *         both being false results in false
    */
   transparent inline given[A, B](
-    using inline a: CompileTimeComputation.Predicate[A], inline b: CompileTimeComputation.Predicate[B]
+    using a: CompileTimeComputation.Predicate[A], b: CompileTimeComputation.Predicate[B]
   ): CompileTimeComputation.Predicate[A or B] =
     inline a.result match
       case false => inline b.result match
