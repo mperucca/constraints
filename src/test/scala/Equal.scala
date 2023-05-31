@@ -35,6 +35,6 @@ object Equal:
     override transparent inline def result: Boolean | Null = ${ impl[A, B] }
 
   private def impl[A : Type, B : Type](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntime[(A, B), Boolean] { case (a, b) =>
+    CompileTimeComputation.fromRuntimePostponingExtractableCheck[(A, B), Boolean] { case (a, b) =>
       runtimeComputation[a.type, b.type]
     }

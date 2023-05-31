@@ -127,12 +127,17 @@ object CompileTimeComputation:
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromRuntime[E: Type, R: Type](
+  def fromRuntimePostponingExtractableCheck[E: Type, R: Type](
     runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
     given Extractable[E] = Extractable.evidenceOrAbort
+    given Extractable[R] = Extractable.evidenceOrAbort
+    fromRuntime(runtimeComputation)
+
+  def fromRuntime[E: Type: Extractable, R: Type: Extractable](
+    runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
+  )(using Quotes): Expr[R | Null] =
     Extractable.extract[E].map(runtimeComputation) match
       case None => '{ null }
       case Some(runtimeComputation) =>
-        given Extractable[R] = Extractable.evidenceOrAbort
         Extractable.toExpr[R](runtimeComputation.result)

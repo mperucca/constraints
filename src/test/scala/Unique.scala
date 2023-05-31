@@ -13,7 +13,7 @@ object Unique:
       valueOf[I].toIterable.forall(soFar.add)
     }
 
-  transparent inline given compileTimeCheckGroup[T <: Tuple]: CompileTimeComputation.Predicate[Unique[T]] =
+  transparent inline given compileTimeCheckGroup[T <: Tuple: Extractable]: CompileTimeComputation.Predicate[Unique[T]] =
     CompileTimeCheckGroup[T]
 
   transparent inline given compileTimeCheckString[S <: String]: CompileTimeComputation.Predicate[Unique[S]] =
@@ -32,4 +32,4 @@ object Unique:
   private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] = impl
 
   private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntime((i: I) => summon[RuntimeComputation[Unique[i.type]]])
+    CompileTimeComputation.fromRuntimePostponingExtractableCheck((i: I) => summon[RuntimeComputation[Unique[i.type]]])
