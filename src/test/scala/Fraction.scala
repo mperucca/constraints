@@ -6,7 +6,7 @@ class Fraction(val numerator: Int, val denominator: Int)(
 
 object Fraction:
 
-  type WhiteBox[+N <: Int, +D <: Int] = Fraction { val numerator: N; val denominator: D }
+  type WhiteBox[N, D] = Fraction { val numerator: N; val denominator: D }
 
   def apply(numerator: Int, denominator: Int)(
     guarantee: Guarantee[denominator.type !== 0]

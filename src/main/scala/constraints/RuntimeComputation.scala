@@ -34,13 +34,16 @@ object RuntimeComputation:
 
   /**
    * Helper function to construct a runtime computation with a lazily computed result
-   * @param compute the computation to run and memoize if requested
+   * @param compute the computation to run
    * @tparam E the expression type to which this computation result belongs
    * @tparam R the result type
    * @return the runtime computation instance
    */
   def apply[E, R](compute: => R): RuntimeComputation.Typed[E, R] =
-    new RuntimeComputation[E] { type Result = R; lazy val result: R = compute }
+    new RuntimeComputation[E] {
+      override type Result = R
+      override def result: R = compute
+    }
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible
