@@ -48,12 +48,9 @@ object CompileTimeComputation:
 
   /**
    * Used when a compile time computation cannot reduce to a definitive result
+   * @note Will never be return so typed a [[Nothing]] for covariance reasons
    */
-  object Unknown extends CompileTimeComputation[Any]:
-    /**
-     * Will never be return so typed a [[Nothing]] for covariance reasons
-     */
-    override type Result = Nothing
+  object Unknown extends CompileTimeComputation.Impl[Nothing]:
     /**
      * Hardcoded to always return null
      *  @return null
@@ -74,14 +71,8 @@ object CompileTimeComputation:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given value[R]: CompileTimeComputation.Typed[R, R] =
-    Value[R]
+  given value[R]: CompileTimeComputation[R] with
 
-  /**
-   * Used when attempting to extract a value from a type
-   * @tparam R the result to attempt value extraction from
-   */
-  class Value[R] extends CompileTimeComputation[R]:
     /**
      * The result type that a value might be extracted from
      */
@@ -89,7 +80,8 @@ object CompileTimeComputation:
 
     /**
      * Runs the value extraction macro to attempt to extract a value from [[R]]
-     *  @return the extracted value or null
+     *
+     * @return the extracted value or null
      */
     override transparent inline def result: Result | Null = ${ impl[R] }
 
@@ -98,11 +90,7 @@ object CompileTimeComputation:
    * @tparam R the result to attempt value extraction from
    * @note similar to [[Value]] but with the expression typed as [[Any]] for contravariance
    */
-  class Constant[R] extends CompileTimeComputation[Any]:
-    /**
-     * The result type that a value might be extracted from
-     */
-    override type Result = R
+  class Constant[R] extends CompileTimeComputation.Impl[R]:
 
     /**
      * Runs the value extraction macro to attempt to extract a value from [[R]]

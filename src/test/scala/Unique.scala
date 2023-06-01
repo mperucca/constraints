@@ -13,17 +13,11 @@ object Unique:
       valueOf[I].toIterable.forall(soFar.add)
     }
 
-  transparent inline given compileTimeCheckGroup[T <: Tuple: Extractable]: CompileTimeComputation.Predicate[Unique[T]] =
-    CompileTimeCheckGroup[T]
-
-  transparent inline given compileTimeCheckString[S <: String]: CompileTimeComputation.Predicate[Unique[S]] =
-    CompileTimeCheckString[S]
-
-  class CompileTimeCheckGroup[T <: Tuple] extends CompileTimeComputation[Unique[T]]:
+  given compileTimeCheckGroup[T <: Tuple: Extractable]: CompileTimeComputation[Unique[T]] with
     override type Result = Boolean
     override transparent inline def result: Boolean | Null = ${implTuple[T]}
 
-  private class CompileTimeCheckString[S <: String] extends CompileTimeComputation[Unique[S]]:
+  given compileTimeCheckString[S <: String]: CompileTimeComputation[Unique[S]] with
     override type Result = Boolean
     override transparent inline def result: Boolean | Null = ${ implString[S] }
 
