@@ -20,17 +20,17 @@ object Not:
     Computation(!c.compute)
 
   /**
-   * Type class instance of [[Inliner]] for [[Not]]
+   * Type class instance of [[Inlinable]] for [[Not]]
    *
-   * @param c the [[Inliner]] instance to negate
+   * @param c the [[Inlinable]] instance to negate
    * @tparam C the constraint to negate
-   * @return a [[Inliner]] for the negation of [[C]]
+   * @return a [[Inlinable]] for the negation of [[C]]
    *         [[Not]] on false becomes true
    *         [[Not]] on unknown stays unknown
    *         [[Not]] on true becomes false
    */
-  transparent inline given[C](using c: Inliner.Predicate[C]): Inliner.Predicate[Not[C]] =
+  transparent inline given[C](using c: Inlinable.Predicate[C]): Inlinable.Predicate[Not[C]] =
     inline c.reduce match
-      case false => Inliner.Constant[true]
-      case null => Inliner.Unknown
-      case true => Inliner.Constant[false]
+      case false => Inlinable.Constant[true]
+      case null => Inlinable.Unknown
+      case true => Inlinable.Constant[false]

@@ -12,15 +12,15 @@ object Length:
   ): Computation.Typed[Length[S], Int] =
     Computation(c.compute.length)
 
-  transparent inline given inliner[S](
-    using c: Inliner.Typed[S, String]
-  ): Inliner.Typed[Length[S], Int] =
+  transparent inline given inlinable[S](
+    using c: Inlinable.Typed[S, String]
+  ): Inlinable.Typed[Length[S], Int] =
     inline c.reduce match
-      case null => Inliner.Unknown
-      case s: String => InlinerImpl[s.type]
+      case null => Inlinable.Unknown
+      case s: String => Impl[s.type]
 
-  class InlinerImpl[S <: String] extends Inliner.Impl[Int]:
+  class Impl[S <: String] extends Inlinable.Impl[Int]:
     override transparent inline def reduce: Int | Null = ${ impl[S] }
 
   private def impl[S <: String : Type](using Quotes): Expr[Int | Null] =
-    Inliner.fromComputation((s: S) => computation[s.type])
+    Inlinable.fromComputation((s: S) => computation[s.type])

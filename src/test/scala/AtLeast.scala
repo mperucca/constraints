@@ -1,4 +1,4 @@
-import constraints.{Inliner, Computation}
+import constraints.{Inlinable, Computation}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -16,28 +16,28 @@ object AtLeast:
   given compileTimeCheckDouble[
     Value <: Double,
     Minimum <: Double
-  ]: Inliner[Value AtLeast Minimum] with
+  ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
     override transparent inline def reduce: Boolean | Null = ${ implDouble[Value, Minimum] }
 
   given compileTimeCheckInt[
     Value <: Int,
     Minimum <: Int
-  ]: Inliner[Value AtLeast Minimum] with
+  ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
     override transparent inline def reduce: Boolean | Null = ${ implInt[Value, Minimum] }
 
   given compileTimeCheckString[
     Value <: String,
     Minimum <: String
-  ]: Inliner[Value AtLeast Minimum] with
+  ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
     override transparent inline def reduce: Boolean | Null = ${ implString[Value, Minimum] }
 
   given compileTimeCheckChar[
     Value <: Char,
     Minimum <: Char
-  ]: Inliner[Value AtLeast Minimum] with
+  ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
     override transparent inline def reduce: Boolean | Null = ${ implChar[Value, Minimum] }
 
@@ -70,7 +70,7 @@ object AtLeast:
     Minimum <: Orderable: Type,
     Orderable: Ordering
   ](using Quotes): Expr[Boolean | Null] =
-    Inliner.fromComputationPostponingExtractableCheck[(Value, Minimum), Boolean] {
+    Inlinable.fromComputationPostponingExtractableCheck[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 

@@ -47,7 +47,7 @@ object Constrained:
   def runtimeCheck[C[_]](v: Any)(
     using c: Computation.Predicate[C[v.type]]
   ): Either[v.type Constrained Inverse[C], v.type Constrained C] =
-    Guarantee.runtimeCheck[C[v.type]] match
+    Guarantee.testAtRuntime[C[v.type]] match
       case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
         Left(Constrained(v)(invertedGuarantee))
       case Right(guarantee: Guarantee[C[v.type]]) =>

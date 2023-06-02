@@ -10,4 +10,4 @@ object Percentage:
     Constrained(d)(guarantee)
 
   inline def compileTimeCheck(d: Double): Percentage[d.type] =
-    Constrained(d)(Guarantee.compileTimeCheck)
+    Constrained(d)(Guarantee.verifyAtCompileTime)

@@ -22,7 +22,7 @@ import scala.util.Random
     type Divisible = divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)
     def fallback(guarantee: Guarantee[Not[Divisible]]) = 0
     // we check the operands at runtime in case the random numbers violate the constraints
-    Guarantee.runtimeCheck[Divisible] match
+    Guarantee.testAtRuntime[Divisible] match
       case Right(guarantee: Guarantee[Divisible]) => divide(dividend, divisor)(guarantee)
       case Left(guarantee: Guarantee[Not[Divisible]]) => fallback(guarantee)
   }
@@ -30,14 +30,14 @@ import scala.util.Random
   // can still prove with unknown if simplification makes knowledge unnecessary
   {
     val dividend = Random.nextInt()
-    divide(dividend, divisor = 4)(Guarantee.compileTimeCheck) // compiles since a positive divisor meets sufficient constraints
+    divide(dividend, divisor = 4)(Guarantee.verifyAtCompileTime) // compiles since a positive divisor meets sufficient constraints
   }
 
   // can provide just a sufficient part of the whole constraint options
   {
     val dividend: Int = Random.nextInt()
     val divisor: 4 = valueOf
-    divide(dividend, divisor)(Guarantee.compileTimeCheck[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    divide(dividend, divisor)(Guarantee.verifyAtCompileTime[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // constraint equivalence/satisfaction examples
@@ -58,8 +58,8 @@ import scala.util.Random
     ): Int = dividend / divisor.value
 
     val dividend = Random.nextInt()
-    val divisor = Constrained[NonZero](1)(Guarantee.compileTimeCheck) // compiles since 1 != 0
-    divide(dividend, divisor)(Guarantee.compileTimeCheck) // compiles since refinement on divisor exposes value as a literal 1 type
+    val divisor = Constrained[NonZero](1)(Guarantee.verifyAtCompileTime) // compiles since 1 != 0
+    divide(dividend, divisor)(Guarantee.verifyAtCompileTime) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
   // independent constraints on collections example
@@ -76,10 +76,10 @@ import scala.util.Random
 
   // dependent constraints on collections examples
   {
-    Guarantee.compileTimeCheck[Unique[(1, 2, 3)]]
-    Guarantee.compileTimeCheck[Not[Unique[(1, 2, 2)]]]
-    Guarantee.compileTimeCheck[Unique["abc"]]
-    Guarantee.compileTimeCheck[Not[Unique["abb"]]]
+    Guarantee.verifyAtCompileTime[Unique[(1, 2, 3)]]
+    Guarantee.verifyAtCompileTime[Not[Unique[(1, 2, 2)]]]
+    Guarantee.verifyAtCompileTime[Unique["abc"]]
+    Guarantee.verifyAtCompileTime[Not[Unique["abb"]]]
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
     if summon[Computation[Unique[list.type]]].compute
@@ -91,71 +91,71 @@ import scala.util.Random
     type Grouped = (a.type, b.type, 3)
     val group: Grouped = valueOf
     type DoubleCheckUniqueness = Unique[group.type] and Unique[(a.type, b.type, 3)]
-    Guarantee.compileTimeCheck[DoubleCheckUniqueness]
+    Guarantee.verifyAtCompileTime[DoubleCheckUniqueness]
   }
 
   // joining trust example
   {
-    val a = Guarantee.compileTimeCheck[1 !== 2]
-    val b = Guarantee.compileTimeCheck[3 !== 4]
-    a and b and Guarantee.compileTimeCheck[5 !== 6] and Guarantee.compileTimeCheck[7 !== 8]: Guarantee[1 !== 2 and 5 !== 6 and 7 !== 8 and 3 !== 4]
+    val a = Guarantee.verifyAtCompileTime[1 !== 2]
+    val b = Guarantee.verifyAtCompileTime[3 !== 4]
+    a and b and Guarantee.verifyAtCompileTime[5 !== 6] and Guarantee.verifyAtCompileTime[7 !== 8]: Guarantee[1 !== 2 and 5 !== 6 and 7 !== 8 and 3 !== 4]
   }
 
   // corollary example
   {
     def flip[A, B](guarantee: Guarantee[A !== B]): Guarantee[B !== A] = Guarantee.trust
-    flip(Guarantee.compileTimeCheck[1 !== 2]): Guarantee[2 !== 1]
+    flip(Guarantee.verifyAtCompileTime[1 !== 2]): Guarantee[2 !== 1]
   }
 
   // non-primitive (lossless value representation) example
   {
     val numerator: 1 = valueOf
     val denominator: 2 = valueOf
-    val fraction = Fraction(numerator, denominator)(Guarantee.compileTimeCheck)
-    divide(fraction.numerator, fraction.denominator)(Guarantee.compileTimeCheck)
+    val fraction = Fraction(numerator, denominator)(Guarantee.verifyAtCompileTime)
+    divide(fraction.numerator, fraction.denominator)(Guarantee.verifyAtCompileTime)
 
     type NonOverflowingOnDivide[F] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
-    Constrained[NonOverflowingOnDivide](fraction)(Guarantee.compileTimeCheck)
+    Constrained[NonOverflowingOnDivide](fraction)(Guarantee.verifyAtCompileTime)
 
-    val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
-    Inliner.value[Fraction.Tupled[fraction.type]].reduce: Fraction.Tupled[fraction.type]
-    Guarantee.compileTimeCheck[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
-    Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
+    val fraction2 = Fraction(1, 3)(Guarantee.verifyAtCompileTime)
+    Inlinable.value[Fraction.Tupled[fraction.type]].reduce: Fraction.Tupled[fraction.type]
+    Guarantee.verifyAtCompileTime[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
+    Guarantee.verifyAtCompileTime[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
     val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
     Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
-    divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.compileTimeCheck)
+    divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.verifyAtCompileTime)
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
-    Guarantee.compileTimeCheck[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== (1, DealiasTest)]
+    Guarantee.verifyAtCompileTime[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== (1, DealiasTest)]
   }
 
   // Type class and bounds interplay
   {
-    val minimum = Percentage(0)(Guarantee.compileTimeCheck)
-    val maximum = Percentage(1)(Guarantee.compileTimeCheck)
-    val average = Percentage(.5)(Guarantee.compileTimeCheck)
+    val minimum = Percentage(0)(Guarantee.verifyAtCompileTime)
+    val maximum = Percentage(1)(Guarantee.verifyAtCompileTime)
+    val average = Percentage(.5)(Guarantee.verifyAtCompileTime)
   }
 
   // Compile time API helpers
   {
     val minimum = Percentage.compileTimeCheck(0)
-    val maximum = Constrained[Percentage.Constraint](1d)(Guarantee.compileTimeCheck)
+    val maximum = Constrained[Percentage.Constraint](1d)(Guarantee.verifyAtCompileTime)
     val myGrade: 'B' = valueOf
-    val passing: Guarantee[Grade.Passing[myGrade.type]] = Guarantee.compileTimeCheck
+    val passing: Guarantee[Grade.Passing[myGrade.type]] = Guarantee.verifyAtCompileTime
     import Grade.*
     val widened: Char Constrained Grade = Constrained(myGrade)(passing.toGrade)
-    val failing: Char Constrained Grade.Failing = Constrained('F')(Guarantee.compileTimeCheck)
+    val failing: Char Constrained Grade.Failing = Constrained('F')(Guarantee.verifyAtCompileTime)
   }
 
   {
     val low: 1 = valueOf
     val high: 2 = valueOf
-    Guarantee.compileTimeCheck[low.type AtMost high.type]
+    Guarantee.verifyAtCompileTime[low.type AtMost high.type]
 
     type Low = 1
     type High = 2
-    Guarantee.compileTimeCheck[Low AtMost High]
+    Guarantee.verifyAtCompileTime[Low AtMost High]
   }
 
   // constraint that uses non-boolean expressions in the computation
@@ -164,5 +164,5 @@ import scala.util.Random
       withinBounds: Guarantee[(index.type AtLeast 0) and (index.type LessThan Length[string.type])]
     ): Char = string.charAt(index)
 
-    charAt("abcde", 3)(Guarantee.compileTimeCheck)
+    charAt("abcde", 3)(Guarantee.verifyAtCompileTime)
   }

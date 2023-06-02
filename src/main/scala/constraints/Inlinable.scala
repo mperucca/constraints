@@ -6,7 +6,7 @@ import scala.quoted.*
  * Type class for computing [[E]] at compile time through inlining.
  * Only the input is exposed as a type parameter so that the output [[Result]] is inferred.
  */
-trait Inliner[-E]:
+trait Inlinable[-E]:
 
   /**
    * The result type of the computation
@@ -19,9 +19,9 @@ trait Inliner[-E]:
    */
   inline def reduce: Result | Null
 
-object Inliner:
+object Inlinable:
 
-  trait Impl[R] extends Inliner[Any]:
+  trait Impl[R] extends Inlinable[Any]:
     override type Result = R
 
   /**
@@ -30,7 +30,7 @@ object Inliner:
    * @tparam E the expression to compute
    * @tparam R the computation result
    */
-  type Typed[-E, +R] = Inliner[E] { type Result <: R }
+  type Typed[-E, +R] = Inlinable[E] { type Result <: R }
 
   /**
    * Type alias for computations returning [[Boolean]]s
@@ -43,14 +43,14 @@ object Inliner:
    * Type class instance of a compile time computation result being unknown, represented by null
    * @return the type class instance for unknown computation results
    */
-  transparent inline given unknown: Inliner.Typed[Null, Null] =
+  transparent inline given unknown: Inlinable.Typed[Null, Null] =
     Unknown
 
   /**
    * Used when a compile time computation cannot reduce to a definitive result
    * @note Will never be return so typed a [[Nothing]] for covariance reasons
    */
-  object Unknown extends Inliner.Impl[Nothing]:
+  object Unknown extends Inlinable.Impl[Nothing]:
     /**
      * Hardcoded to always return null
      *  @return null
@@ -62,7 +62,7 @@ object Inliner:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given literal[R <: Singleton]: Inliner.Typed[R, R] =
+  transparent inline given literal[R <: Singleton]: Inlinable.Typed[R, R] =
     value[R]
 
   /**
@@ -71,7 +71,7 @@ object Inliner:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  given value[R]: Inliner[R] with
+  given value[R]: Inlinable[R] with
 
     /**
      * The result type that a value might be extracted from
@@ -90,7 +90,7 @@ object Inliner:
    * @tparam R the result to attempt value extraction from
    * @note similar to [[Value]] but with the expression typed as [[Any]] for contravariance
    */
-  class Constant[R] extends Inliner.Impl[R]:
+  class Constant[R] extends Inlinable.Impl[R]:
 
     /**
      * Runs the value extraction macro to attempt to extract a value from [[R]]
@@ -106,7 +106,7 @@ object Inliner:
       case Some(value) => Extractable.toExpr(value)
 
   /**
-   * Utility method for [[Inliner]] implementations that evaluate a computation by attempting to
+   * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
    * extract a constant value from type [[E]] and then calling the provided [[Computation]] with the value
    *
    * @param computation a function returning a [[Computation]] when given the value extracted from [[E]]

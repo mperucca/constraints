@@ -13,11 +13,11 @@ object Unique:
       valueOf[I].toIterable.forall(soFar.add)
     }
 
-  given compileTimeCheckGroup[T <: Tuple: Extractable]: Inliner[Unique[T]] with
+  given compileTimeCheckGroup[T <: Tuple: Extractable]: Inlinable[Unique[T]] with
     override type Result = Boolean
     override transparent inline def reduce: Boolean | Null = ${implTuple[T]}
 
-  given compileTimeCheckString[S <: String]: Inliner[Unique[S]] with
+  given compileTimeCheckString[S <: String]: Inlinable[Unique[S]] with
     override type Result = Boolean
     override transparent inline def reduce: Boolean | Null = ${ implString[S] }
 
@@ -26,4 +26,4 @@ object Unique:
   private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] = impl
 
   private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
-    Inliner.fromComputationPostponingExtractableCheck((i: I) => summon[Computation[Unique[i.type]]])
+    Inlinable.fromComputationPostponingExtractableCheck((i: I) => summon[Computation[Unique[i.type]]])

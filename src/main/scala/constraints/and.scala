@@ -23,24 +23,24 @@ object and:
     Computation(a.compute && b.compute)
 
   /**
-   * Type class instance of [[Inliner]] for [[and]]
+   * Type class instance of [[Inlinable]] for [[and]]
    *
-   * @param a the first [[Inliner]] of the conjunction
-   * @param b the second [[Inliner]] of the conjunction
+   * @param a the first [[Inlinable]] of the conjunction
+   * @param b the second [[Inlinable]] of the conjunction
    * @tparam A the first constraint of the conjunction
    * @tparam B the second constraint of the conjunction
-   * @return a [[Inliner]] for the conjunction of [[A]] and [[B]]
+   * @return a [[Inlinable]] for the conjunction of [[A]] and [[B]]
    *         either being false results in false
    *         neither being false and at least one being unknown results in unknown
    *         both being true results in true
    */
-  transparent inline given[A, B](using a: Inliner.Predicate[A], b: Inliner.Predicate[B]): Inliner.Predicate[A and B] =
+  transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A and B] =
     inline a.reduce match
-      case false => Inliner.Constant[false]
+      case false => Inlinable.Constant[false]
       case null => inline b.reduce match
-        case false => Inliner.Constant[false]
-        case null | true => Inliner.Unknown
+        case false => Inlinable.Constant[false]
+        case null | true => Inlinable.Unknown
       case true => inline b.reduce match
-        case false => Inliner.Constant[false]
-        case null => Inliner.Unknown
-        case true => Inliner.Constant[true]
+        case false => Inlinable.Constant[false]
+        case null => Inlinable.Unknown
+        case true => Inlinable.Constant[true]

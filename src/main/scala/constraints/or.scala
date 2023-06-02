@@ -23,25 +23,25 @@ object or:
     Computation(a.compute || b.compute)
 
   /**
-   * Type class instance of [[Inliner]] for [[or]]
+   * Type class instance of [[Inlinable]] for [[or]]
    *
-   * @param a the first [[Inliner]] of the inclusive disjunction
-   * @param b the second [[Inliner]] of the inclusive disjunction
+   * @param a the first [[Inlinable]] of the inclusive disjunction
+   * @param b the second [[Inlinable]] of the inclusive disjunction
    * @tparam A the first constraint of the inclusive disjunction
    * @tparam B the second constraint of the inclusive disjunction
-   * @return a [[Inliner]] for the inclusive disjunction of [[A]] or [[B]]
+   * @return a [[Inlinable]] for the inclusive disjunction of [[A]] or [[B]]
    *         either being true results in true
    *         neither being true and at least one being unknown results in unknown
    *         both being false results in false
    */
-  transparent inline given[A, B](using a: Inliner.Predicate[A], b: Inliner.Predicate[B]): Inliner.Predicate[A or B] =
+  transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A or B] =
     inline a.reduce match
       case false => inline b.reduce match
-        case false => Inliner.Constant[false]
-        case null => Inliner.Unknown
-        case true => Inliner.Constant[true]
+        case false => Inlinable.Constant[false]
+        case null => Inlinable.Unknown
+        case true => Inlinable.Constant[true]
       case null => inline b.reduce match
-        case false | null => Inliner.Unknown
-        case true => Inliner.Constant[true]
-      case true => Inliner.Constant[true]
+        case false | null => Inlinable.Unknown
+        case true => Inlinable.Constant[true]
+      case true => Inlinable.Constant[true]
 

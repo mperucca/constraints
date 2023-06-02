@@ -25,24 +25,24 @@ object xor:
     Computation(a.compute != b.compute)
 
   /**
-   * Type class instance of [[Inliner]] for [[xor]]
+   * Type class instance of [[Inlinable]] for [[xor]]
    *
-   * @param a the first [[Inliner]] of the exclusive disjunction
-   * @param b the second [[Inliner]] of the exclusive disjunction
+   * @param a the first [[Inlinable]] of the exclusive disjunction
+   * @param b the second [[Inlinable]] of the exclusive disjunction
    * @tparam A the first constraint of the exclusive disjunction
    * @tparam B the second constraint of the exclusive disjunction
-   * @return a [[Inliner]] for the exclusive disjunction of [[A]] xor [[B]]
+   * @return a [[Inlinable]] for the exclusive disjunction of [[A]] xor [[B]]
    *         either being unknown results in unknown
    *         both being known results in false if they are the same and true if they are different
    */
-  transparent inline given[A, B](using a: Inliner.Predicate[A], b: Inliner.Predicate[B]): Inliner.Predicate[A xor B] =
+  transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A xor B] =
     inline a.reduce match
       case false => inline b.reduce match
-        case false => Inliner.Constant[false]
-        case null => Inliner.Unknown
-        case true => Inliner.Constant[true]
-      case null => Inliner.Unknown
+        case false => Inlinable.Constant[false]
+        case null => Inlinable.Unknown
+        case true => Inlinable.Constant[true]
+      case null => Inlinable.Unknown
       case true => inline b.reduce match
-        case false => Inliner.Constant[true]
-        case null => Inliner.Unknown
-        case true => Inliner.Constant[false]
+        case false => Inlinable.Constant[true]
+        case null => Inlinable.Unknown
+        case true => Inlinable.Constant[false]
