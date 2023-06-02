@@ -6,7 +6,7 @@ import scala.quoted.*
  * Type class for computing [[E]] at compile time through inlining.
  * Only the input is exposed as a type parameter so that the output [[Result]] is inferred.
  */
-trait CompileTimeComputation[-E]:
+trait Inliner[-E]:
 
   /**
    * The result type of the computation
@@ -17,11 +17,11 @@ trait CompileTimeComputation[-E]:
    * Inlines the result if it can be computed; otherwise, inlines null
    * @return
    */
-  inline def result: Result | Null
+  inline def reduce: Result | Null
 
-object CompileTimeComputation:
+object Inliner:
 
-  trait Impl[R] extends CompileTimeComputation[Any]:
+  trait Impl[R] extends Inliner[Any]:
     override type Result = R
 
   /**
@@ -30,7 +30,7 @@ object CompileTimeComputation:
    * @tparam E the expression to compute
    * @tparam R the computation result
    */
-  type Typed[-E, +R] = CompileTimeComputation[E] { type Result <: R }
+  type Typed[-E, +R] = Inliner[E] { type Result <: R }
 
   /**
    * Type alias for computations returning [[Boolean]]s
@@ -43,26 +43,26 @@ object CompileTimeComputation:
    * Type class instance of a compile time computation result being unknown, represented by null
    * @return the type class instance for unknown computation results
    */
-  transparent inline given unknown: CompileTimeComputation.Typed[Null, Null] =
+  transparent inline given unknown: Inliner.Typed[Null, Null] =
     Unknown
 
   /**
    * Used when a compile time computation cannot reduce to a definitive result
    * @note Will never be return so typed a [[Nothing]] for covariance reasons
    */
-  object Unknown extends CompileTimeComputation.Impl[Nothing]:
+  object Unknown extends Inliner.Impl[Nothing]:
     /**
      * Hardcoded to always return null
      *  @return null
      */
-    override inline def result: Null = null
+    override inline def reduce: Null = null
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given literal[R <: Singleton]: CompileTimeComputation.Typed[R, R] =
+  transparent inline given literal[R <: Singleton]: Inliner.Typed[R, R] =
     value[R]
 
   /**
@@ -71,7 +71,7 @@ object CompileTimeComputation:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  given value[R]: CompileTimeComputation[R] with
+  given value[R]: Inliner[R] with
 
     /**
      * The result type that a value might be extracted from
@@ -83,21 +83,21 @@ object CompileTimeComputation:
      *
      * @return the extracted value or null
      */
-    override transparent inline def result: Result | Null = ${ impl[R] }
+    override transparent inline def reduce: Result | Null = ${ impl[R] }
 
   /**
    * Used when it is known what type to attempt extracting the value from
    * @tparam R the result to attempt value extraction from
    * @note similar to [[Value]] but with the expression typed as [[Any]] for contravariance
    */
-  class Constant[R] extends CompileTimeComputation.Impl[R]:
+  class Constant[R] extends Inliner.Impl[R]:
 
     /**
      * Runs the value extraction macro to attempt to extract a value from [[R]]
      *
      * @return the extracted value or null
      */
-    override transparent inline def result: Result | Null = ${ impl[R] }
+    override transparent inline def reduce: Result | Null = ${ impl[R] }
 
   private def impl[E: Type](using Quotes): Expr[E | Null] =
     given Extractable[E] = Extractable.evidenceOrAbort
@@ -106,26 +106,26 @@ object CompileTimeComputation:
       case Some(value) => Extractable.toExpr(value)
 
   /**
-   * Utility method for [[CompileTimeComputation]] implementations that evaluate a computation by attempting to
-   * extract a constant value from type [[E]] and then calling the provided [[RuntimeComputation]] with the value
+   * Utility method for [[Inliner]] implementations that evaluate a computation by attempting to
+   * extract a constant value from type [[E]] and then calling the provided [[Computation]] with the value
    *
-   * @param runtimeComputation a function returning a [[RuntimeComputation]] when given the value extracted from [[E]]
-   * @param Quotes performs operations in macro contexts
+   * @param computation a function returning a [[Computation]] when given the value extracted from [[E]]
+   * @param Quotes             performs operations in macro contexts
    * @tparam E the expression being computed
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromRuntimePostponingExtractableCheck[E: Type, R: Type](
-    runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
+  def fromComputationPostponingExtractableCheck[E: Type, R: Type](
+    computation: E => Computation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
     given Extractable[E] = Extractable.evidenceOrAbort
     given Extractable[R] = Extractable.evidenceOrAbort
-    fromRuntime(runtimeComputation)
+    fromComputation(computation)
 
-  def fromRuntime[E: Type: Extractable, R: Type: Extractable](
-    runtimeComputation: E => RuntimeComputation.Typed[Nothing, R]
+  def fromComputation[E: Type: Extractable, R: Type: Extractable](
+    computation: E => Computation.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
-    Extractable.extract[E].map(runtimeComputation) match
+    Extractable.extract[E].map(computation) match
       case None => '{ null }
-      case Some(runtimeComputation) =>
-        Extractable.toExpr[R](runtimeComputation.result)
+      case Some(computation) =>
+        Extractable.toExpr[R](computation.compute)

@@ -16,23 +16,21 @@ object Not:
    * @tparam C the constraint
    * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */
-  given[C](using c: RuntimeComputation.Predicate[C]): RuntimeComputation.Predicate[Not[C]] =
-    RuntimeComputation(!c.result)
+  given[C](using c: Computation.Predicate[C]): Computation.Predicate[Not[C]] =
+    Computation(!c.compute)
 
   /**
-   * Type class instance of [[CompileTimeComputation]] for [[Not]]
+   * Type class instance of [[Inliner]] for [[Not]]
    *
-   * @param c the [[CompileTimeComputation]] instance to negate
+   * @param c the [[Inliner]] instance to negate
    * @tparam C the constraint to negate
-   * @return a [[CompileTimeComputation]] for the negation of [[C]]
+   * @return a [[Inliner]] for the negation of [[C]]
    *         [[Not]] on false becomes true
    *         [[Not]] on unknown stays unknown
    *         [[Not]] on true becomes false
    */
-  transparent inline given[C](
-    using c: CompileTimeComputation.Predicate[C]
-  ): CompileTimeComputation.Predicate[Not[C]] =
-    inline c.result match
-      case false => CompileTimeComputation.Constant[true]
-      case null => CompileTimeComputation.Unknown
-      case true => CompileTimeComputation.Constant[false]
+  transparent inline given[C](using c: Inliner.Predicate[C]): Inliner.Predicate[Not[C]] =
+    inline c.reduce match
+      case false => Inliner.Constant[true]
+      case null => Inliner.Unknown
+      case true => Inliner.Constant[false]

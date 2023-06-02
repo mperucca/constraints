@@ -21,32 +21,28 @@ object xor:
    * @tparam B the second constraint
    * @return the runtime check that succeeds if one but not both of the runtime checks succeeds
    */
-  given[A, B](
-    using a: RuntimeComputation.Predicate[A], b: RuntimeComputation.Predicate[B]
-  ): RuntimeComputation.Predicate[A xor B] =
-    RuntimeComputation(a.result != b.result)
+  given[A, B](using a: Computation.Predicate[A], b: Computation.Predicate[B]): Computation.Predicate[A xor B] =
+    Computation(a.compute != b.compute)
 
   /**
-   * Type class instance of [[CompileTimeComputation]] for [[xor]]
+   * Type class instance of [[Inliner]] for [[xor]]
    *
-   * @param a the first [[CompileTimeComputation]] of the exclusive disjunction
-   * @param b the second [[CompileTimeComputation]] of the exclusive disjunction
+   * @param a the first [[Inliner]] of the exclusive disjunction
+   * @param b the second [[Inliner]] of the exclusive disjunction
    * @tparam A the first constraint of the exclusive disjunction
    * @tparam B the second constraint of the exclusive disjunction
-   * @return a [[CompileTimeComputation]] for the exclusive disjunction of [[A]] xor [[B]]
+   * @return a [[Inliner]] for the exclusive disjunction of [[A]] xor [[B]]
    *         either being unknown results in unknown
    *         both being known results in false if they are the same and true if they are different
    */
-  transparent inline given[A, B](
-    using a: CompileTimeComputation.Predicate[A], b: CompileTimeComputation.Predicate[B]
-  ): CompileTimeComputation.Predicate[A xor B] =
-    inline a.result match
-      case false => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[true]
-      case null => CompileTimeComputation.Unknown
-      case true => inline b.result match
-        case false => CompileTimeComputation.Constant[true]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[false]
+  transparent inline given[A, B](using a: Inliner.Predicate[A], b: Inliner.Predicate[B]): Inliner.Predicate[A xor B] =
+    inline a.reduce match
+      case false => inline b.reduce match
+        case false => Inliner.Constant[false]
+        case null => Inliner.Unknown
+        case true => Inliner.Constant[true]
+      case null => Inliner.Unknown
+      case true => inline b.reduce match
+        case false => Inliner.Constant[true]
+        case null => Inliner.Unknown
+        case true => Inliner.Constant[false]

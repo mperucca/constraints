@@ -40,6 +40,7 @@ object Extractable:
       import quotes.reflect.*
       tpe.widenTermRefByName.dealias.simplified match
         case ConstantType(const) => Some(const.value)
+        case Refinement(tp, _, _) => unapply(tp)
         case AppliedType(fn, tpes) if defn.isTupleClass(fn.typeSymbol) =>
           tpes.foldRight(Option[Tuple](EmptyTuple)) {
             case (_, None) => None

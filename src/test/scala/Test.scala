@@ -70,7 +70,7 @@ import scala.util.Random
     alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
     type Letter[C]
-    given [C <: Char: ValueOf]: RuntimeComputation.Predicate[Letter[C]] = RuntimeComputation(valueOf[C].isLetter)
+    given [C <: Char: ValueOf]: Computation.Predicate[Letter[C]] = Computation(valueOf[C].isLetter)
     alphanumerics.partitionMap(Constrained.runtimeCheck[Letter](_)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
 
@@ -82,7 +82,7 @@ import scala.util.Random
     Guarantee.compileTimeCheck[Not[Unique["abb"]]]
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
-    if summon[RuntimeComputation[Unique[list.type]]].result
+    if summon[Computation[Unique[list.type]]].compute
       then println(s"$list has no duplicate values")
       else println(s"$list has duplicate values")
 
@@ -118,7 +118,7 @@ import scala.util.Random
     Constrained[NonOverflowingOnDivide](fraction)(Guarantee.compileTimeCheck)
 
     val fraction2 = Fraction(1, 3)(Guarantee.compileTimeCheck)
-    CompileTimeComputation.value[Fraction.Tupled[fraction.type]].result: Fraction.Tupled[fraction.type]
+    Inliner.value[Fraction.Tupled[fraction.type]].reduce: Fraction.Tupled[fraction.type]
     Guarantee.compileTimeCheck[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
     Guarantee.compileTimeCheck[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 

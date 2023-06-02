@@ -19,32 +19,28 @@ object and:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if both runtime checks succeed
    */
-  given[A, B](
-    using a: RuntimeComputation.Predicate[A], b: RuntimeComputation.Predicate[B]
-  ): RuntimeComputation.Predicate[A and B] =
-    RuntimeComputation(a.result && b.result)
+  given[A, B](using a: Computation.Predicate[A], b: Computation.Predicate[B]): Computation.Predicate[A and B] =
+    Computation(a.compute && b.compute)
 
   /**
-   * Type class instance of [[CompileTimeComputation]] for [[and]]
+   * Type class instance of [[Inliner]] for [[and]]
    *
-   * @param a the first [[CompileTimeComputation]] of the conjunction
-   * @param b the second [[CompileTimeComputation]] of the conjunction
+   * @param a the first [[Inliner]] of the conjunction
+   * @param b the second [[Inliner]] of the conjunction
    * @tparam A the first constraint of the conjunction
    * @tparam B the second constraint of the conjunction
-   * @return a [[CompileTimeComputation]] for the conjunction of [[A]] and [[B]]
+   * @return a [[Inliner]] for the conjunction of [[A]] and [[B]]
    *         either being false results in false
    *         neither being false and at least one being unknown results in unknown
    *         both being true results in true
    */
-  transparent inline given[A, B](
-    using a: CompileTimeComputation.Predicate[A], b: CompileTimeComputation.Predicate[B]
-  ): CompileTimeComputation.Predicate[A and B] =
-    inline a.result match
-      case false => CompileTimeComputation.Constant[false]
-      case null => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null | true => CompileTimeComputation.Unknown
-      case true => inline b.result match
-        case false => CompileTimeComputation.Constant[false]
-        case null => CompileTimeComputation.Unknown
-        case true => CompileTimeComputation.Constant[true]
+  transparent inline given[A, B](using a: Inliner.Predicate[A], b: Inliner.Predicate[B]): Inliner.Predicate[A and B] =
+    inline a.reduce match
+      case false => Inliner.Constant[false]
+      case null => inline b.reduce match
+        case false => Inliner.Constant[false]
+        case null | true => Inliner.Unknown
+      case true => inline b.reduce match
+        case false => Inliner.Constant[false]
+        case null => Inliner.Unknown
+        case true => Inliner.Constant[true]

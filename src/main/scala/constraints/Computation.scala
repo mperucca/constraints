@@ -4,7 +4,7 @@ package constraints
  * Type class for computing [[E]] at runtime.
  * Only the input is exposed as a type parameter so that the output [[Result]] is inferred.
  */
-trait RuntimeComputation[-E]:
+trait Computation[-E]:
 
   /**
    * The result type when [[E]] is computed
@@ -15,16 +15,16 @@ trait RuntimeComputation[-E]:
    * The result of computing [[E]]
    * @return the computed result
    */
-  def result: Result
+  def compute: Result
 
-object RuntimeComputation:
+object Computation:
 
   /**
    * Type alias exposing the [[Result]] type to support the Aux pattern.
    * @tparam E the expression to compute
    * @tparam R the computation result
    */
-  type Typed[-E, +R] = RuntimeComputation[E] { type Result <: R }
+  type Typed[-E, +R] = Computation[E] { type Result <: R }
 
   /**
    * Type alias for computations returning [[Boolean]]s
@@ -34,15 +34,15 @@ object RuntimeComputation:
 
   /**
    * Helper function to construct a runtime computation with a lazily computed result
-   * @param compute the computation to run
+   * @param computation the computation to run
    * @tparam E the expression type to which this computation result belongs
    * @tparam R the result type
    * @return the runtime computation instance
    */
-  def apply[E, R](compute: => R): RuntimeComputation.Typed[E, R] =
-    new RuntimeComputation[E] {
+  def apply[E, R](computation: => R): Computation.Typed[E, R] =
+    new Computation[E] {
       override type Result = R
-      override def result: R = compute
+      override def compute: R = computation
     }
 
   /**
@@ -50,7 +50,7 @@ object RuntimeComputation:
    * @tparam R the result type from which to extract a value
    * @return a runtime computation that uses [[ValueOf]]
    */
-  given literalSingleton[R <: Singleton: ValueOf]: RuntimeComputation.Typed[R, R] =
+  given literalSingleton[R <: Singleton: ValueOf]: Computation.Typed[R, R] =
     value
 
   /**
@@ -59,5 +59,5 @@ object RuntimeComputation:
    * @tparam R the result type from which to extract a value
    * @return the runtime computation that uses [[ValueOf]]
    */
-  given value[R: ValueOf]: RuntimeComputation.Typed[R, R] =
-    RuntimeComputation(valueOf[R])
+  given value[R: ValueOf]: Computation.Typed[R, R] =
+    Computation(valueOf[R])

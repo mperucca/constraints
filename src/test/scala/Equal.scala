@@ -9,31 +9,31 @@ type ===[A, B] = Equal[A, B]
 
 object Equal:
 
-  given runtimeComputation[A, B](
-    using a: RuntimeComputation.Typed[A, Any], b: RuntimeComputation.Typed[B, Any]
-  ): RuntimeComputation.Predicate[A === B] =
-    RuntimeComputation(a.result == b.result)
+  given computation[A, B](
+    using a: Computation.Typed[A, Any], b: Computation.Typed[B, Any]
+  ): Computation.Predicate[A === B] =
+    Computation(a.compute == b.compute)
 
-  transparent inline given compileTimeComputation[A, B](
-    using a: CompileTimeComputation.Typed[A, Any], b: CompileTimeComputation.Typed[B, Any]
-  ): CompileTimeComputation.Predicate[A === B] =
-    inline a.result match
-      case null => CompileTimeComputation.Unknown
+  transparent inline given inliner[A, B](
+    using a: Inliner.Typed[A, Any], b: Inliner.Typed[B, Any]
+  ): Inliner.Predicate[A === B] =
+    inline a.reduce match
+      case null => Inliner.Unknown
       case r1: Primitive => continue[r1.type, B] // use literal type for primitive
       case r1: Tuple => continue[a.Result, B] // literal types don't reduce for tuples
 
   transparent inline def continue[A, B](
-    using b: CompileTimeComputation.Typed[B, Any]
-  ): CompileTimeComputation.Predicate[Any] =
-    inline b.result match
-      case null => CompileTimeComputation.Unknown
-      case r2: Primitive => CompileTimeComputationImpl[A, r2.type]
-      case r2: Tuple => CompileTimeComputationImpl[A, b.Result]
+    using b: Inliner.Typed[B, Any]
+  ): Inliner.Predicate[Any] =
+    inline b.reduce match
+      case null => Inliner.Unknown
+      case r2: Primitive => InlinerImpl[A, r2.type]
+      case r2: Tuple => InlinerImpl[A, b.Result]
 
-  class CompileTimeComputationImpl[A, B] extends CompileTimeComputation.Impl[Boolean]:
-    override transparent inline def result: Boolean | Null = ${ impl[A, B] }
+  class InlinerImpl[A, B] extends Inliner.Impl[Boolean]:
+    override transparent inline def reduce: Boolean | Null = ${ impl[A, B] }
 
   private def impl[A : Type, B : Type](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimePostponingExtractableCheck[(A, B), Boolean] { case (a, b) =>
-      runtimeComputation[a.type, b.type]
+    Inliner.fromComputationPostponingExtractableCheck[(A, B), Boolean] { case (a, b) =>
+      computation[a.type, b.type]
     }

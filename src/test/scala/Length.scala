@@ -1,5 +1,5 @@
 import constraints.*
-import constraints.RuntimeComputation.Typed
+import constraints.Computation.Typed
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -7,20 +7,20 @@ type Length[I]
 
 object Length:
 
-  given runtimeComputation[S](
-    using c: RuntimeComputation.Typed[S, String]
-  ): RuntimeComputation.Typed[Length[S], Int] =
-    RuntimeComputation(c.result.length)
+  given computation[S](
+    using c: Computation.Typed[S, String]
+  ): Computation.Typed[Length[S], Int] =
+    Computation(c.compute.length)
 
-  transparent inline given compileTimeComputation[S](
-    using c: CompileTimeComputation.Typed[S, String]
-  ): CompileTimeComputation.Typed[Length[S], Int] =
-    inline c.result match
-      case null => CompileTimeComputation.Unknown
-      case s: String => CompileTimeComputationImpl[s.type]
+  transparent inline given inliner[S](
+    using c: Inliner.Typed[S, String]
+  ): Inliner.Typed[Length[S], Int] =
+    inline c.reduce match
+      case null => Inliner.Unknown
+      case s: String => InlinerImpl[s.type]
 
-  class CompileTimeComputationImpl[S <: String] extends CompileTimeComputation.Impl[Int]:
-    override transparent inline def result: Int | Null = ${ impl[S] }
+  class InlinerImpl[S <: String] extends Inliner.Impl[Int]:
+    override transparent inline def reduce: Int | Null = ${ impl[S] }
 
   private def impl[S <: String : Type](using Quotes): Expr[Int | Null] =
-    CompileTimeComputation.fromRuntime((s: S) => runtimeComputation[s.type])
+    Inliner.fromComputation((s: S) => computation[s.type])

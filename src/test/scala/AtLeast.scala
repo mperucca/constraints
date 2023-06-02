@@ -1,4 +1,4 @@
-import constraints.{CompileTimeComputation, RuntimeComputation}
+import constraints.{Inliner, Computation}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -10,36 +10,36 @@ object AtLeast:
     Value <: Orderable: ValueOf,
     Minimum <: Orderable: ValueOf,
     Orderable: Ordering
-  ]: RuntimeComputation.Predicate[Value AtLeast Minimum] =
-    RuntimeComputation(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
+  ]: Computation.Predicate[Value AtLeast Minimum] =
+    Computation(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
 
   given compileTimeCheckDouble[
     Value <: Double,
     Minimum <: Double
-  ]: CompileTimeComputation[Value AtLeast Minimum] with
+  ]: Inliner[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def result: Boolean | Null = ${ implDouble[Value, Minimum] }
+    override transparent inline def reduce: Boolean | Null = ${ implDouble[Value, Minimum] }
 
   given compileTimeCheckInt[
     Value <: Int,
     Minimum <: Int
-  ]: CompileTimeComputation[Value AtLeast Minimum] with
+  ]: Inliner[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def result: Boolean | Null = ${ implInt[Value, Minimum] }
+    override transparent inline def reduce: Boolean | Null = ${ implInt[Value, Minimum] }
 
   given compileTimeCheckString[
     Value <: String,
     Minimum <: String
-  ]: CompileTimeComputation[Value AtLeast Minimum] with
+  ]: Inliner[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def result: Boolean | Null = ${ implString[Value, Minimum] }
+    override transparent inline def reduce: Boolean | Null = ${ implString[Value, Minimum] }
 
   given compileTimeCheckChar[
     Value <: Char,
     Minimum <: Char
-  ]: CompileTimeComputation[Value AtLeast Minimum] with
+  ]: Inliner[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def result: Boolean | Null = ${ implChar[Value, Minimum] }
+    override transparent inline def reduce: Boolean | Null = ${ implChar[Value, Minimum] }
 
   private def implDouble[
     Value <: Double : Type,
@@ -70,7 +70,7 @@ object AtLeast:
     Minimum <: Orderable: Type,
     Orderable: Ordering
   ](using Quotes): Expr[Boolean | Null] =
-    CompileTimeComputation.fromRuntimePostponingExtractableCheck[(Value, Minimum), Boolean] {
+    Inliner.fromComputationPostponingExtractableCheck[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 

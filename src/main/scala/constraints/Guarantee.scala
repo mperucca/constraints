@@ -32,8 +32,8 @@ object Guarantee:
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def runtimeCheck[C](using c: RuntimeComputation.Predicate[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
-    Either.cond(c.result, trust, trust)
+  def runtimeCheck[C](using c: Computation.Predicate[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
+    Either.cond(c.compute, trust, trust)
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
@@ -42,8 +42,8 @@ object Guarantee:
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def compileTimeCheck[C](using c: CompileTimeComputation.Predicate[C]): Guarantee[C] =
-    inline c.result match
+  inline def compileTimeCheck[C](using c: Inliner.Predicate[C]): Guarantee[C] =
+    inline c.reduce match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
       case true => trust
