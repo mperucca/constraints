@@ -16,8 +16,8 @@ object Not:
    * @tparam C the constraint
    * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */
-  given[C](using c: Computation.Predicate[C]): Computation.Predicate[Not[C]] =
-    Computation(!c.compute)
+  given[C](using c: Computable.Predicate[C]): Computable.Predicate[Not[C]] =
+    Computable(!c.compute)
 
   /**
    * Type class instance of [[Inlinable]] for [[Not]]

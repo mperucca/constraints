@@ -43,7 +43,7 @@ object Inlinable:
    * Type class instance of a compile time computation result being unknown, represented by null
    * @return the type class instance for unknown computation results
    */
-  transparent inline given unknown: Inlinable.Typed[Null, Null] =
+  given unknown: Inlinable.Typed[Null, Null] =
     Unknown
 
   /**
@@ -107,25 +107,25 @@ object Inlinable:
 
   /**
    * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
-   * extract a constant value from type [[E]] and then calling the provided [[Computation]] with the value
+   * extract a constant value from type [[E]] and then calling the provided [[Computable]] with the value
    *
-   * @param computation a function returning a [[Computation]] when given the value extracted from [[E]]
-   * @param Quotes             performs operations in macro contexts
+   * @param computation a function returning a [[Computable]] when given the value extracted from [[E]]
+   * @param Quotes      performs operations in macro contexts
    * @tparam E the expression being computed
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromComputationPostponingExtractableCheck[E: Type, R: Type](
-    computation: E => Computation.Typed[Nothing, R]
+  def fromComputablePostponingExtractableCheck[E: Type, R: Type](
+    computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
     given Extractable[E] = Extractable.evidenceOrAbort
     given Extractable[R] = Extractable.evidenceOrAbort
-    fromComputation(computation)
+    fromComputable(computable)
 
-  def fromComputation[E: Type: Extractable, R: Type: Extractable](
-    computation: E => Computation.Typed[Nothing, R]
+  def fromComputable[E: Type: Extractable, R: Type: Extractable](
+    computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[R | Null] =
-    Extractable.extract[E].map(computation) match
+    Extractable.extract[E].map(computable) match
       case None => '{ null }
-      case Some(computation) =>
-        Extractable.toExpr[R](computation.compute)
+      case Some(computable) =>
+        Extractable.toExpr[R](computable.compute)

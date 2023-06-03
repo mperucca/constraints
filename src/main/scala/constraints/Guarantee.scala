@@ -28,22 +28,22 @@ object Guarantee:
   /**
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
    * 
-   * @param c the runtime check to perform
+   * @param predicate the runtime check to perform
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def testAtRuntime[C](using c: Computation.Predicate[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
-    Either.cond(c.compute, trust, trust)
+  def testAtRuntime[C](using predicate: Computable.Predicate[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
+    Either.cond(predicate.compute, trust, trust)
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
    * 
-   * @param c the compile time check to perform
+   * @param predicate the compile time check to perform
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def verifyAtCompileTime[C](using c: Inlinable.Predicate[C]): Guarantee[C] =
-    inline c.reduce match
+  inline def verifyAtCompileTime[C](using predicate: Inlinable.Predicate[C]): Guarantee[C] =
+    inline predicate.reduce match
       case false => compiletime.error("invalid")
       case null => compiletime.error("unknown")
       case true => trust

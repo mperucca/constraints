@@ -2,7 +2,9 @@ import constraints.*
 
 class Fraction(val numerator: Int, val denominator: Int)(
   val nonZeroDenominator: Guarantee[denominator.type !== 0]
-)
+):
+  def wholeNumberPart(noOverFlow: Guarantee[numerator.type !== Int.MinValue.type or denominator.type !== 1]): Int =
+    numerator / denominator
 
 object Fraction:
 

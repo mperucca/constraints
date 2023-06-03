@@ -1,4 +1,4 @@
-import constraints.{Inlinable, Computation}
+import constraints.{Inlinable, Computable}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -10,8 +10,8 @@ object AtLeast:
     Value <: Orderable: ValueOf,
     Minimum <: Orderable: ValueOf,
     Orderable: Ordering
-  ]: Computation.Predicate[Value AtLeast Minimum] =
-    Computation(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
+  ]: Computable.Predicate[Value AtLeast Minimum] =
+    Computable(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
 
   given compileTimeCheckDouble[
     Value <: Double,
@@ -70,7 +70,7 @@ object AtLeast:
     Minimum <: Orderable: Type,
     Orderable: Ordering
   ](using Quotes): Expr[Boolean | Null] =
-    Inlinable.fromComputationPostponingExtractableCheck[(Value, Minimum), Boolean] {
+    Inlinable.fromComputablePostponingExtractableCheck[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 

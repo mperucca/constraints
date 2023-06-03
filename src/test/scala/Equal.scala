@@ -9,10 +9,8 @@ type ===[A, B] = Equal[A, B]
 
 object Equal:
 
-  given computation[A, B](
-    using a: Computation.Typed[A, Any], b: Computation.Typed[B, Any]
-  ): Computation.Predicate[A === B] =
-    Computation(a.compute == b.compute)
+  given computable[A, B](using a: Computable.Typed[A, Any], b: Computable.Typed[B, Any]): Computable.Predicate[A === B] =
+    Computable(a.compute == b.compute)
 
   transparent inline given inlinable[A, B](
     using a: Inlinable.Typed[A, Any], b: Inlinable.Typed[B, Any]
@@ -34,6 +32,5 @@ object Equal:
     override transparent inline def reduce: Boolean | Null = ${ impl[A, B] }
 
   private def impl[A : Type, B : Type](using Quotes): Expr[Boolean | Null] =
-    Inlinable.fromComputationPostponingExtractableCheck[(A, B), Boolean] { case (a, b) =>
-      computation[a.type, b.type]
-    }
+    Inlinable.fromComputablePostponingExtractableCheck[(A, B), Boolean]: (a, b) =>
+      computable[a.type, b.type]

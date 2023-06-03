@@ -1,4 +1,4 @@
-import constraints.{Inlinable, Computation}
+import constraints.{Inlinable, Computable}
 
 import scala.quoted.*
 
@@ -6,10 +6,10 @@ type LessThan[A, B]
 
 object LessThan:
 
-  given computation[A, B](
-    using a: Computation.Typed[A, Int], b: Computation.Typed[B, Int]
-  ): Computation.Predicate[LessThan[A, B]] =
-    Computation(a.compute < b.compute)
+  given computable[A, B](
+    using a: Computable.Typed[A, Int], b: Computable.Typed[B, Int]
+  ): Computable.Predicate[LessThan[A, B]] =
+    Computable(a.compute < b.compute)
 
   transparent inline given inlinable[A, B](
     using a: Inlinable.Typed[A, Int], b: Inlinable.Typed[B, Int]
@@ -25,7 +25,5 @@ object LessThan:
     override transparent inline def reduce: Boolean | Null = ${ impl[A, B] }
 
   private def impl[A <: Int : Type, B <: Int: Type](using Quotes): Expr[Boolean | Null] =
-    Inlinable.fromComputation[(A, B), Boolean] { case (a, b) =>
-      computation[a.type, b.type]
-    }
+    Inlinable.fromComputable[(A, B), Boolean]((a, b) => computable[a.type, b.type])
 
