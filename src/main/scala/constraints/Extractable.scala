@@ -5,7 +5,7 @@ import scala.quoted.*
 /**
  * Types for which value extraction has been implemented
  */
-sealed trait Extractable[-E]
+sealed trait Extractable[E]
 
 /**
  * Holds the extraction method
@@ -19,11 +19,11 @@ object Extractable:
         report.errorAndAbort("cannot extract value from type " + TypeRepr.of[E].show)
       case Some(extractable) => new Extractable[E] {}
 
-  given Extractable[Primitive] = new Extractable[Primitive] {}
+  given [P <: Primitive]: Extractable[P] = new Extractable[P] {}
 
-  given Extractable[EmptyTuple] = new Extractable[EmptyTuple] {}
+  given [E <: EmptyTuple]: Extractable[E] = new Extractable[E] {}
 
-  given [H, T <: Tuple](using Extractable[H], Extractable[T]): Extractable[H *: T] = new Extractable[H *: T] {}
+  given [N <: H *: T, H: Extractable, T <: Tuple: Extractable]: Extractable[N] = new Extractable[N] {}
 
   /**
    * Extracts the value of a constant type during macro expansion, possible recursively from nested [[Group]]s

@@ -21,7 +21,7 @@ trait Inlinable[-E]:
 
   transparent inline def inlined: Result =
     inline reduce match
-      case Some(a) => a
+      case Some(result) => result
       case None => compiletime.error("could not inline because the value is unknown")
 
 object Inlinable:
