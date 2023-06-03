@@ -17,7 +17,12 @@ trait Inlinable[-E]:
    * Inlines the result if it can be computed; otherwise, inlines null
    * @return
    */
-  inline def reduce: Result | Null
+  inline def reduce: Option[Result]
+
+  transparent inline def inlined: Result =
+    inline reduce match
+      case Some(a) => a
+      case None => compiletime.error("could not inline because the value is unknown")
 
 object Inlinable:
 
@@ -55,7 +60,7 @@ object Inlinable:
      * Hardcoded to always return null
      *  @return null
      */
-    override inline def reduce: Null = null
+    override inline def reduce: None.type = None
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible
@@ -83,7 +88,7 @@ object Inlinable:
      *
      * @return the extracted value or null
      */
-    override transparent inline def reduce: Result | Null = ${ impl[R] }
+    override transparent inline def reduce: Option[Result] = ${ impl[R] }
 
   /**
    * Used when it is known what type to attempt extracting the value from
@@ -97,19 +102,17 @@ object Inlinable:
      *
      * @return the extracted value or null
      */
-    override transparent inline def reduce: Result | Null = ${ impl[R] }
+    override transparent inline def reduce: Option[Result] = ${ impl[R] }
 
-  private def impl[E: Type](using Quotes): Expr[E | Null] =
+  private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Extractable[E] = Extractable.evidenceOrAbort
-    Extractable.extract[E] match
-      case None => '{null}
-      case Some(value) => Extractable.toExpr(value)
+    inlineOption(Extractable.extract[E])
 
   /**
    * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
    * extract a constant value from type [[E]] and then calling the provided [[Computable]] with the value
    *
-   * @param computation a function returning a [[Computable]] when given the value extracted from [[E]]
+   * @param computable a function returning a [[Computable]] when given the value extracted from [[E]]
    * @param Quotes      performs operations in macro contexts
    * @tparam E the expression being computed
    * @tparam R the result type of the expression
@@ -117,15 +120,23 @@ object Inlinable:
    */
   def fromComputablePostponingExtractableCheck[E: Type, R: Type](
     computable: E => Computable.Typed[Nothing, R]
-  )(using Quotes): Expr[R | Null] =
+  )(using Quotes): Expr[Option[R]] =
     given Extractable[E] = Extractable.evidenceOrAbort
     given Extractable[R] = Extractable.evidenceOrAbort
     fromComputable(computable)
 
   def fromComputable[E: Type: Extractable, R: Type: Extractable](
     computable: E => Computable.Typed[Nothing, R]
-  )(using Quotes): Expr[R | Null] =
-    Extractable.extract[E].map(computable) match
-      case None => '{ null }
-      case Some(computable) =>
-        Extractable.toExpr[R](computable.compute)
+  )(using Quotes): Expr[Option[R]] =
+    inlineOption(Extractable.extract[E].map(computable).map(_.compute))
+
+  private def inlineOption[V: Extractable: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+    possibleValue match
+      case None => '{ _root_.scala.None }
+      case Some(value) =>
+        val tpe = Extractable.toType(value)
+        val expr = Extractable.toExpr(value)
+        tpe.asType match
+          case '[e] =>
+            val casted = expr.asExprOf[e]
+            '{ _root_.scala.Some[e]($casted) }.asExprOf[Option[V]]

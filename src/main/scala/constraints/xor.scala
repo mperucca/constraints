@@ -37,12 +37,12 @@ object xor:
    */
   transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A xor B] =
     inline a.reduce match
-      case false => inline b.reduce match
-        case false => Inlinable.Constant[false]
-        case null => Inlinable.Unknown
-        case true => Inlinable.Constant[true]
-      case null => Inlinable.Unknown
-      case true => inline b.reduce match
-        case false => Inlinable.Constant[true]
-        case null => Inlinable.Unknown
-        case true => Inlinable.Constant[false]
+      case Some(false) => inline b.reduce match
+        case Some(false) => Inlinable.Constant[false]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[true]
+      case None => Inlinable.Unknown
+      case Some(true) => inline b.reduce match
+        case Some(false) => Inlinable.Constant[true]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[false]

@@ -31,6 +31,6 @@ object Not:
    */
   transparent inline given[C](using c: Inlinable.Predicate[C]): Inlinable.Predicate[Not[C]] =
     inline c.reduce match
-      case false => Inlinable.Constant[true]
-      case null => Inlinable.Unknown
-      case true => Inlinable.Constant[false]
+      case Some(false) => Inlinable.Constant[true]
+      case None => Inlinable.Unknown
+      case Some(true) => Inlinable.Constant[false]

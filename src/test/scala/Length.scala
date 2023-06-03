@@ -14,11 +14,11 @@ object Length:
     using c: Inlinable.Typed[S, String]
   ): Inlinable.Typed[Length[S], Int] =
     inline c.reduce match
-      case null => Inlinable.Unknown
-      case s: String => Impl[s.type]
+      case None => Inlinable.Unknown
+      case Some(s: String) => Impl[s.type]
 
   class Impl[S <: String] extends Inlinable.Impl[Int]:
-    override transparent inline def reduce: Int | Null = ${ impl[S] }
+    override transparent inline def reduce: Option[Int] = ${ impl[S] }
 
-  private def impl[S <: String : Type](using Quotes): Expr[Int | Null] =
+  private def impl[S <: String : Type](using Quotes): Expr[Option[Int]] =
     Inlinable.fromComputable((s: S) => computable[s.type])

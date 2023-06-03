@@ -18,58 +18,58 @@ object AtLeast:
     Minimum <: Double
   ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def reduce: Boolean | Null = ${ implDouble[Value, Minimum] }
+    override transparent inline def reduce: Option[Boolean] = ${ implDouble[Value, Minimum] }
 
   given compileTimeCheckInt[
     Value <: Int,
     Minimum <: Int
   ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def reduce: Boolean | Null = ${ implInt[Value, Minimum] }
+    override transparent inline def reduce: Option[Boolean] = ${ implInt[Value, Minimum] }
 
   given compileTimeCheckString[
     Value <: String,
     Minimum <: String
   ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def reduce: Boolean | Null = ${ implString[Value, Minimum] }
+    override transparent inline def reduce: Option[Boolean] = ${ implString[Value, Minimum] }
 
   given compileTimeCheckChar[
     Value <: Char,
     Minimum <: Char
   ]: Inlinable[Value AtLeast Minimum] with
     override type Result = Boolean
-    override transparent inline def reduce: Boolean | Null = ${ implChar[Value, Minimum] }
+    override transparent inline def reduce: Option[Boolean] = ${ implChar[Value, Minimum] }
 
   private def implDouble[
     Value <: Double : Type,
     Minimum <: Double : Type
-  ](using Quotes): Expr[Boolean | Null] =
+  ](using Quotes): Expr[Option[Boolean]] =
     impl[Value, Minimum, Double]
 
   private def implInt[
     Value <: Int : Type,
     Minimum <: Int : Type
-  ](using Quotes): Expr[Boolean | Null] =
+  ](using Quotes): Expr[Option[Boolean]] =
     impl[Value, Minimum, Int]
 
   private def implString[
     Value <: String: Type,
     Minimum <: String: Type
-  ](using Quotes): Expr[Boolean | Null] =
+  ](using Quotes): Expr[Option[Boolean]] =
     impl[Value, Minimum, String]
 
   private def implChar[
     Value <: Char: Type,
     Minimum <: Char: Type
-  ](using Quotes): Expr[Boolean | Null] =
+  ](using Quotes): Expr[Option[Boolean]] =
     impl[Value, Minimum, Char]
 
   private def impl[
     Value <: Orderable: Type,
     Minimum <: Orderable: Type,
     Orderable: Ordering
-  ](using Quotes): Expr[Boolean | Null] =
+  ](using Quotes): Expr[Option[Boolean]] =
     Inlinable.fromComputablePostponingExtractableCheck[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }

@@ -44,9 +44,9 @@ object Guarantee:
    */
   inline def verifyAtCompileTime[C](using predicate: Inlinable.Predicate[C]): Guarantee[C] =
     inline predicate.reduce match
-      case false => compiletime.error("invalid")
-      case null => compiletime.error("unknown")
-      case true => trust
+      case Some(false) => compiletime.error("invalid")
+      case None => compiletime.error("unknown")
+      case Some(true) => trust
 
   extension [A](guarantee: => Guarantee[A])
 

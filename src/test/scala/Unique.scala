@@ -15,15 +15,15 @@ object Unique:
 
   given compileTimeCheckGroup[T <: Tuple: Extractable]: Inlinable[Unique[T]] with
     override type Result = Boolean
-    override transparent inline def reduce: Boolean | Null = ${implTuple[T]}
+    override transparent inline def reduce: Option[Boolean] = ${implTuple[T]}
 
   given compileTimeCheckString[S <: String]: Inlinable[Unique[S]] with
     override type Result = Boolean
-    override transparent inline def reduce: Boolean | Null = ${ implString[S] }
+    override transparent inline def reduce: Option[Boolean] = ${ implString[S] }
 
-  private def implTuple[T <: Tuple: Type](using Quotes): Expr[Boolean | Null] = impl
+  private def implTuple[T <: Tuple: Type](using Quotes): Expr[Option[Boolean]] = impl
 
-  private def implString[S <: String: Type](using Quotes): Expr[Boolean | Null] = impl
+  private def implString[S <: String: Type](using Quotes): Expr[Option[Boolean]] = impl
 
-  private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Boolean | Null] =
+  private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Option[Boolean]] =
     Inlinable.fromComputablePostponingExtractableCheck((i: I) => summon[Computable[Unique[i.type]]])

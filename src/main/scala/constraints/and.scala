@@ -36,11 +36,11 @@ object and:
    */
   transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A and B] =
     inline a.reduce match
-      case false => Inlinable.Constant[false]
-      case null => inline b.reduce match
-        case false => Inlinable.Constant[false]
-        case null | true => Inlinable.Unknown
-      case true => inline b.reduce match
-        case false => Inlinable.Constant[false]
-        case null => Inlinable.Unknown
-        case true => Inlinable.Constant[true]
+      case Some(false) => Inlinable.Constant[false]
+      case None => inline b.reduce match
+        case Some(false) => Inlinable.Constant[false]
+        case None | Some(true) => Inlinable.Unknown
+      case Some(true) => inline b.reduce match
+        case Some(false) => Inlinable.Constant[false]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[true]

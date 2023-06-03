@@ -16,21 +16,21 @@ object Equal:
     using a: Inlinable.Typed[A, Any], b: Inlinable.Typed[B, Any]
   ): Inlinable.Predicate[A === B] =
     inline a.reduce match
-      case null => Inlinable.Unknown
-      case r1: Primitive => continue[r1.type, B] // use literal type for primitive
-      case r1: Tuple => continue[a.Result, B] // literal types don't reduce for tuples
+      case None => Inlinable.Unknown
+      case Some(r1: Primitive) => continue[r1.type, B] // use literal type for primitive
+      case Some(r1: Tuple) => continue[a.Result, B] // literal types don't reduce for tuples
 
   transparent inline def continue[A, B](
     using b: Inlinable.Typed[B, Any]
   ): Inlinable.Predicate[Any] =
     inline b.reduce match
-      case null => Inlinable.Unknown
-      case r2: Primitive => Impl[A, r2.type]
-      case r2: Tuple => Impl[A, b.Result]
+      case None => Inlinable.Unknown
+      case Some(r2: Primitive) => Impl[A, r2.type]
+      case Some(r2: Tuple) => Impl[A, b.Result]
 
   class Impl[A, B] extends Inlinable.Impl[Boolean]:
-    override transparent inline def reduce: Boolean | Null = ${ impl[A, B] }
+    override transparent inline def reduce: Option[Boolean] = ${ impl[A, B] }
 
-  private def impl[A : Type, B : Type](using Quotes): Expr[Boolean | Null] =
+  private def impl[A : Type, B : Type](using Quotes): Expr[Option[Boolean]] =
     Inlinable.fromComputablePostponingExtractableCheck[(A, B), Boolean]: (a, b) =>
       computable[a.type, b.type]

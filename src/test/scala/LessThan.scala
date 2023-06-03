@@ -15,15 +15,15 @@ object LessThan:
     using a: Inlinable.Typed[A, Int], b: Inlinable.Typed[B, Int]
   ): Inlinable.Predicate[LessThan[A, B]] =
     inline a.reduce match
-      case null => Inlinable.Unknown
-      case l: Int =>
+      case None => Inlinable.Unknown
+      case Some(l: Int) =>
         inline b.reduce match
-          case null => Inlinable.Unknown
-          case h: Int => Impl[l.type, h.type]
+          case None => Inlinable.Unknown
+          case Some(h: Int) => Impl[l.type, h.type]
 
   class Impl[A <: Int, B <: Int] extends Inlinable.Impl[Boolean]:
-    override transparent inline def reduce: Boolean | Null = ${ impl[A, B] }
+    override transparent inline def reduce: Option[Boolean] = ${ impl[A, B] }
 
-  private def impl[A <: Int : Type, B <: Int: Type](using Quotes): Expr[Boolean | Null] =
+  private def impl[A <: Int : Type, B <: Int: Type](using Quotes): Expr[Option[Boolean]] =
     Inlinable.fromComputable[(A, B), Boolean]((a, b) => computable[a.type, b.type])
 
