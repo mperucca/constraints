@@ -42,7 +42,7 @@ object Guarantee:
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline def verifyAtCompileTime[C](using predicate: Inlinable.Predicate[C]): Guarantee[C] =
+  inline given verifyAtCompileTime[C](using predicate: Inlinable.Predicate[C]): Guarantee[C] =
     inline predicate.reduce match
       case Some(false) => compiletime.error("invalid")
       case None => compiletime.error("unknown")

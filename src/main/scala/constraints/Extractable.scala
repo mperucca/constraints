@@ -5,25 +5,38 @@ import scala.quoted.*
 /**
  * Types for which value extraction has been implemented
  */
-sealed trait Extractable[E]
+trait Extractable[E]:
+
+  def extract: Option[E]
 
 /**
  * Holds the extraction method
  */
 object Extractable:
 
-  def evidenceOrAbort[E: Type](using Quotes): Extractable[E] =
-    Expr.summon[Extractable[E]] match
-      case None =>
-        import quoted.quotes.reflect.*
-        report.errorAndAbort("cannot extract value from type " + TypeRepr.of[E].show)
-      case Some(extractable) => new Extractable[E] {}
+  sealed trait Builtin[E]
+  object Builtin:
+    given[P <: Primitive]: Builtin[P] = new Builtin[P] {}
 
-  given [P <: Primitive]: Extractable[P] = new Extractable[P] {}
+    given[E <: EmptyTuple]: Builtin[E] = new Builtin[E] {}
 
-  given [E <: EmptyTuple]: Extractable[E] = new Extractable[E] {}
+    given[N <: H *: T, H: Builtin, T <: Tuple : Builtin]: Builtin[N] = new Builtin[N] {}
 
-  given [N <: H *: T, H: Extractable, T <: Tuple: Extractable]: Extractable[N] = new Extractable[N] {}
+    def evidenceOrAbort[E: Type](using Quotes): Builtin[E] =
+      Expr.summon[Builtin[E]] match
+        case None =>
+          import quoted.quotes.reflect.*
+          report.errorAndAbort("cannot extract value from type " + TypeRepr.of[E].show)
+        case Some(extractable) => new Builtin[E] {}
+
+  given[B: Builtin: Type](using Quotes): Extractable[B] with
+    override def extract: Option[B] = Extractable.extract
+
+  given[N <: H *: T, H <: Singleton, T <: Tuple](using h: Extractable[H], t: Extractable[T]): Extractable[N] with
+    override def extract: Option[N] =
+      for head <- h.extract
+          tail <- t.extract
+        yield (head *: tail).asInstanceOf[N]
 
   /**
    * Extracts the value of a constant type during macro expansion, possible recursively from nested [[Group]]s
@@ -32,7 +45,7 @@ object Extractable:
    * @tparam V the type to extract the value from
    * @return [[Some]] value if it can be extracted from the constant type or [[None]] otherwise
    */
-  def extract[V : Type: Extractable](using Quotes): Option[V] =
+  def extract[V : Type: Extractable.Builtin](using Quotes): Option[V] =
     Extract.unapply(quotes.reflect.TypeRepr.of[V]).map(_.asInstanceOf[V])
 
   private object Extract:
@@ -66,7 +79,7 @@ object Extractable:
   /**
    * Lift an extractable value to its literal type
    */
-  def toLiteralType[E: Extractable](extractable: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
+  def toLiteralType[E: Extractable.Builtin](extractable: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
     extractable match
       case p: Primitive => Primitive.toConstantType(p)
       case t: Tuple => tupleToLiteralTupleType(t)
@@ -74,11 +87,11 @@ object Extractable:
   /**
    * Lift an extractable value to its literal expression
    */
-  def toExpr[E: Extractable: Type](extractable: E)(using Quotes): Expr[E] =
+  def toExpr[E: Extractable.Builtin: Type](extractable: E)(using Quotes): Expr[E] =
     val expr = extractable match
       case p: Primitive => Primitive.toExpr(p)
       case t: Tuple =>
-        given Extractable[t.type] = null.asInstanceOf
+        given Extractable.Builtin[t.type] = null.asInstanceOf
         tupleToExpr[t.type](t)
     val tpe = toLiteralType(extractable)
     tpe.asType match

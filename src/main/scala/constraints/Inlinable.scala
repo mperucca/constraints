@@ -105,7 +105,7 @@ object Inlinable:
     override transparent inline def reduce: Option[Result] = ${ impl[R] }
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
-    given Extractable[E] = Extractable.evidenceOrAbort
+    given Extractable.Builtin[E] = Extractable.Builtin.evidenceOrAbort
     inlineOption(Extractable.extract[E])
 
   /**
@@ -121,16 +121,18 @@ object Inlinable:
   def fromComputablePostponingExtractableCheck[E: Type, R: Type](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
-    given Extractable[E] = Extractable.evidenceOrAbort
-    given Extractable[R] = Extractable.evidenceOrAbort
+    given Extractable.Builtin[E] = Extractable.Builtin.evidenceOrAbort
+    given Extractable.Builtin[R] = Extractable.Builtin.evidenceOrAbort
     fromComputable(computable)
 
-  def fromComputable[E: Type: Extractable, R: Type: Extractable](
+  def fromComputable[E: Type: Extractable, R: Type: Extractable.Builtin](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
-    inlineOption(Extractable.extract[E].map(computable).map(_.compute))
+    val r = inlineOption(summon[Extractable[E]].extract.map(computable).map(_.compute))
+    quoted.quotes.reflect.report.info("extracting\t" + quoted.quotes.reflect.TypeRepr.of[E].show + "\nwith extractor\t" + summon[Extractable[E]] + "\nextracted\t" + r.show)
+    r
 
-  private def inlineOption[V: Extractable: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+  private def inlineOption[V: Extractable.Builtin: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ _root_.scala.None }
       case Some(value) =>

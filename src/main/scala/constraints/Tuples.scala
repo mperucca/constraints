@@ -16,20 +16,20 @@ def tupleToLiteralTupleType(tuple: Tuple)(using Quotes): quoted.quotes.reflect.T
   (tuple: Tuple) match
     case EmptyTuple => TypeRepr.of[EmptyTuple]
     case h *: t =>
-      given Extractable[h.type] = null.asInstanceOf
+      given Extractable.Builtin[h.type] = null.asInstanceOf
       val head = Extractable.toLiteralType[h.type](h)
       AppliedType(TypeRepr.of[*:[_, _]], List(head, tupleToLiteralTupleType(t)))
 
-def tupleToExpr[T <: Tuple : Extractable](tuple: T)(using Quotes): Expr[T] =
+def tupleToExpr[T <: Tuple : Extractable.Builtin](tuple: T)(using Quotes): Expr[T] =
   val expr = tuple match
     case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)
     case h *: t =>
       val head = h match
         case p: Primitive => Primitive.toExpr(p)
         case t: Tuple =>
-          given Extractable[t.type] = null.asInstanceOf
+          given Extractable.Builtin[t.type] = null.asInstanceOf
           tupleToExpr[t.type](t)
-      given Extractable[t.type] = null.asInstanceOf
+      given Extractable.Builtin[t.type] = null.asInstanceOf
       val tail = tupleToExpr[t.type](t)
       '{ $head *: $tail }
   expr.asInstanceOf[Expr[T]]
