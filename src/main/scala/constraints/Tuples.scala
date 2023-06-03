@@ -11,14 +11,14 @@ import scala.quoted.*
  */
 given nonEmptyTupleValueOf[H: ValueOf, T <: Tuple: ValueOf]: ValueOf[H *: T] = ValueOf(valueOf[H] *: valueOf[T])
 
-def tupleToType(tuple: Tuple)(using Quotes): quoted.quotes.reflect.TypeRepr =
+def tupleToLiteralTupleType(tuple: Tuple)(using Quotes): quoted.quotes.reflect.TypeRepr =
   import quoted.quotes.reflect.*
   (tuple: Tuple) match
     case EmptyTuple => TypeRepr.of[EmptyTuple]
     case h *: t =>
       given Extractable[h.type] = null.asInstanceOf
-      val head = Extractable.toType[h.type](h)
-      AppliedType(TypeRepr.of[*:[_, _]], List(head, tupleToType(t)))
+      val head = Extractable.toLiteralType[h.type](h)
+      AppliedType(TypeRepr.of[*:[_, _]], List(head, tupleToLiteralTupleType(t)))
 
 def tupleToExpr[T <: Tuple : Extractable](tuple: T)(using Quotes): Expr[T] =
   val expr = tuple match

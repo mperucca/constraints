@@ -134,7 +134,7 @@ object Inlinable:
     possibleValue match
       case None => '{ _root_.scala.None }
       case Some(value) =>
-        val tpe = Extractable.toType(value)
+        val tpe = Extractable.toLiteralType(value)
         val expr = Extractable.toExpr(value)
         tpe.asType match
           case '[e] =>

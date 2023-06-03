@@ -18,7 +18,7 @@ type Primitive =
 
 object Primitive:
 
-  def toType(primitive: Primitive)(using Quotes): quoted.quotes.reflect.ConstantType =
+  def toConstantType(primitive: Primitive)(using Quotes): quoted.quotes.reflect.ConstantType =
     import quoted.quotes.reflect.*
     val constant = primitive match
       case b: Boolean => BooleanConstant(b)

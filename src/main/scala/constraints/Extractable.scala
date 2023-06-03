@@ -60,16 +60,16 @@ object Extractable:
               if v1 != v2
               then report.errorAndAbort(s"intersection type ${intersectionType.show} produced two values: $v1 and $v2")
               else Some(v1)
-        case tpe =>
-          Option.when(tpe =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
+        case tp =>
+          Option.when(tp =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
 
   /**
    * Lift an extractable value to its literal type
    */
-  def toType[E: Extractable](extractable: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
+  def toLiteralType[E: Extractable](extractable: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
     extractable match
-      case p: Primitive => Primitive.toType(p)
-      case t: Tuple => tupleToType(t)
+      case p: Primitive => Primitive.toConstantType(p)
+      case t: Tuple => tupleToLiteralTupleType(t)
 
   /**
    * Lift an extractable value to its literal expression
@@ -80,7 +80,7 @@ object Extractable:
       case t: Tuple =>
         given Extractable[t.type] = null.asInstanceOf
         tupleToExpr[t.type](t)
-    val tpe = toType(extractable)
+    val tpe = toLiteralType(extractable)
     tpe.asType match
       case '[e] =>
         val typedExpr = '{ $expr.asInstanceOf[e] } // asInstanceOf needed to further reduce inlining
