@@ -106,7 +106,7 @@ object Inlinable:
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Builtin[E] = Builtin.evidenceOrAbort
-    inlineOption(Builtin.extractable[E].extract)
+    inlineOption(Extractable.builtin[E].extract)
 
   /**
    * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
@@ -125,16 +125,16 @@ object Inlinable:
     given Builtin[R] = Builtin.evidenceOrAbort
     fromComputable(computable)
 
-  def fromComputable[E: Type: Extractable, R: Type: Builtin](
+  def fromComputable[E: Type: Extractable, R: Type: Literable: Builtin](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
     inlineOption(summon[Extractable[E]].extract.map(computable).map(_.compute))
 
-  private def inlineOption[V: Builtin: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+  private def inlineOption[V: Literable: Type: Builtin](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ _root_.scala.None }
       case Some(value) =>
-        val tpe = Builtin.toLiteralType(value)
+        val tpe = summon[Literable[V]].toLiteralType(value)
         val expr = Builtin.toExpr(value)
         tpe.asType match
           case '[e] =>

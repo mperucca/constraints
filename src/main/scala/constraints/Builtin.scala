@@ -19,10 +19,6 @@ object Builtin:
         report.errorAndAbort("cannot extract value from type " + TypeRepr.of[E].show)
       case Some(extractable) => new Builtin[E] {}
 
-  given extractable[B: Builtin : Type] (using Quotes): Extractable[B] with
-    override def extract: Option[B] =
-      unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])
-
   def unapply(using Quotes)(tpe: quotes.reflect.TypeRepr): Option[Any] =
     import quotes.reflect.*
     tpe.widenTermRefByName.dealias.simplified match
