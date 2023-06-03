@@ -13,7 +13,7 @@ object Unique:
       valueOf[I].toIterable.forall(soFar.add)
     }
 
-  given compileTimeCheckGroup[T <: Tuple: Extractable.Builtin]: Inlinable[Unique[T]] with
+  given compileTimeCheckGroup[T <: Tuple: Builtin]: Inlinable[Unique[T]] with
     override type Result = Boolean
     override transparent inline def reduce: Option[Boolean] = ${implTuple[T]}
 

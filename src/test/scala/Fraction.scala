@@ -29,8 +29,8 @@ object Fraction:
 
   given wide[F <: Fraction.WhiteBox[N, D], N <: Int : Type, D <: Int : Type](using Quotes): Extractable[F] with
     override def extract: Option[F] =
-      for numerator <- Extractable.extract[N]
-          denominator <- Extractable.extract[D]
+      for numerator <- Extractable.builtin[N].extract
+          denominator <- Extractable.builtin[D].extract
           nonZero <- Guarantee.testAtRuntime[denominator.type !== 0].toOption
       yield Fraction(numerator, denominator)(nonZero).asInstanceOf[F]
 

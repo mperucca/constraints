@@ -105,8 +105,8 @@ object Inlinable:
     override transparent inline def reduce: Option[Result] = ${ impl[R] }
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
-    given Extractable.Builtin[E] = Extractable.Builtin.evidenceOrAbort
-    inlineOption(Extractable.extract[E])
+    given Builtin[E] = Builtin.evidenceOrAbort
+    inlineOption(Builtin.extractable[E].extract)
 
   /**
    * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
@@ -121,23 +121,21 @@ object Inlinable:
   def fromComputablePostponingExtractableCheck[E: Type, R: Type](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
-    given Extractable.Builtin[E] = Extractable.Builtin.evidenceOrAbort
-    given Extractable.Builtin[R] = Extractable.Builtin.evidenceOrAbort
+    given Builtin[E] = Builtin.evidenceOrAbort
+    given Builtin[R] = Builtin.evidenceOrAbort
     fromComputable(computable)
 
-  def fromComputable[E: Type: Extractable, R: Type: Extractable.Builtin](
+  def fromComputable[E: Type: Extractable, R: Type: Builtin](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
-    val r = inlineOption(summon[Extractable[E]].extract.map(computable).map(_.compute))
-    quoted.quotes.reflect.report.info("extracting\t" + quoted.quotes.reflect.TypeRepr.of[E].show + "\nwith extractor\t" + summon[Extractable[E]] + "\nextracted\t" + r.show)
-    r
+    inlineOption(summon[Extractable[E]].extract.map(computable).map(_.compute))
 
-  private def inlineOption[V: Extractable.Builtin: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+  private def inlineOption[V: Builtin: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ _root_.scala.None }
       case Some(value) =>
-        val tpe = Extractable.toLiteralType(value)
-        val expr = Extractable.toExpr(value)
+        val tpe = Builtin.toLiteralType(value)
+        val expr = Builtin.toExpr(value)
         tpe.asType match
           case '[e] =>
             val casted = expr.asExprOf[e]
