@@ -21,11 +21,8 @@ object Fraction:
   type Denominator[F] = F match { case Fraction.WhiteBox[?, d] => d }
   type Tupled[F] = F match { case Fraction.WhiteBox[n, d] => (n, d) }
 
-  given [F <: Fraction.WhiteBox[N, D], N <: Int : ValueOf, D <: Int : ValueOf](using Guarantee[D !== 0]): ValueOf[Fraction.WhiteBox[N, D]] =
-    val numerator = valueOf[N]
-    val denominator = valueOf[D]
-    val fraction = Fraction(numerator, denominator)(Guarantee.trust)
-    ValueOf(fraction)
+  given [F <: Fraction.WhiteBox[N, D], N <: Int : ValueOf, D <: Int](using d: ValueOf[D])(using Guarantee[d.value.type !== 0]): ValueOf[Fraction.WhiteBox[N, D]] =
+    ValueOf(Fraction(valueOf[N], d.value)(summon))
 
   given wide[F <: Fraction.WhiteBox[N, D], N <: Int : Type, D <: Int : Type](using Quotes): Extractable[F] with
     override def extract: Option[F] =
