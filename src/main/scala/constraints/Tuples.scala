@@ -16,7 +16,7 @@ def tupleToLiteralTupleType(tuple: Tuple)(using Quotes): quoted.quotes.reflect.T
   (tuple: Tuple) match
     case EmptyTuple => TypeRepr.of[EmptyTuple]
     case h *: t =>
-      given Builtin[h.type] = null.asInstanceOf
+      given Builtin[h.type] = Builtin[h.type]
       val head = Builtin.toLiteralType[h.type](h)
       AppliedType(TypeRepr.of[*:[_, _]], List(head, tupleToLiteralTupleType(t)))
 
@@ -27,9 +27,9 @@ def tupleToExpr[T <: Tuple : Builtin](tuple: T)(using Quotes): Expr[T] =
       val head = h match
         case p: Primitive => Primitive.toExpr(p)
         case t: Tuple =>
-          given Builtin[t.type] = null.asInstanceOf
+          given Builtin[t.type] = Builtin[t.type]
           tupleToExpr[t.type](t)
-      given Builtin[t.type] = null.asInstanceOf
+      given Builtin[t.type] = Builtin[t.type]
       val tail = tupleToExpr[t.type](t)
       '{ $head *: $tail }
   expr.asInstanceOf[Expr[T]]

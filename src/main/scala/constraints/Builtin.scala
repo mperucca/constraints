@@ -2,20 +2,20 @@ package constraints
 
 import scala.quoted.*
 
-sealed trait Builtin[E]
+class Builtin[E] private[constraints]()
 
 object Builtin:
 
-  given[P <: Primitive | EmptyTuple]: Builtin[P] = new Builtin[P] {}
+  given[P <: Primitive | EmptyTuple]: Builtin[P] = Builtin[P]
 
-  given[N <: H *: T, H: Builtin, T <: Tuple : Builtin]: Builtin[N] = new Builtin[N] {}
+  given[N <: H *: T, H: Builtin, T <: Tuple : Builtin]: Builtin[N] = Builtin[N]
 
   def evidenceOrAbort[E: Type](using Quotes): Builtin[E] =
     Expr.summon[Builtin[E]] match
       case None =>
         import quoted.quotes.reflect.*
         report.errorAndAbort("cannot extract value from type " + TypeRepr.of[E].show)
-      case Some(extractable) => new Builtin[E] {}
+      case Some(extractable) => Builtin[E]
 
   def unapply(using Quotes)(tpe: quotes.reflect.TypeRepr): Option[Any] =
     import quotes.reflect.*
@@ -59,7 +59,7 @@ object Builtin:
     val expr = extractable match
       case p: Primitive => Primitive.toExpr(p)
       case t: Tuple =>
-        given Builtin[t.type] = null.asInstanceOf
+        given Builtin[t.type] = Builtin[t.type]
         tupleToExpr[t.type](t)
     val tpe = toLiteralType(extractable)
     tpe.asType match
