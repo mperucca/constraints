@@ -67,7 +67,7 @@ object Inlinable:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given literal[R <: Singleton]: Inlinable.Typed[R, R] =
+  transparent inline given literal[R <: Singleton: Builtin]: Inlinable.Typed[R, R] =
     value[R]
 
   /**
@@ -76,7 +76,7 @@ object Inlinable:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  given value[R]: Inlinable[R] with
+  given value[R: Builtin]: Inlinable[R] with
 
     /**
      * The result type that a value might be extracted from
@@ -95,7 +95,7 @@ object Inlinable:
    * @tparam R the result to attempt value extraction from
    * @note similar to [[Value]] but with the expression typed as [[Any]] for contravariance
    */
-  class Constant[R] extends Inlinable.Impl[R]:
+  class Constant[R: Builtin] extends Inlinable.Impl[R]:
 
     /**
      * Runs the value extraction macro to attempt to extract a value from [[R]]

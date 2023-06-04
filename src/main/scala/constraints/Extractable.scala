@@ -22,8 +22,8 @@ object Extractable:
     override def extract: Option[B] =
       Builtin.unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])
 
-  given[N <: H *: T, H <: Singleton, T <: Tuple](using h: Extractable[H], t: Extractable[T]): Extractable[N] with
-    override def extract: Option[N] =
+  given nonEmptyTuple[T <: NonEmptyTuple](using h: Extractable[Tuple.Head[T]], t: Extractable[Tuple.Tail[T]]): Extractable[T] with
+    override def extract: Option[T] =
       for head <- h.extract
           tail <- t.extract
-        yield (head *: tail).asInstanceOf[N]
+        yield (head *: tail).asInstanceOf[T]

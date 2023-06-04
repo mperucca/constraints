@@ -6,9 +6,7 @@ sealed trait Builtin[E]
 
 object Builtin:
 
-  given[P <: Primitive]: Builtin[P] = new Builtin[P] {}
-
-  given[E <: EmptyTuple]: Builtin[E] = new Builtin[E] {}
+  given[P <: Primitive | EmptyTuple]: Builtin[P] = new Builtin[P] {}
 
   given[N <: H *: T, H: Builtin, T <: Tuple : Builtin]: Builtin[N] = new Builtin[N] {}
 
