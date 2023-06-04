@@ -67,8 +67,8 @@ object Inlinable:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  transparent inline given literal[R <: Singleton: Builtin]: Inlinable.Typed[R, R] =
-    value[R]
+  transparent inline given builtinSingleton[R <: Singleton: Builtin]: Inlinable.Typed[R, R] =
+    builtin[R]
 
   /**
    * Type class instance for leaf types
@@ -76,7 +76,7 @@ object Inlinable:
    * @tparam R the result type from which to extract a value
    * @return a compile time computation that attempt to extract a result value from the result type
    */
-  given value[R: Builtin]: Inlinable[R] with
+  given builtin[R: Builtin]: Inlinable[R] with
 
     /**
      * The result type that a value might be extracted from

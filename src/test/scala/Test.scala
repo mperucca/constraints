@@ -118,7 +118,7 @@ import scala.util.Random
     Constrained[NonOverflowingOnDivide](fraction)(Guarantee.verifyAtCompileTime)
 
     val fraction2 = Fraction(1, 3)(Guarantee.verifyAtCompileTime)
-    Inlinable.value[Fraction.Tupled[fraction.type]].reduce: Some[Fraction.Tupled[fraction.type]]
+    Inlinable.builtin[Fraction.Tupled[fraction.type]].reduce: Some[Fraction.Tupled[fraction.type]]
     Guarantee.verifyAtCompileTime[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
     Guarantee.verifyAtCompileTime[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 

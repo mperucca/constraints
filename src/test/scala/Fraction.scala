@@ -31,5 +31,11 @@ object Fraction:
           nonZero <- Guarantee.testAtRuntime[denominator.type !== 0].toOption
       yield Fraction(numerator, denominator)(nonZero).asInstanceOf[F]
 
-  given narrow[F <: Fraction.WhiteBox[N, D], N <: Int & Singleton : Type, D <: Int & Singleton : Type] (using Quotes): Extractable[F] with
+  given narrow[F <: Fraction.WhiteBox[N, D], N <: Int & Singleton : Type, D <: Int & Singleton : Type](using Quotes): Extractable[F] with
     override def extract: Option[F] = wide[F, N, D].extract
+
+  given literable[F <: Fraction: Type](using Quotes): Literable[F] with
+    override def toLiteral(value: F): (Expr[F], Type[F]) =
+      val numerator = Expr(value.numerator)
+      val denominator = Expr(value.denominator)
+      ('{Fraction($numerator, $denominator)(Guarantee.trust).asInstanceOf[F]}, Type.of[F])
