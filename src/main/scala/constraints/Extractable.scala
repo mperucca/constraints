@@ -14,6 +14,10 @@ trait Extractable[E]:
  */
 object Extractable:
 
+  given builtinSingleton[B <: Singleton: Builtin : Type] (using Quotes): Extractable[B] with
+    override def extract: Option[B] =
+      Builtin.unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])
+
   given builtin[B: Builtin : Type] (using Quotes): Extractable[B] with
     override def extract: Option[B] =
       Builtin.unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])

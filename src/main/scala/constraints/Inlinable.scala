@@ -125,18 +125,19 @@ object Inlinable:
     given Builtin[R] = Builtin.evidenceOrAbort
     fromComputable(computable)
 
-  def fromComputable[E: Type: Extractable, R: Type: Literable: Builtin](
+  def fromComputable[E: Type: Extractable, R: Type: Literable](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
     inlineOption(summon[Extractable[E]].extract.map(computable).map(_.compute))
 
-  private def inlineOption[V: Literable: Type: Builtin](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+  private def inlineOption[V: Literable: Type](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ _root_.scala.None }
       case Some(value) =>
         val tpe = summon[Literable[V]].toLiteralType(value)
-        val expr = Builtin.toExpr(value)
-        tpe.asType match
+        val expr = summon[Literable[V]].toLiteralExpr(value)
+//        quoted.quotes.reflect.report.info(expr.show + "\n" + quoted.quotes.reflect.TypeRepr.of(using tpe).show)
+        tpe match
           case '[e] =>
             val casted = expr.asExprOf[e]
             '{ _root_.scala.Some[e]($casted) }.asExprOf[Option[V]]
