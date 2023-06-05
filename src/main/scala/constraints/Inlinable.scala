@@ -106,7 +106,7 @@ object Inlinable:
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Builtin[E] = Builtin.evidenceOrAbort
-    inlineOption(Extractable.builtin[E].extract)
+    inlineOption(FromType.builtin[E].extract)
 
   /**
    * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
@@ -127,7 +127,7 @@ object Inlinable:
 
   def fromComputable[E: Type, R: Type: Literable](
     computable: E => Computable.Typed[Nothing, R]
-  )(using Quotes)(using extractable: Extractable[E]): Expr[Option[R]] =
+  )(using Quotes)(using extractable: FromType[E]): Expr[Option[R]] =
     inlineOption(extractable.extract.map(computable).map(_.compute))
 
   private def inlineOption[V: Type](possibleValue: Option[V])(using Quotes)(using literable: Literable[V]): Expr[Option[V]] =

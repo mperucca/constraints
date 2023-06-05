@@ -24,15 +24,15 @@ object Fraction:
   given [F <: Fraction.WhiteBox[N, D], N <: Int : ValueOf, D <: Int](using d: ValueOf[D])(using Guarantee[d.value.type !== 0]): ValueOf[Fraction.WhiteBox[N, D]] =
     ValueOf(Fraction(valueOf[N], d.value)(summon))
 
-  given wide[F <: Fraction.WhiteBox[N, D], N <: Int : Type, D <: Int : Type](using Quotes): Extractable[F] with
-    override def extract: Option[F] =
-      for numerator <- Extractable.builtin[N].extract
-          denominator <- Extractable.builtin[D].extract
+  given wide[F <: Fraction.WhiteBox[N, D], N <: Int : Type, D <: Int : Type]: FromType[F] with
+    override def extract(using Quotes): Option[F] =
+      for numerator <- FromType.builtin[N].extract
+          denominator <- FromType.builtin[D].extract
           nonZero <- Guarantee.testAtRuntime[denominator.type !== 0].toOption
       yield Fraction(numerator, denominator)(nonZero).asInstanceOf[F]
 
-  given narrow[F <: Fraction.WhiteBox[N, D], N <: Int & Singleton : Type, D <: Int & Singleton : Type](using Quotes): Extractable[F] with
-    override def extract: Option[F] = wide[F, N, D].extract
+  given narrow[F <: Fraction.WhiteBox[N, D], N <: Int & Singleton : Type, D <: Int & Singleton : Type]: FromType[F] with
+    override def extract(using Quotes): Option[F] = wide[F, N, D].extract
 
   given literable[F <: Fraction: Type](using Quotes): Literable[F] with
     override def toLiteral(value: F): (Expr[F], Type[F]) =
