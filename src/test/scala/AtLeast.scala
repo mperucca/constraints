@@ -10,7 +10,7 @@ object AtLeast:
     Value <: Orderable: ValueOf,
     Minimum <: Orderable: ValueOf,
     Orderable: Ordering
-  ]: Compute.Predicate[Value AtLeast Minimum] =
+  ]: Compute.Typed[Value AtLeast Minimum, Boolean] =
     Compute(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
 
   given compileTimeCheckDouble[

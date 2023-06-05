@@ -19,7 +19,7 @@ object and:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if both runtime checks succeed
    */
-  given[A: Compute.Predicate, B: Compute.Predicate]: Compute.Predicate[A and B] =
+  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Typed[A and B, Boolean] =
     Compute(Compute[A] && Compute[B])
 
   /**
@@ -34,13 +34,13 @@ object and:
    *         neither being false and at least one being unknown results in unknown
    *         both being true results in true
    */
-  transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A and B] =
-    inline a.reduce match
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A and B, Boolean] =
+    inline Inlinable[A] match
       case Some(false) => Inlinable.Constant[false]
-      case None => inline b.reduce match
+      case None => inline Inlinable[B] match
         case Some(false) => Inlinable.Constant[false]
         case None | Some(true) => Inlinable.Unknown
-      case Some(true) => inline b.reduce match
+      case Some(true) => inline Inlinable[B] match
         case Some(false) => Inlinable.Constant[false]
         case None => Inlinable.Unknown
         case Some(true) => Inlinable.Constant[true]

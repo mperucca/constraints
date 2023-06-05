@@ -16,7 +16,7 @@ object Not:
    * @tparam C the constraint
    * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */
-  given[C: Compute.Predicate]: Compute.Predicate[Not[C]] =
+  given[C: Compute.To[Boolean]]: Compute.Typed[Not[C], Boolean] =
     Compute(!Compute[C])
 
   /**
@@ -29,8 +29,8 @@ object Not:
    *         [[Not]] on unknown stays unknown
    *         [[Not]] on true becomes false
    */
-  transparent inline given[C](using c: Inlinable.Predicate[C]): Inlinable.Predicate[Not[C]] =
-    inline c.reduce match
+  transparent inline given[C: Inlinable.To[Boolean]]: Inlinable.Typed[Not[C], Boolean] =
+    inline Inlinable[C] match
       case Some(false) => Inlinable.Constant[true]
       case None => Inlinable.Unknown
       case Some(true) => Inlinable.Constant[false]

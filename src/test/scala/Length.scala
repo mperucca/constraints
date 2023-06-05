@@ -7,13 +7,11 @@ type Length[I]
 
 object Length:
 
-  given computable[S](using Compute.Typed[S, String]): Compute.Typed[Length[S], Int] =
+  given computable[S: Compute.To[String]]: Compute.Typed[Length[S], Int] =
     Compute(Compute[S].length)
 
-  transparent inline given inlinable[S](
-    using c: Inlinable.Typed[S, String]
-  ): Inlinable.Typed[Length[S], Int] =
-    inline c.reduce match
+  transparent inline given inlinable[S: Inlinable.To[String]]: Inlinable.Typed[Length[S], Int] =
+    inline Inlinable[S] match
       case None => Inlinable.Unknown
       case Some(s: String) => Impl[s.type]
 

@@ -21,7 +21,7 @@ object xor:
    * @tparam B the second constraint
    * @return the runtime check that succeeds if one but not both of the runtime checks succeeds
    */
-  given[A: Compute.Predicate, B: Compute.Predicate]: Compute.Predicate[A xor B] =
+  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Typed[A xor B, Boolean] =
     Compute(Compute[A] != Compute[B])
 
   /**
@@ -35,14 +35,14 @@ object xor:
    *         either being unknown results in unknown
    *         both being known results in false if they are the same and true if they are different
    */
-  transparent inline given[A, B](using a: Inlinable.Predicate[A], b: Inlinable.Predicate[B]): Inlinable.Predicate[A xor B] =
-    inline a.reduce match
-      case Some(false) => inline b.reduce match
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A xor B, Boolean] =
+    inline Inlinable[A] match
+      case Some(false) => inline Inlinable[B] match
         case Some(false) => Inlinable.Constant[false]
         case None => Inlinable.Unknown
         case Some(true) => Inlinable.Constant[true]
       case None => Inlinable.Unknown
-      case Some(true) => inline b.reduce match
+      case Some(true) => inline Inlinable[B] match
         case Some(false) => Inlinable.Constant[true]
         case None => Inlinable.Unknown
         case Some(true) => Inlinable.Constant[false]

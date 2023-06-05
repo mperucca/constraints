@@ -26,6 +26,8 @@ trait Inlinable[-E]:
 
 object Inlinable:
 
+  transparent inline def apply[A](using inlinable: Inlinable[A]): Option[inlinable.Result] = inlinable.reduce
+
   trait Impl[R] extends Inlinable[Any]:
     override type Result = R
 
@@ -37,12 +39,9 @@ object Inlinable:
    */
   type Typed[-E, +R] = Inlinable[E] { type Result <: R }
 
-  /**
-   * Type alias for computations returning [[Boolean]]s
-   *
-   * @tparam E the expression to compute
-   */
-  type Predicate[-E] = Typed[E, Boolean]
+  type From[-E] = [R] =>> Typed[E, R]
+
+  type To[+R] = [E] =>> Typed[E, R]
 
   /**
    * Type class instance of a compile time computation result being unknown, represented by null

@@ -28,11 +28,13 @@ object Compute:
    */
   type Typed[-E, +R] = Compute[E] { type Result <: R }
 
+  type From[-E] = [R] =>> Typed[E, R]
+
   /**
    * Type alias for computations returning [[Boolean]]s
    * @tparam E the expression to compute
    */
-  type Predicate[-E] = Typed[E, Boolean]
+  type To[+R] = [E] =>> Typed[E, R]
 
   /**
    * Helper function to construct a runtime computation with a lazily computed result

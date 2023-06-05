@@ -6,16 +6,14 @@ type LessThan[A, B]
 
 object LessThan:
 
-  given computable[A, B](using Compute.Typed[A, Int], Compute.Typed[B, Int]): Compute.Predicate[LessThan[A, B]] =
+  given computable[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[LessThan[A, B], Boolean] =
     Compute(Compute[A] < Compute[B])
 
-  transparent inline given inlinable[A, B](
-    using a: Inlinable.Typed[A, Int], b: Inlinable.Typed[B, Int]
-  ): Inlinable.Predicate[LessThan[A, B]] =
-    inline a.reduce match
+  transparent inline given inlinable[A: Inlinable.To[Int], B: Inlinable.To[Int]]: Inlinable.Typed[LessThan[A, B], Boolean] =
+    inline Inlinable[A] match
       case None => Inlinable.Unknown
       case Some(l: Int) =>
-        inline b.reduce match
+        inline Inlinable[B] match
           case None => Inlinable.Unknown
           case Some(h: Int) => Impl[l.type, h.type]
 

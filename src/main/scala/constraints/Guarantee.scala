@@ -32,7 +32,7 @@ object Guarantee:
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def testAtRuntime[C: Compute.Predicate]: Either[Guarantee[Not[C]], Guarantee[C]] =
+  def testAtRuntime[C: Compute.To[Boolean]]: Either[Guarantee[Not[C]], Guarantee[C]] =
     Either.cond(Compute[C], trust, trust)
 
   /**
@@ -42,8 +42,8 @@ object Guarantee:
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */
-  inline given verifyAtCompileTime[C](using predicate: Inlinable.Predicate[C]): Guarantee[C] =
-    inline predicate.reduce match
+  inline given verifyAtCompileTime[C: Inlinable.To[Boolean]]: Guarantee[C] =
+    inline Inlinable[C] match
       case Some(false) => compiletime.error("invalid")
       case None => compiletime.error("unknown")
       case Some(true) => trust

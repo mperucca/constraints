@@ -70,7 +70,7 @@ import scala.util.Random
     alphanumerics.map(Constrained[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Constrained Alphanumeric]
 
     type Letter[C]
-    given [C <: Char: ValueOf]: Compute.Predicate[Letter[C]] = Compute(valueOf[C].isLetter)
+    given [C <: Char: ValueOf]: Compute.Typed[Letter[C], Boolean] = Compute(valueOf[C].isLetter)
     alphanumerics.partitionMap(Constrained.runtimeCheck[Letter](_)): (LazyList[Char Constrained Inverse[Letter]], LazyList[Char Constrained Letter])
   }
 
