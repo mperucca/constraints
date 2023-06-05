@@ -26,8 +26,8 @@ object Fraction:
 
   given wide[F <: Fraction.WhiteBox[N, D], N <: Int : Type, D <: Int : Type]: FromType[F] with
     override def extract(using Quotes): Option[F] =
-      for numerator <- FromType.builtin[N].extract
-          denominator <- FromType.builtin[D].extract
+      for numerator <- FromType[N]
+          denominator <- FromType[D]
           nonZero <- Guarantee.testAtRuntime[denominator.type !== 0].toOption
       yield Fraction(numerator, denominator)(nonZero).asInstanceOf[F]
 
@@ -40,9 +40,9 @@ object Fraction:
       val denominator = Expr(fraction.denominator)
       '{ Fraction($numerator, $denominator)(Guarantee.trust).asInstanceOf[F] }
 
-  given refinable: Refinable[Fraction] with
-    override def refine(fraction: Fraction)(using Quotes): quoted.quotes.reflect.Refinement =
+  given toType: ToType[Fraction] with
+    override def apply(fraction: Fraction)(using Quotes): quoted.quotes.reflect.Refinement =
       import quoted.quotes.reflect.*
-      val numeratorType = Primitive.toConstantType(fraction.numerator)
-      val denominatorType = Primitive.toConstantType(fraction.denominator)
+      val numeratorType = ToType(fraction.numerator)
+      val denominatorType = ToType(fraction.denominator)
       Refinement(Refinement(TypeRepr.of[Fraction], "numerator", numeratorType), "denominator", denominatorType)

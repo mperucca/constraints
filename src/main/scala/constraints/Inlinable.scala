@@ -107,7 +107,7 @@ object Inlinable:
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Builtin[E] = Builtin.evidenceOrAbort
     import Builtin.toExpr
-    inlineOption(FromType.builtin[E].extract)
+    inlineOption(FromType[E])
 
   /**
    * Utility method for [[Inlinable]] implementations that evaluate a computation by attempting to
@@ -127,17 +127,17 @@ object Inlinable:
     import Builtin.toExpr
     fromComputable(computable)
 
-  def fromComputable[E: Type: FromType, R: Type: ToExpr: Refinable](
+  def fromComputable[E: Type: FromType, R: Type: ToExpr: ToType](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
     inlineOption(FromType[E].map(computable).map(_.compute))
 
-  private def inlineOption[V: Type: ToExpr: Refinable](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+  private def inlineOption[V: Type: ToExpr: ToType](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ None }
       case Some(value) =>
         val expr = Expr(value)
-        val tpe = Refinable(value)
+        val tpe = ToType(value)
         tpe.asType match
           case '[e] =>
             val casted = '{ $expr.asInstanceOf[e] }.asExprOf[e]

@@ -25,10 +25,10 @@ def tupleToExpr[T <: Tuple : Builtin](tuple: T)(using Quotes): Expr[T] =
     case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)
     case h *: t =>
       val head = h match
-        case p: Primitive => Primitive.toExpr(p)
-        case t: Tuple =>
-          given Builtin[t.type] = Builtin[t.type]
-          tupleToExpr[t.type](t)
+        case primitive: Primitive => Primitive.toExpr(primitive)
+        case tuple: Tuple =>
+          given Builtin[tuple.type] = Builtin[tuple.type]
+          tupleToExpr[tuple.type](tuple)
       given Builtin[t.type] = Builtin[t.type]
       val tail = tupleToExpr[t.type](t)
       '{ $head *: $tail }
