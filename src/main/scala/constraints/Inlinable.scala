@@ -135,7 +135,7 @@ object Inlinable:
       case None => '{ None }
       case Some(value) =>
         val (expr, tpe) = literable.toLiteral(value)
-        tpe match
+        tpe.asType match
           case '[e] =>
             val casted = expr.asExprOf[e]
             '{ Some[e]($casted) }.asExprOf[Option[V]]

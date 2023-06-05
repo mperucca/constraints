@@ -34,8 +34,16 @@ object Fraction:
   given narrow[F <: Fraction.WhiteBox[N, D], N <: Int & Singleton : Type, D <: Int & Singleton : Type]: FromType[F] with
     override def extract(using Quotes): Option[F] = wide[F, N, D].extract
 
-  given literable[F <: Fraction: Type](using Quotes): Literable[F] with
-    override def toLiteral(value: F): (Expr[F], Type[F]) =
-      val numerator = Expr(value.numerator)
-      val denominator = Expr(value.denominator)
-      ('{Fraction($numerator, $denominator)(Guarantee.trust).asInstanceOf[F]}, Type.of[F])
+  given literable[F <: Fraction: Type]: Literable[F] with
+    override def toLiteral(fraction: F)(using Quotes): (Expr[F], quoted.quotes.reflect.TypeRepr) =
+      import quoted.quotes.reflect.*
+      val numerator = Expr(fraction.numerator)
+      val denominator = Expr(fraction.denominator)
+      val numeratorType = Primitive.toConstantType(fraction.numerator)
+      val denominatorType = Primitive.toConstantType(fraction.denominator)
+      val fractionType = Refinement(Refinement(TypeRepr.of[Fraction], "numerator", numeratorType), "denominator", denominatorType)
+//      val fractionType = AppliedType(TypeRepr.of[Fraction.WhiteBox[_, _]], List(numeratorType, denominatorType))
+      (
+        '{Fraction($numerator, $denominator)(Guarantee.trust).asInstanceOf[F]},
+        fractionType
+      )
