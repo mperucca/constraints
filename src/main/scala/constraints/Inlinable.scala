@@ -106,6 +106,7 @@ object Inlinable:
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Builtin[E] = Builtin.evidenceOrAbort
+    import Builtin.toExpr
     inlineOption(FromType.builtin[E].extract)
 
   /**
@@ -123,19 +124,20 @@ object Inlinable:
   )(using Quotes): Expr[Option[R]] =
     given Builtin[E] = Builtin.evidenceOrAbort
     given Builtin[R] = Builtin.evidenceOrAbort
+    import Builtin.toExpr
     fromComputable(computable)
 
-  def fromComputable[E: Type, R: Type: Literable: Refinable](
+  def fromComputable[E: Type: FromType, R: Type: ToExpr: Refinable](
     computable: E => Computable.Typed[Nothing, R]
-  )(using Quotes)(using extractable: FromType[E]): Expr[Option[R]] =
-    inlineOption(extractable.extract.map(computable).map(_.compute))
+  )(using Quotes): Expr[Option[R]] =
+    inlineOption(FromType[E].map(computable).map(_.compute))
 
-  private def inlineOption[V: Type](possibleValue: Option[V])(using Quotes)(using literable: Literable[V], refinable: Refinable[V]): Expr[Option[V]] =
+  private def inlineOption[V: Type: ToExpr: Refinable](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ None }
       case Some(value) =>
-        val expr = literable.toLiteral(value)
-        val tpe = refinable.refine(value)
+        val expr = Expr(value)
+        val tpe = Refinable(value)
         tpe.asType match
           case '[e] =>
             val casted = '{ $expr.asInstanceOf[e] }.asExprOf[e]

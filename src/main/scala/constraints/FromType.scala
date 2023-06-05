@@ -14,6 +14,8 @@ trait FromType[E]:
  */
 object FromType:
 
+  def apply[E](using fromType: FromType[E])(using Quotes): Option[E] = fromType.extract
+
   given builtinSingleton[B <: Singleton: Builtin : Type]: FromType[B] with
     override def extract(using Quotes): Option[B] =
       Builtin.unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])
