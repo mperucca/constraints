@@ -4,23 +4,19 @@ import scala.quoted.*
 
 trait Literable[V]:
 
-  def toLiteral(value: V)(using Quotes): (Expr[V], quoted.quotes.reflect.TypeRepr)
+  def toLiteral(value: V)(using Quotes): Expr[V]
 
 object Literable:
 
   given [V: Builtin: Type]: Literable[V] with
 
-    override def toLiteral(value: V)(using Quotes): (Expr[V], quoted.quotes.reflect.TypeRepr) =
+    override def toLiteral(value: V)(using Quotes): Expr[V] =
       val expr = value match
         case p: Primitive => Primitive.toExpr(p)
         case t: Tuple =>
           given Builtin[t.type] = Builtin[t.type]
           tupleToExpr[t.type](t)
-      val tpe = toLiteralType(value)
-      tpe.asType match
-        case '[v] =>
-          val typedExpr = '{ $expr.asInstanceOf[v] } // asInstanceOf needed to further reduce inlining
-          (typedExpr.asExprOf[V], tpe)
+      expr
 
     def toLiteralType(value: V)(using Quotes): quoted.quotes.reflect.TypeRepr =
       value match

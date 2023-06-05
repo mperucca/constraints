@@ -125,17 +125,18 @@ object Inlinable:
     given Builtin[R] = Builtin.evidenceOrAbort
     fromComputable(computable)
 
-  def fromComputable[E: Type, R: Type: Literable](
+  def fromComputable[E: Type, R: Type: Literable: Refinable](
     computable: E => Computable.Typed[Nothing, R]
   )(using Quotes)(using extractable: FromType[E]): Expr[Option[R]] =
     inlineOption(extractable.extract.map(computable).map(_.compute))
 
-  private def inlineOption[V: Type](possibleValue: Option[V])(using Quotes)(using literable: Literable[V]): Expr[Option[V]] =
+  private def inlineOption[V: Type](possibleValue: Option[V])(using Quotes)(using literable: Literable[V], refinable: Refinable[V]): Expr[Option[V]] =
     possibleValue match
       case None => '{ None }
       case Some(value) =>
-        val (expr, tpe) = literable.toLiteral(value)
+        val expr = literable.toLiteral(value)
+        val tpe = refinable.refine(value)
         tpe.asType match
           case '[e] =>
-            val casted = expr.asExprOf[e]
+            val casted = '{ $expr.asInstanceOf[e] }.asExprOf[e]
             '{ Some[e]($casted) }.asExprOf[Option[V]]
