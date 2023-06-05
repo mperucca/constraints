@@ -1,4 +1,4 @@
-import constraints.{Inlinable, Computable}
+import constraints.{Inlinable, Compute}
 
 import scala.quoted.*
 
@@ -6,10 +6,8 @@ type LessThan[A, B]
 
 object LessThan:
 
-  given computable[A, B](
-    using a: Computable.Typed[A, Int], b: Computable.Typed[B, Int]
-  ): Computable.Predicate[LessThan[A, B]] =
-    Computable(a.compute < b.compute)
+  given computable[A, B](using Compute.Typed[A, Int], Compute.Typed[B, Int]): Compute.Predicate[LessThan[A, B]] =
+    Compute(Compute[A] < Compute[B])
 
   transparent inline given inlinable[A, B](
     using a: Inlinable.Typed[A, Int], b: Inlinable.Typed[B, Int]

@@ -1,5 +1,5 @@
 import constraints.*
-import constraints.Computable.Typed
+import constraints.Compute.Typed
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -7,8 +7,8 @@ type Length[I]
 
 object Length:
 
-  given computable[S](using c: Computable.Typed[S, String]): Computable.Typed[Length[S], Int] =
-    Computable(c.compute.length)
+  given computable[S](using Compute.Typed[S, String]): Compute.Typed[Length[S], Int] =
+    Compute(Compute[S].length)
 
   transparent inline given inlinable[S](
     using c: Inlinable.Typed[S, String]

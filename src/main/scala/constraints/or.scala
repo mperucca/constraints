@@ -19,8 +19,8 @@ object or:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if either runtime check succeeds
    */
-  given[A, B](using a: Computable.Predicate[A], b: Computable.Predicate[B]): Computable.Predicate[A or B] =
-    Computable(a.compute || b.compute)
+  given[A: Compute.Predicate, B: Compute.Predicate]: Compute.Predicate[A or B] =
+    Compute(Compute[A] || Compute[B])
 
   /**
    * Type class instance of [[Inlinable]] for [[or]]

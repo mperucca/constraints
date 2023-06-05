@@ -19,8 +19,8 @@ object and:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if both runtime checks succeed
    */
-  given[A, B](using a: Computable.Predicate[A], b: Computable.Predicate[B]): Computable.Predicate[A and B] =
-    Computable(a.compute && b.compute)
+  given[A: Compute.Predicate, B: Compute.Predicate]: Compute.Predicate[A and B] =
+    Compute(Compute[A] && Compute[B])
 
   /**
    * Type class instance of [[Inlinable]] for [[and]]

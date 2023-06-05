@@ -21,8 +21,8 @@ object xor:
    * @tparam B the second constraint
    * @return the runtime check that succeeds if one but not both of the runtime checks succeeds
    */
-  given[A, B](using a: Computable.Predicate[A], b: Computable.Predicate[B]): Computable.Predicate[A xor B] =
-    Computable(a.compute != b.compute)
+  given[A: Compute.Predicate, B: Compute.Predicate]: Compute.Predicate[A xor B] =
+    Compute(Compute[A] != Compute[B])
 
   /**
    * Type class instance of [[Inlinable]] for [[xor]]

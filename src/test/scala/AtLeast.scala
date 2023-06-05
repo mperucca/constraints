@@ -1,4 +1,4 @@
-import constraints.{Inlinable, Computable}
+import constraints.{Inlinable, Compute}
 
 import scala.quoted.{Expr, Quotes, Type}
 
@@ -10,8 +10,8 @@ object AtLeast:
     Value <: Orderable: ValueOf,
     Minimum <: Orderable: ValueOf,
     Orderable: Ordering
-  ]: Computable.Predicate[Value AtLeast Minimum] =
-    Computable(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
+  ]: Compute.Predicate[Value AtLeast Minimum] =
+    Compute(Ordering[Orderable].lteq(valueOf[Minimum], valueOf[Value]))
 
   given compileTimeCheckDouble[
     Value <: Double,

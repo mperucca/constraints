@@ -7,8 +7,8 @@ type Unique[A]
 
 object Unique:
 
-  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): Computable.Predicate[Unique[I]] =
-    Computable {
+  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): Compute.Predicate[Unique[I]] =
+    Compute {
       val soFar = collection.mutable.Set.empty[A]
       valueOf[I].toIterable.forall(soFar.add)
     }
@@ -26,4 +26,4 @@ object Unique:
   private def implString[S <: String: Type](using Quotes): Expr[Option[Boolean]] = impl
 
   private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Option[Boolean]] =
-    Inlinable.fromComputablePostponingExtractableCheck((i: I) => summon[Computable[Unique[i.type]]])
+    Inlinable.fromComputablePostponingExtractableCheck((i: I) => summon[Compute[Unique[i.type]]])

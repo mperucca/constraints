@@ -32,8 +32,8 @@ object Guarantee:
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def testAtRuntime[C](using predicate: Computable.Predicate[C]): Either[Guarantee[Not[C]], Guarantee[C]] =
-    Either.cond(predicate.compute, trust, trust)
+  def testAtRuntime[C: Compute.Predicate]: Either[Guarantee[Not[C]], Guarantee[C]] =
+    Either.cond(Compute[C], trust, trust)
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
