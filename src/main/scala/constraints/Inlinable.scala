@@ -26,7 +26,7 @@ trait Inlinable[-E]:
 
 object Inlinable:
 
-  transparent inline def apply[A](using inlinable: Inlinable[A]): Option[inlinable.Result] = inlinable.reduce
+  transparent inline def reduce[A](using inlinable: Inlinable[A]): Option[inlinable.Result] = inlinable.reduce
 
   trait Impl[R] extends Inlinable[Any]:
     override type Result = R
@@ -118,15 +118,15 @@ object Inlinable:
    * @tparam R the result type of the expression
    * @return an expression that either contains the literal result or null
    */
-  def fromComputablePostponingExtractableCheck[E: Type, R: Type](
+  def fromComputationPostponingExtractableCheck[E: Type, R: Type](
     computable: E => Compute.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
     given Builtin[E] = Builtin.evidenceOrAbort
     given Builtin[R] = Builtin.evidenceOrAbort
     import Builtin.toExpr
-    fromComputable(computable)
+    fromComputation(computable)
 
-  def fromComputable[E: Type: FromType, R: Type: ToExpr: ToType](
+  def fromComputation[E: Type: FromType, R: Type: ToExpr: ToType](
     computable: E => Compute.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
     inlineOption(FromType[E].map(computable).map(_.compute))

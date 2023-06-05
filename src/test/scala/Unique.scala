@@ -26,4 +26,4 @@ object Unique:
   private def implString[S <: String: Type](using Quotes): Expr[Option[Boolean]] = impl
 
   private def impl[I: Type, A](using Iterate[I, A], Quotes): Expr[Option[Boolean]] =
-    Inlinable.fromComputablePostponingExtractableCheck((i: I) => summon[Compute[Unique[i.type]]])
+    Inlinable.fromComputationPostponingExtractableCheck((i: I) => summon[Compute[Unique[i.type]]])

@@ -30,7 +30,7 @@ object Not:
    *         [[Not]] on true becomes false
    */
   transparent inline given[C: Inlinable.To[Boolean]]: Inlinable.Typed[Not[C], Boolean] =
-    inline Inlinable[C] match
+    inline Inlinable.reduce[C] match
       case Some(false) => Inlinable.Constant[true]
       case None => Inlinable.Unknown
       case Some(true) => Inlinable.Constant[false]

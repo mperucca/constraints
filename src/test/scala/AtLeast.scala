@@ -70,7 +70,7 @@ object AtLeast:
     Minimum <: Orderable: Type,
     Orderable: Ordering
   ](using Quotes): Expr[Option[Boolean]] =
-    Inlinable.fromComputablePostponingExtractableCheck[(Value, Minimum), Boolean] {
+    Inlinable.fromComputationPostponingExtractableCheck[(Value, Minimum), Boolean] {
       case (value, minimum) => runtimeCheck[value.type, minimum.type, Orderable]
     }
 

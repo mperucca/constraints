@@ -32,5 +32,5 @@ object Equal:
     override transparent inline def reduce: Option[Boolean] = ${ impl[A, B] }
 
   private def impl[A : Type, B : Type](using Quotes): Expr[Option[Boolean]] =
-    Inlinable.fromComputablePostponingExtractableCheck[(A, B), Boolean]: (a, b) =>
+    Inlinable.fromComputationPostponingExtractableCheck[(A, B), Boolean]: (a, b) =>
       computable[a.type, b.type]

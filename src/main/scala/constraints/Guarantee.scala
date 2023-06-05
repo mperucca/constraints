@@ -43,7 +43,7 @@ object Guarantee:
    * @return evidence that the constraint holds if the compile time check succeeds
    */
   inline given verifyAtCompileTime[C: Inlinable.To[Boolean]]: Guarantee[C] =
-    inline Inlinable[C] match
+    inline Inlinable.reduce[C] match
       case Some(false) => compiletime.error("invalid")
       case None => compiletime.error("unknown")
       case Some(true) => trust

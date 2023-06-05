@@ -35,12 +35,12 @@ object and:
    *         both being true results in true
    */
   transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A and B, Boolean] =
-    inline Inlinable[A] match
+    inline Inlinable.reduce[A] match
       case Some(false) => Inlinable.Constant[false]
-      case None => inline Inlinable[B] match
+      case None => inline Inlinable.reduce[B] match
         case Some(false) => Inlinable.Constant[false]
         case None | Some(true) => Inlinable.Unknown
-      case Some(true) => inline Inlinable[B] match
+      case Some(true) => inline Inlinable.reduce[B] match
         case Some(false) => Inlinable.Constant[false]
         case None => Inlinable.Unknown
         case Some(true) => Inlinable.Constant[true]

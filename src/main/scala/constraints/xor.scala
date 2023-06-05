@@ -36,13 +36,13 @@ object xor:
    *         both being known results in false if they are the same and true if they are different
    */
   transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A xor B, Boolean] =
-    inline Inlinable[A] match
-      case Some(false) => inline Inlinable[B] match
+    inline Inlinable.reduce[A] match
+      case Some(false) => inline Inlinable.reduce[B] match
         case Some(false) => Inlinable.Constant[false]
         case None => Inlinable.Unknown
         case Some(true) => Inlinable.Constant[true]
       case None => Inlinable.Unknown
-      case Some(true) => inline Inlinable[B] match
+      case Some(true) => inline Inlinable.reduce[B] match
         case Some(false) => Inlinable.Constant[true]
         case None => Inlinable.Unknown
         case Some(true) => Inlinable.Constant[false]

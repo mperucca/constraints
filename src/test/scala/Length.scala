@@ -11,7 +11,7 @@ object Length:
     Compute(Compute[S].length)
 
   transparent inline given inlinable[S: Inlinable.To[String]]: Inlinable.Typed[Length[S], Int] =
-    inline Inlinable[S] match
+    inline Inlinable.reduce[S] match
       case None => Inlinable.Unknown
       case Some(s: String) => Impl[s.type]
 
@@ -19,4 +19,4 @@ object Length:
     override transparent inline def reduce: Option[Int] = ${ impl[S] }
 
   private def impl[S <: String : Type](using Quotes): Expr[Option[Int]] =
-    Inlinable.fromComputable((s: S) => computable[s.type])
+    Inlinable.fromComputation((s: S) => computable[s.type])
