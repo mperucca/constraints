@@ -137,7 +137,7 @@ object Inlinable:
       case Some(value) =>
         val expr = Expr(value)
         val tpe = ToType(value)
-        tpe.asType match
+        tpe match
           case '[e] =>
             val casted = '{ $expr.asInstanceOf[e] }.asExprOf[e]
             '{ Some[e]($casted) }.asExprOf[Option[V]]

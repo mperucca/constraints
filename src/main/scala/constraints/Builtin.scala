@@ -44,14 +44,6 @@ object Builtin:
       case tp =>
         Option.when(tp =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
 
-  /**
-   * Lift an extractable value to its literal type
-   */
-  def toLiteralType[E: Builtin](extractable: E)(using Quotes): quoted.quotes.reflect.TypeRepr =
-    extractable match
-      case p: Primitive => Primitive.toConstantType(p)
-      case t: Tuple => tupleToLiteralTupleType(t)
-
   given toExpr[B: Builtin: Type]: ToExpr[B] with
     override def apply(builtin: B)(using Quotes): Expr[B] =
       val expr = builtin match
@@ -59,8 +51,8 @@ object Builtin:
         case tuple: Tuple =>
           given Builtin[tuple.type] = Builtin[tuple.type]
           tupleToExpr[tuple.type](tuple)
-      val tpe = toLiteralType(builtin)
-      tpe.asType match
+      val tpe = ToType(builtin)
+      tpe match
         case '[b] =>
           val typedExpr = '{ $expr.asInstanceOf[b] } // asInstanceOf needed to further reduce inlining
           typedExpr.asExprOf[B]

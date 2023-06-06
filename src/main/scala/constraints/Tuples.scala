@@ -11,15 +11,6 @@ import scala.quoted.*
  */
 given nonEmptyTupleValueOf[H: ValueOf, T <: Tuple: ValueOf]: ValueOf[H *: T] = ValueOf(valueOf[H] *: valueOf[T])
 
-def tupleToLiteralTupleType(tuple: Tuple)(using Quotes): quoted.quotes.reflect.TypeRepr =
-  import quoted.quotes.reflect.*
-  (tuple: Tuple) match
-    case EmptyTuple => TypeRepr.of[EmptyTuple]
-    case h *: t =>
-      given Builtin[h.type] = Builtin[h.type]
-      val head = Builtin.toLiteralType[h.type](h)
-      AppliedType(TypeRepr.of[*:[_, _]], List(head, tupleToLiteralTupleType(t)))
-
 def tupleToExpr[T <: Tuple : Builtin](tuple: T)(using Quotes): Expr[T] =
   val expr = tuple match
     case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)
