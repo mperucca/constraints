@@ -41,8 +41,9 @@ object Fraction:
       '{ Fraction($numerator, $denominator)(Guarantee.trust).asInstanceOf[F] }
 
   given toType: ToType[Fraction] with
-    override def apply(fraction: Fraction)(using Quotes): quoted.quotes.reflect.Refinement =
+    override def apply(fraction: Fraction)(using Quotes): quoted.quotes.reflect.TypeRepr =
       import quoted.quotes.reflect.*
       val numeratorType = ToType(fraction.numerator)
       val denominatorType = ToType(fraction.denominator)
-      Refinement(Refinement(TypeRepr.of[Fraction], "numerator", numeratorType), "denominator", denominatorType)
+      (numeratorType.asType, denominatorType.asType) match
+        case ('[n], '[d]) => TypeRepr.of[Fraction.WhiteBox[n, d]]
