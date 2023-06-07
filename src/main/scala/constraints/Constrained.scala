@@ -11,7 +11,7 @@ infix class Constrained[+V, C[_]] private(val value: V) extends AnyVal:
 
   /**
    * Gets the guarantee (which must exist since [[Constrained.apply]] needed it to construct this instance)
-   * 
+   *
    * @return the guarantee that the constraint holds
    */
   def guarantee: Guarantee[C[value.type]] = Guarantee.trust
@@ -23,7 +23,7 @@ object Constrained:
 
   /**
    * Constructs a [[Constrained]] value with nicer inference than the constructor
-   * 
+   *
    * @param v the value to constrain
    * @param guarantee evidence of the constraint
    * @tparam C the constraint

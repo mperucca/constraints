@@ -44,13 +44,6 @@ object Inlinable:
   type To[+R] = [E] =>> Typed[E, R]
 
   /**
-   * Type class instance of a compile time computation result being unknown, represented by null
-   * @return the type class instance for unknown computation results
-   */
-  given unknown: Inlinable.Typed[Null, Null] =
-    Unknown
-
-  /**
    * Used when a compile time computation cannot reduce to a definitive result
    * @note Will never be return so typed a [[Nothing]] for covariance reasons
    */
