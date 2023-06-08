@@ -7,22 +7,22 @@ package constraints
  * @tparam V the type being constrained
  * @tparam C the constraint
  */
-infix class Constrained[+V, C[_]] private(val value: V) extends AnyVal:
+infix class Guaranteed[+V, C[_]] private(val value: V) extends AnyVal:
 
   /**
-   * Gets the guarantee (which must exist since [[Constrained.apply]] needed it to construct this instance)
+   * Gets the guarantee (which must exist since [[Guaranteed.apply]] needed it to construct this instance)
    *
    * @return the guarantee that the constraint holds
    */
   def guarantee: Guarantee[C[value.type]] = Guarantee.trust
 
 /**
- * Utility methods for constructing [[Constrained]] values
+ * Utility methods for constructing [[Guaranteed]] values
  */
-object Constrained:
+object Guaranteed:
 
   /**
-   * Constructs a [[Constrained]] value with nicer inference than the constructor
+   * Constructs a [[Guaranteed]] value with nicer inference than the constructor
    *
    * @param v the value to constrain
    * @param guarantee evidence of the constraint
@@ -30,7 +30,7 @@ object Constrained:
    * @return the constrained value
    */
   def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]) =
-    new Constrained[v.type, C](v)
+    new Guaranteed[v.type, C](v)
 
   /**
    * Checks constraint [[C]] on value [[v]] at runtime
@@ -46,9 +46,9 @@ object Constrained:
    */
   def runtimeCheck[C[_]](v: Any)(
     using c: Compute.Typed[C[v.type], Boolean]
-  ): Either[v.type Constrained Inverse[C], v.type Constrained C] =
+  ): Either[v.type Guaranteed Inverse[C], v.type Guaranteed C] =
     Guarantee.testAtRuntime[C[v.type]] match
       case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
-        Left(Constrained(v)(invertedGuarantee))
+        Left(Guaranteed(v)(invertedGuarantee))
       case Right(guarantee: Guarantee[C[v.type]]) =>
-        Right(Constrained(v)(guarantee))
+        Right(Guaranteed(v)(guarantee))
