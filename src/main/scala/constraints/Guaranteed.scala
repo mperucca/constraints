@@ -1,40 +1,34 @@
 package constraints
 
-/**
- * A value with an attached constraint
- * 
- * @param value the value constrained by [[C]]
- * @tparam V the type being constrained
- * @tparam C the constraint
- */
-infix class Guaranteed[+V, C[_]] private(val value: V) extends AnyVal:
+trait Guaranteed[+V](val value: V):
 
-  /**
-   * Gets the guarantee (which must exist since [[Guaranteed.apply]] needed it to construct this instance)
-   *
-   * @return the guarantee that the constraint holds
-   */
-  def guarantee: Guarantee[C[value.type]] = Guarantee.trust
+  def guarantee: Guarantee.Impl[Any]
 
 /**
  * Utility methods for constructing [[Guaranteed]] values
  */
 object Guaranteed:
 
-  extension [V, C[_]](guaranteed: Guaranteed[V, C])
-    def widen[C2[_]](using Normalize[C[V]] <:< Normalize[C2[V]]): Guaranteed[V, C2] =
-      new Guaranteed(guaranteed.value)
+  type Refined[+V, C[_]] =
+    Guaranteed[V] {
+      def guarantee: Guarantee[C[value.type]]
+    }
 
-  /**
-   * Constructs a [[Guaranteed]] value with nicer inference than the constructor
-   *
-   * @param v the value to constrain
-   * @param guarantee evidence of the constraint
-   * @tparam C the constraint
-   * @return the constrained value
-   */
-  def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]) =
-    new Guaranteed[v.type, C](v)
+  object Refined:
+    def apply[C[_]](v: Any)(guarantee: Guarantee[C[v.type]]): Refined[v.type, C] =
+      val g = guarantee
+      new Guaranteed[v.type](valueOf) {
+        def guarantee: Guarantee[C[value.type]] = g
+      }
+
+  type Typed[V, G] =
+    Guaranteed[V] {
+      def guarantee: G
+    }
+
+  extension [V, C[_]](guaranteed: Guaranteed.Refined[V, C])
+    def widen[C2[_]](using Normalize[C[V]] <:< Normalize[C2[V]]): Guaranteed.Refined[V, C2] =
+      Refined(guaranteed.value)(Guarantee.trust)
 
   /**
    * Checks constraint [[C]] on value [[v]] at runtime
@@ -50,9 +44,9 @@ object Guaranteed:
    */
   def runtimeCheck[C[_]](v: Any)(
     using c: Compute.Typed[C[v.type], Boolean]
-  ): Either[v.type Guaranteed Inverse[C], v.type Guaranteed C] =
+  ): Either[Guaranteed.Refined[v.type, Inverse[C]], Guaranteed.Refined[v.type, C]] =
     Guarantee.testAtRuntime[C[v.type]] match
       case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
-        Left(Guaranteed(v)(invertedGuarantee))
+        Left(Guaranteed.Refined(v)(invertedGuarantee))
       case Right(guarantee: Guarantee[C[v.type]]) =>
-        Right(Guaranteed(v)(guarantee))
+        Right(Guaranteed.Refined(v)(guarantee))

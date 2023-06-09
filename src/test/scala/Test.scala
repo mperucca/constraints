@@ -53,12 +53,12 @@ import scala.util.Random
   // refinement example
   {
     type NonZero[V] = V !== 0
-    def divide(dividend: Int, divisor: Int Guaranteed NonZero)(
+    def divide(dividend: Int, divisor: Guaranteed.Refined[Int, NonZero])(
       guarantee: Guarantee[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
     ): Int = dividend / divisor.value
 
     val dividend = Random.nextInt()
-    val divisor = Guaranteed[NonZero](1)(Guarantee.verifyAtCompileTime) // compiles since 1 != 0
+    val divisor = Guaranteed.Refined[NonZero](1)(Guarantee.verifyAtCompileTime) // compiles since 1 != 0
     divide(dividend, divisor)(Guarantee.verifyAtCompileTime) // compiles since refinement on divisor exposes value as a literal 1 type
   }
 
@@ -67,11 +67,11 @@ import scala.util.Random
     val alphanumerics = Random.alphanumeric.take(9)
 
     type Alphanumeric[C]
-    alphanumerics.map(Guaranteed[Alphanumeric](_)(Guarantee.trust)): LazyList[Char Guaranteed Alphanumeric]
+    alphanumerics.map(Guaranteed.Refined[Alphanumeric](_)(Guarantee.trust)): LazyList[Guaranteed.Refined[Char, Alphanumeric]]
 
     type Letter[C]
     given [C <: Char: ValueOf]: Compute.Typed[Letter[C], Boolean] = Compute(valueOf[C].isLetter)
-    alphanumerics.partitionMap(Guaranteed.runtimeCheck[Letter](_)): (LazyList[Char Guaranteed Inverse[Letter]], LazyList[Char Guaranteed Letter])
+    alphanumerics.partitionMap(Guaranteed.runtimeCheck[Letter](_)): (LazyList[Guaranteed.Refined[Char, Inverse[Letter]]], LazyList[Guaranteed.Refined[Char, Letter]])
   }
 
   // dependent constraints on collections examples
@@ -115,7 +115,7 @@ import scala.util.Random
     divide(fraction.numerator, fraction.denominator)(Guarantee.verifyAtCompileTime)
 
     type NonOverflowingOnDivide[F] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
-    Guaranteed[NonOverflowingOnDivide](fraction)(Guarantee.verifyAtCompileTime)
+    Guaranteed.Refined[NonOverflowingOnDivide](fraction)(Guarantee.verifyAtCompileTime)
 
     val fraction2 = Fraction(1, 3)(Guarantee.verifyAtCompileTime)
     Inlinable.builtin[Fraction.Tupled[fraction.type]].reduce: Some[Fraction.Tupled[fraction.type]]
@@ -140,12 +140,12 @@ import scala.util.Random
   // Compile time API helpers
   {
     val minimum = Percentage.compileTimeCheck(0)
-    val maximum = Guaranteed[Percentage.Constraint](1d)(Guarantee.verifyAtCompileTime)
+    val maximum = Guaranteed.Refined[Percentage.Constraint](1d)(Guarantee.verifyAtCompileTime)
     val myGrade: 'B' = valueOf
     val passing: Guarantee[Grade.Passing[myGrade.type]] = Guarantee.verifyAtCompileTime
     import Grade.*
-    val widened: Char Guaranteed Grade = Guaranteed(myGrade)(passing.toGrade)
-    val failing: Char Guaranteed Grade.Failing = Guaranteed('F')(Guarantee.verifyAtCompileTime)
+    val widened: Guaranteed.Refined[Char, Grade] = Guaranteed.Refined(myGrade)(passing.toGrade)
+    val failing: Guaranteed.Refined[Char, Grade.Failing] = Guaranteed.Refined('F')(Guarantee.verifyAtCompileTime)
   }
 
   {
