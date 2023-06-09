@@ -21,6 +21,10 @@ infix class Guaranteed[+V, C[_]] private(val value: V) extends AnyVal:
  */
 object Guaranteed:
 
+  extension [V, C[_]](guaranteed: Guaranteed[V, C])
+    def widen[C2[_]](using Normalize[C[V]] <:< Normalize[C2[V]]): Guaranteed[V, C2] =
+      new Guaranteed(guaranteed.value)
+
   /**
    * Constructs a [[Guaranteed]] value with nicer inference than the constructor
    *

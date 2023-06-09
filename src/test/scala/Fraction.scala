@@ -21,8 +21,8 @@ object Fraction:
   type Denominator[F] = F match { case Fraction.WhiteBox[?, d] => d }
   type Tupled[F] = F match { case Fraction.WhiteBox[n, d] => (n, d) }
 
-  given [F <: Fraction.WhiteBox[N, D], N <: Int : ValueOf, D <: Int](using d: ValueOf[D])(using Guarantee[d.value.type !== 0]): ValueOf[Fraction.WhiteBox[N, D]] =
-    ValueOf(Fraction(valueOf[N], d.value)(summon))
+  given [N <: Int : ValueOf, D <: Int](using d: ValueOf[D])(using g: Guarantee[d.value.type !== 0]): ValueOf[Fraction.WhiteBox[N, D]] =
+    ValueOf(Fraction(valueOf[N], d.value)(g))
 
   given wide[F <: Fraction.WhiteBox[N, D], N <: Int : Type, D <: Int : Type]: FromType[F] with
     override def extract(using Quotes): Option[F] =
