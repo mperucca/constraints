@@ -9,6 +9,11 @@ trait Guaranteed[+V](val value: V):
  */
 object Guaranteed:
 
+  def apply(value: Any, guarantee: Guarantee.Impl[Any]): Guaranteed.Typed[value.type, guarantee.type] =
+    val g: guarantee.type = valueOf
+    new Guaranteed[value.type](valueOf):
+      override def guarantee: g.type = valueOf
+
   type Refined[+V, C[_]] =
     Guaranteed[V] {
       def guarantee: Guarantee[C[value.type]]
