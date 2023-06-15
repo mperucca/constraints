@@ -16,6 +16,8 @@ object Guaranteed:
 
   type Typed[+V, +G] = Guaranteed[V] { def guarantee: G }
 
+  type Constrained[+V, C] = Typed[V, Guarantee[C]]
+
   type Refined[+V, C[_]] = Guaranteed[V] { def guarantee: Guarantee[C[value.type]] }
 
   object Refined:
