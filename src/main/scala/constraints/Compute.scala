@@ -20,7 +20,7 @@ trait Compute[-E]:
 object Compute:
 
   def apply[E](using compute: Compute[E]): compute.Result = compute.compute
-  
+
   /**
    * Type alias exposing the [[Result]] type to support the Aux pattern.
    * @tparam E the expression to compute
@@ -44,10 +44,9 @@ object Compute:
    * @return the runtime computation instance
    */
   def apply[E, R](computation: => R): Compute.Typed[E, R] =
-    new Compute[E] {
+    new Compute[E]:
       override type Result = R
       override def compute: R = computation
-    }
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible

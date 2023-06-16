@@ -80,7 +80,7 @@ object Inlinable:
      *
      * @return the extracted value or null
      */
-    override transparent inline def reduce: Option[Result] = ${ impl[R] }
+    override transparent inline def reduce: Option[R] = ${ impl[R] }
 
   /**
    * Used when it is known what type to attempt extracting the value from
@@ -94,7 +94,7 @@ object Inlinable:
      *
      * @return the extracted value or null
      */
-    override transparent inline def reduce: Option[Result] = ${ impl[R] }
+    override transparent inline def reduce: Option[R] = ${ impl[R] }
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Builtin[E] = Builtin.evidenceOrAbort
