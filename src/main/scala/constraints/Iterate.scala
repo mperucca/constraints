@@ -30,7 +30,7 @@ object Iterate:
 
   /**
    * The type class instance of [[Iterate]] for [[Iterable]]s
-   * 
+   *
    * @tparam V the type of items in the [[Iterable]]
    * @return the type class instance of [[Iterate]] for [[Iterable]]s
    */

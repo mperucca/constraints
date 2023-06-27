@@ -1,4 +1,6 @@
+import constraints.Guarantee.Impl
 import constraints.{*, given}
+
 import scala.util.Random
 
 @main def test(): Unit =
@@ -140,7 +142,9 @@ import scala.util.Random
   // Compile time API helpers
   {
     val minimum = Percentage.compileTimeCheck(0)
-    val maximum = Guaranteed.Refined[Percentage.Constraint](1d)(Guarantee.verifyAtCompileTime)
+    val maximum =
+      new Guaranteed.Type[1d]:
+        override def guarantee: Guarantee[Percentage.Constraint[value.type]] = Guarantee.verifyAtCompileTime
     val myGrade: 'B' = valueOf
     val passing: Guarantee[Grade.Passing[myGrade.type]] = Guarantee.verifyAtCompileTime
     import Grade.*

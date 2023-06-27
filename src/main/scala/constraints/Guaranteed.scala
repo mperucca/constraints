@@ -1,6 +1,8 @@
 package constraints
 
-trait Guaranteed[+V](val value: V):
+trait Guaranteed[+V]:
+
+  val value: V
 
   def guarantee: Guarantee.Impl[Any]
 
@@ -9,9 +11,14 @@ trait Guaranteed[+V](val value: V):
  */
 object Guaranteed:
 
+  transparent trait Value[+V](override val value: V) extends Guaranteed[V]
+
+  transparent trait Type[+V: ValueOf] extends Guaranteed[V]:
+    override val value: V = valueOf
+
   def apply(value: Any, guarantee: Guarantee.Impl[Any]): Guaranteed.Typed[value.type, guarantee.type] =
     val g: guarantee.type = valueOf
-    new Guaranteed[value.type](valueOf):
+    new Guaranteed.Type[value.type]:
       override def guarantee: g.type = valueOf
 
   type Typed[+V, +G] = Guaranteed[V] { def guarantee: G }

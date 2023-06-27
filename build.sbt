@@ -8,9 +8,11 @@ lazy val root = (project in file("."))
   )
 
 libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.2.16" % Test
 )
 
 scalacOptions ++= Seq(
   "-Xfatal-warnings",
-  "-Yexplicit-nulls"
+  "-Yexplicit-nulls",
+  "-deprecation"
 )
