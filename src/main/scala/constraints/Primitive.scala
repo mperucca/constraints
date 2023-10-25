@@ -18,6 +18,13 @@ type Primitive =
 
 object Primitive:
 
+  /**
+   * instance for lifting a primitive value to its literally (narrowly) typed value
+   * @param primitive the value to inline
+   * @param Quotes for performing macro operations
+   * @tparam P The specific type of the value to lift
+   * @return the value as an experssion
+   */
   def toExpr[P <: Primitive](primitive: P)(using Quotes): Expr[P] =
     val expr = (primitive: Primitive) match
       case b: Boolean => ToExpr.BooleanToExpr(b)

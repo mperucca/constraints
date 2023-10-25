@@ -28,7 +28,6 @@ object Guarantee:
   /**
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
    * 
-   * @param predicate the runtime check to perform
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
@@ -38,7 +37,6 @@ object Guarantee:
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
    * 
-   * @param predicate the compile time check to perform
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */

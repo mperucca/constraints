@@ -44,6 +44,10 @@ object Iterate:
    */
   given Iterate[String, Int] = _.codePoints().nn.toArray.nn
 
+  /**
+   * The type class instance for iterating through a tuple
+   * @note only iterates at the shallowest level
+   */
   given[T <: Tuple, A] (using Tuple.Union[T] <:< A): Iterate[T, A] with
     override def iterable(tuple: T): Iterable[A] = new Iterable[A]:
       override def iterator: Iterator[A] = tuple.productIterator.asInstanceOf[Iterator[A]]

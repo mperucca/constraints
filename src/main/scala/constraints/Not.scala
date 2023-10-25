@@ -12,7 +12,6 @@ object Not:
   /**
    * The type class instance for the negation of constraints: [[Not]]
    *
-   * @param c the runtime check to invert
    * @tparam C the constraint
    * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */
@@ -22,7 +21,6 @@ object Not:
   /**
    * Type class instance of [[Inlinable]] for [[Not]]
    *
-   * @param c the [[Inlinable]] instance to negate
    * @tparam C the constraint to negate
    * @return a [[Inlinable]] for the negation of [[C]]
    *         [[Not]] on false becomes true

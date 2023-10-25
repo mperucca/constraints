@@ -3,23 +3,39 @@ package constraints
 import scala.quoted.*
 
 /**
- * Types for which value extraction has been implemented
+ * Type class for extracting values from a type at compile time
+ * @tparam E The type to extract a value from
  */
 trait FromType[E]:
 
+  /**
+   * Attempts to extract a value from the type [[E]]
+   * @param Quotes for performing macro operations
+   * @return the possibly extracted value
+   */
   def extract(using Quotes): Option[E]
 
-/**
- * Holds the extraction method
- */
 object FromType:
 
+  /**
+   * Attempts to extract a value from type [[E]]
+   * @param fromType the type class instance for extracting the value
+   * @param Quotes for performing macro operations
+   * @tparam E the type to extract a value from
+   * @return the possibly extracted value
+   */
   def apply[E](using fromType: FromType[E])(using Quotes): Option[E] = fromType.extract
 
+  /**
+   * instance for extracting values from a literal builtin type
+   */
   given builtinSingleton[B <: Singleton: Builtin : Type]: FromType[B] with
     override def extract(using Quotes): Option[B] =
       Builtin.unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])
 
+  /**
+   * instance for extracting values from a widened builtin type
+   */
   given builtin[B: Builtin : Type]: FromType[B] with
     override def extract(using Quotes): Option[B] =
       Builtin.unapply(quotes.reflect.TypeRepr.of[B]).map(_.asInstanceOf[B])
@@ -52,6 +68,9 @@ object FromType:
         case tp =>
           Option.when(tp =:= TypeRepr.of[EmptyTuple])(EmptyTuple)
 
+  /**
+   * instance for extracting values from a tuple made up of extractable parts
+   */
   given nonEmptyTuple[H, T <: Tuple](using h: FromType[H], t: FromType[T]): FromType[H *: T] with
     override def extract(using Quotes): Option[H *: T] =
       for head <- h.extract

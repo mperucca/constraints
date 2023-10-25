@@ -15,8 +15,6 @@ object xor:
   /**
    * The type class instance for the exclusive disjunction of constraints [[xor]]
    *
-   * @param a a runtime check for the first constraint
-   * @param b a runtime check for the second constraint
    * @tparam A the first constraint
    * @tparam B the second constraint
    * @return the runtime check that succeeds if one but not both of the runtime checks succeeds
@@ -27,8 +25,6 @@ object xor:
   /**
    * Type class instance of [[Inlinable]] for [[xor]]
    *
-   * @param a the first [[Inlinable]] of the exclusive disjunction
-   * @param b the second [[Inlinable]] of the exclusive disjunction
    * @tparam A the first constraint of the exclusive disjunction
    * @tparam B the second constraint of the exclusive disjunction
    * @return a [[Inlinable]] for the exclusive disjunction of [[A]] xor [[B]]

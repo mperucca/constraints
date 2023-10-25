@@ -13,8 +13,6 @@ object or:
   /**
    * The type class instance for the inclusive disjunction of constraints [[or]]
    *
-   * @param a runtime check for the first constraint
-   * @param b runtime check for the second constraint (by-name as it's unnecessary if the first runtime check succeeds)
    * @tparam A the first constraint
    * @tparam B the second constraint
    * @return a runtime check that succeeds if either runtime check succeeds
@@ -25,8 +23,6 @@ object or:
   /**
    * Type class instance of [[Inlinable]] for [[or]]
    *
-   * @param a the first [[Inlinable]] of the inclusive disjunction
-   * @param b the second [[Inlinable]] of the inclusive disjunction
    * @tparam A the first constraint of the inclusive disjunction
    * @tparam B the second constraint of the inclusive disjunction
    * @return a [[Inlinable]] for the inclusive disjunction of [[A]] or [[B]]

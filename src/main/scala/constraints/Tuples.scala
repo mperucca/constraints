@@ -11,6 +11,13 @@ import scala.quoted.*
  */
 given nonEmptyTupleValueOf[H: ValueOf, T <: Tuple: ValueOf]: ValueOf[H *: T] = ValueOf(valueOf[H] *: valueOf[T])
 
+/**
+ * Lifts a tuple value into it's narrowed expression type
+ * @param tuple the tuple to lift to an expression
+ * @param Quotes for performing macro operations
+ * @tparam T The specific tuple typle
+ * @return the liften tuple expression
+ */
 def tupleToExpr[T <: Tuple : Builtin](tuple: T)(using Quotes): Expr[T] =
   val expr = tuple match
     case EmptyTuple => ToExpr.EmptyTupleToExpr(EmptyTuple)

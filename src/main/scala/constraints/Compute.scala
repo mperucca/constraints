@@ -19,20 +19,30 @@ trait Compute[-E]:
 
 object Compute:
 
+  /**
+   * Evaluates the computation
+   * @param compute computes to result
+   * @tparam E The type which must be computable with a [[Compute]] instance
+   * @return the computed result
+   */
   def apply[E](using compute: Compute[E]): compute.Result = compute.compute
 
   /**
-   * Type alias exposing the [[Result]] type to support the Aux pattern.
+   * Type alias for cleaner [[Compute]] type signatures
    * @tparam E the expression to compute
    * @tparam R the computation result
    */
   type Typed[-E, +R] = Compute[E] { type Result <: R }
 
+  /**
+   * Type alias partially applying the expression type
+   * @tparam E the expression to compute
+   */
   type From[-E] = [R] =>> Typed[E, R]
 
   /**
-   * Type alias for computations returning [[Boolean]]s
-   * @tparam E the expression to compute
+   * Type alias partially applying the result type
+   * @tparam R the expression to compute
    */
   type To[+R] = [E] =>> Typed[E, R]
 

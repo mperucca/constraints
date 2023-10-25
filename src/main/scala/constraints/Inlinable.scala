@@ -5,20 +5,25 @@ import scala.quoted.*
 /**
  * Type class for computing [[E]] at compile time through inlining.
  * Only the input is exposed as a type parameter so that the output [[Result]] is inferred.
+ * @tparam E the expression to inline
  */
 trait Inlinable[-E]:
 
   /**
-   * The result type of the computation
+   * The result type of the inlining
    */
   type Result
 
   /**
-   * Inlines the result if it can be computed; otherwise, inlines null
+   * Inlines the result of [[E]] in a [[Some]] if it can be computed; otherwise, inlines [[None]]
    * @return
    */
   inline def reduce: Option[Result]
 
+  /**
+   * Attempts to inline the value and errors at compile time if the value cannot be determined
+   * @return the value extracted from [[E]]
+   */
   transparent inline def inlined: Result =
     inline reduce match
       case Some(result) => result
@@ -26,21 +31,43 @@ trait Inlinable[-E]:
 
 object Inlinable:
 
+  /**
+   * Convenience method for inlining an expression
+   * @param inlinable instance which which to attempt inlining
+   * @tparam A the expression type being inlined
+   * @return the reduced value ([[None]] if the value could not be determined)
+   */
   transparent inline def reduce[A](using inlinable: Inlinable[A]): Option[inlinable.Result] = inlinable.reduce
 
+  /**
+   * Helper "contructor" for [[Inlinable]] that set the [[Result]] type to [[R]]
+   * @tparam R the result type
+   */
   trait Impl[R] extends Inlinable[Any]:
     override type Result = R
 
   /**
-   * Type alias exposing the [[Result]] type to support the Aux pattern.
+   * Type alias that is cleaner that the structural type.
    *
    * @tparam E the expression to compute
    * @tparam R the computation result
    */
   type Typed[-E, +R] = Inlinable[E] { type Result <: R }
 
+  /**
+   * Type alias exposing the expression type.
+   *
+   * @tparam E the expression to compute
+   * @tparam R the computation result
+   */
   type From[-E] = [R] =>> Typed[E, R]
 
+  /**
+   * Type alias exposing the [[Result]] type.
+   *
+   * @tparam E the expression to compute
+   * @tparam R the computation result
+   */
   type To[+R] = [E] =>> Typed[E, R]
 
   /**
@@ -119,11 +146,26 @@ object Inlinable:
     import Builtin.toExpr
     fromComputation(computable)
 
+  /**
+   * Attempts to extract the values from the expression and inline the result
+   * @param computable computes the result
+   * @param Quotes for performing macro operations
+   * @tparam E the expression type to attempt extracting a value from
+   * @tparam R the result type whose value can be inlined
+   * @return the possible result value to inline
+   */
   def fromComputation[E: Type: FromType, R: Type: ToExpr: ToType](
     computable: E => Compute.Typed[Nothing, R]
   )(using Quotes): Expr[Option[R]] =
     inlineOption(FromType[E].map(computable).map(_.compute))
 
+  /**
+   * Inlines the inlined result
+   * @param possibleValue the value to inline
+   * @param Quotes for performing macro operations
+   * @tparam V the value to inline
+   * @return an inlined value (which maybe be [[None]])
+   */
   private def inlineOption[V: Type: ToExpr: ToType](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ None }
