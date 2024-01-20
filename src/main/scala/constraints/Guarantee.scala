@@ -12,14 +12,14 @@ object Guarantee:
 
   /**
    * The (hidden) evidence type for a constraint
-   * 
+   *
    * @tparam C the constraint (covariant so that more specific constraints satisfy more general constraints)
    */
   private[constraints] opaque type Impl[+C] = Guarantee.type
 
   /**
    * Returns a guarantee based on blind trust
-   * 
+   *
    * @tparam C the constraint to trust
    * @return the trusted guarantee
    */
@@ -27,7 +27,7 @@ object Guarantee:
 
   /**
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
-   * 
+   *
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
@@ -36,7 +36,7 @@ object Guarantee:
 
   /**
    * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
-   * 
+   *
    * @tparam C the constraint
    * @return evidence that the constraint holds if the compile time check succeeds
    */

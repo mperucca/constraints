@@ -22,6 +22,7 @@ import scala.util.Random
     val dividend, divisor = Random.nextInt()
     // type alias for brevity
     type Divisible = divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)
+
     def fallback(guarantee: Guarantee[Not[Divisible]]) = 0
     // we check the operands at runtime in case the random numbers violate the constraints
     Guarantee.testAtRuntime[Divisible] match
@@ -55,6 +56,7 @@ import scala.util.Random
   // refinement example
   {
     type NonZero[V] = V !== 0
+
     def divide(dividend: Int, divisor: Guaranteed.Refined[Int, NonZero])(
       guarantee: Guarantee[dividend.type !== Int.MinValue.type or divisor.value.type !== -1]
     ): Int = dividend / divisor.value
@@ -72,7 +74,9 @@ import scala.util.Random
     alphanumerics.map(Guaranteed.Refined[Alphanumeric](_)(Guarantee.trust)): LazyList[Guaranteed.Refined[Char, Alphanumeric]]
 
     type Letter[C]
-    given [C <: Char: ValueOf]: Compute.Typed[Letter[C], Boolean] = Compute(valueOf[C].isLetter)
+
+    given[C <: Char : ValueOf]: Compute.Typed[Letter[C], Boolean] = Compute(valueOf[C].isLetter)
+
     alphanumerics.partitionMap(Guaranteed.Refined.runtimeCheck[Letter](_)): (LazyList[Guaranteed.Refined[Char, Inverse[Letter]]], LazyList[Guaranteed.Refined[Char, Letter]])
   }
 
@@ -85,13 +89,13 @@ import scala.util.Random
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
     if summon[Compute[Unique[list.type]]].compute
-      then println(s"$list has no duplicate values")
-      else println(s"$list has duplicate values")
+    then println(s"$list has no duplicate values")
+    else println(s"$list has duplicate values")
 
     val a: 1 = 1
     val b: 2 = valueOf
     type Grouped = (a.type, b.type, 3)
-    val group: Grouped = valueOf
+    val group: Grouped = Compute[Grouped]
     type DoubleCheckUniqueness = Unique[group.type] and Unique[(a.type, b.type, 3)]
     Guarantee.verifyAtCompileTime[DoubleCheckUniqueness]
   }
@@ -106,6 +110,7 @@ import scala.util.Random
   // corollary example
   {
     def flip[A, B](guarantee: Guarantee[A !== B]): Guarantee[B !== A] = Guarantee.trust
+
     flip(Guarantee.verifyAtCompileTime[1 !== 2]): Guarantee[2 !== 1]
   }
 
