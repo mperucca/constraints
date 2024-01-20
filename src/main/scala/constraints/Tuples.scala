@@ -3,15 +3,6 @@ package constraints
 import scala.quoted.*
 
 /**
- * Type class instance for [[ValueOf]] of [[NonEmptyTuple]]s
- *
- * @tparam H the type of the first element in the tuple
- * @tparam T the type of the remaining elements in the tuple
- * @return the runtime value of the tuple type
- */
-given nonEmptyTupleValueOf[H: ValueOf, T <: Tuple: ValueOf]: ValueOf[H *: T] = ValueOf(valueOf[H] *: valueOf[T])
-
-/**
  * Lifts a tuple value into it's narrowed expression type
  * @param tuple the tuple to lift to an expression
  * @param Quotes for performing macro operations

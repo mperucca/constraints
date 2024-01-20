@@ -40,7 +40,7 @@ object Inlinable:
   transparent inline def reduce[A](using inlinable: Inlinable[A]): Option[inlinable.Result] = inlinable.reduce
 
   /**
-   * Helper "contructor" for [[Inlinable]] that set the [[Result]] type to [[R]]
+   * Helper "constructor" for [[Inlinable]] that set the [[Result]] type to [[R]]
    * @tparam R the result type
    */
   trait Impl[R] extends Inlinable[Any]:
@@ -80,6 +80,22 @@ object Inlinable:
      *  @return null
      */
     override inline def reduce: None.type = None
+
+  given Inlinable[Null] with
+    override type Result = Null
+    override transparent inline def reduce: Some[Null] = Some(null)
+
+  transparent inline given some[A: Inlinable.To[B], B]: Inlinable.Typed[Some[A], Some[B]] =
+    inline Inlinable.reduce[A] match
+      case None => Inlinable.Unknown
+      case Some(b) => SomeImpl[b.type](b)
+
+  class SomeImpl[A](val a: A) extends Inlinable.Impl[Some[A]]:
+    override transparent inline def reduce: Some[Some[A]] = Some(Some(a))
+
+  given none[A: Inlinable]: Inlinable[None.type] with
+    override type Result = None.type
+    override transparent inline def reduce: Some[None.type] = Some(None)
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible
@@ -164,9 +180,9 @@ object Inlinable:
    * @param possibleValue the value to inline
    * @param Quotes for performing macro operations
    * @tparam V the value to inline
-   * @return an inlined value (which maybe be [[None]])
+   * @return an inlined value (which may be [[None]])
    */
-  private def inlineOption[V: Type: ToExpr: ToType](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
+  def inlineOption[V: Type: ToExpr: ToType](possibleValue: Option[V])(using Quotes): Expr[Option[V]] =
     possibleValue match
       case None => '{ None }
       case Some(value) =>

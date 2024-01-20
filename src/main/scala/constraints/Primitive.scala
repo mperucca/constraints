@@ -23,7 +23,7 @@ object Primitive:
    * @param primitive the value to inline
    * @param Quotes for performing macro operations
    * @tparam P The specific type of the value to lift
-   * @return the value as an experssion
+   * @return the value as an expression
    */
   def toExpr[P <: Primitive](primitive: P)(using Quotes): Expr[P] =
     val expr = (primitive: Primitive) match

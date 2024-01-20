@@ -58,3 +58,13 @@ object ToType:
               val tail = ToType[t.type](t)
               AppliedType(TypeRepr.of[*:[_, _]], List(TypeRepr.of(using head), TypeRepr.of(using tail))).asType
       tpe.asInstanceOf[Type[? <: B]]
+
+  given [O <: Option[A], A: ToType]: ToType[O] with
+    override def apply(value: O)(using Quotes): Type[_ <: O] =
+      value match
+        case Some(value) =>
+          val tpe: Type[? <: A] = ToType(value)
+          tpe match
+            case '[e] =>
+              Type.of[Some[e]].asInstanceOf[Type[_ <: O]]
+        case None => Type.of[None.type].asInstanceOf[Type[_ <: O]]
