@@ -1,4 +1,5 @@
 import constraints.*
+import constraints.compile.*
 
 import scala.quoted.*
 

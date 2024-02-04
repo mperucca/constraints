@@ -1,4 +1,5 @@
-import constraints.{Inlinable, Compute}
+import constraints.Compute
+import constraints.compile.Inlinable
 
 import scala.quoted.{Expr, Quotes, Type}
 

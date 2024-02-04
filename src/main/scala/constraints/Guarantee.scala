@@ -34,18 +34,6 @@ object Guarantee:
   def testAtRuntime[C: Compute.To[Boolean]]: Either[Guarantee[Not[C]], Guarantee[C]] =
     Either.cond(Compute[C], trust, trust)
 
-  /**
-   * Checks a constraint at compile time, failing to compile if the constraint cannot be confirmed to hold
-   *
-   * @tparam C the constraint
-   * @return evidence that the constraint holds if the compile time check succeeds
-   */
-  inline given verifyAtCompileTime[C: Inlinable.To[Boolean]]: Guarantee[C] =
-    inline Inlinable.reduce[C] match
-      case Some(false) => compiletime.error("invalid")
-      case None => compiletime.error("unknown")
-      case Some(true) => trust
-
   extension [A](guarantee: => Guarantee[A])
 
     /**

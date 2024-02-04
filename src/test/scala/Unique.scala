@@ -1,4 +1,5 @@
 import constraints.*
+import constraints.compile.{Builtin, Inlinable}
 
 import scala.annotation.tailrec
 import scala.quoted.*

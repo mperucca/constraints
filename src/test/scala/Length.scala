@@ -1,5 +1,6 @@
 import constraints.*
 import constraints.Compute.Typed
+import constraints.compile.Inlinable
 
 import scala.quoted.{Expr, Quotes, Type}
 

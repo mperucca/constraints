@@ -1,4 +1,5 @@
 import constraints.*
+import constraints.compile.*
 
 import quoted.*
 import scala.annotation.targetName

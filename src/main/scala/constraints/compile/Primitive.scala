@@ -1,4 +1,4 @@
-package constraints
+package constraints.compile
 
 import scala.quoted.*
 

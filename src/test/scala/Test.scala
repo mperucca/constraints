@@ -1,4 +1,5 @@
 import constraints.Guarantee.Impl
+import constraints.compile.*
 import constraints.{*, given}
 
 import scala.util.Random

@@ -1,4 +1,7 @@
-package constraints
+package constraints.compile
+
+import constraints.compile.Builtin
+import constraints.{Compute, Not, and, or, xor}
 
 import scala.quoted.*
 
@@ -85,17 +88,13 @@ object Inlinable:
     override type Result = Null
     override transparent inline def reduce: Some[Null] = Some(null)
 
-  transparent inline given some[A: Inlinable.To[B], B]: Inlinable.Typed[Some[A], Some[B]] =
-    inline Inlinable.reduce[A] match
+  transparent inline given some[A](using a: Inlinable[A]): Inlinable.Typed[Some[A], Some[a.Result]] =
+    inline a.reduce match
       case None => Inlinable.Unknown
-      case Some(b) => SomeImpl[b.type](b)
+      case Some(result) => SomeImpl[result.type]
 
-  class SomeImpl[A](val a: A) extends Inlinable.Impl[Some[A]]:
-    override transparent inline def reduce: Some[Some[A]] = Some(Some(a))
-
-  given none[A: Inlinable]: Inlinable[None.type] with
-    override type Result = None.type
-    override transparent inline def reduce: Some[None.type] = Some(None)
+  class SomeImpl[A <: Singleton] extends Inlinable.Impl[Some[A]]:
+    override transparent inline def reduce: Some[Some[A]] = Some(Some(singletonToValue[A]))
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible
@@ -104,6 +103,13 @@ object Inlinable:
    */
   transparent inline given builtinSingleton[R <: Singleton: Builtin]: Inlinable.Typed[R, R] =
     builtin[R]
+
+  inline given singleton[S <: Singleton]: Inlinable[S] with
+    override type Result = S
+    override transparent inline def reduce: Some[S] = Some(singletonToValue[S])
+
+  private transparent inline def singletonToValue[S <: Singleton]: S =
+    compiletime.summonInline[ValueOf[S]].value
 
   /**
    * Type class instance for leaf types
@@ -141,7 +147,7 @@ object Inlinable:
 
   private def impl[E: Type](using Quotes): Expr[Option[E]] =
     given Builtin[E] = Builtin.evidenceOrAbort
-    import Builtin.toExpr
+    import constraints.compile.Builtin.toExpr
     inlineOption(FromType[E])
 
   /**
@@ -159,7 +165,7 @@ object Inlinable:
   )(using Quotes): Expr[Option[R]] =
     given Builtin[E] = Builtin.evidenceOrAbort
     given Builtin[R] = Builtin.evidenceOrAbort
-    import Builtin.toExpr
+    import constraints.compile.Builtin.toExpr
     fromComputation(computable)
 
   /**
@@ -192,3 +198,81 @@ object Inlinable:
           case '[e] =>
             val casted = '{ $expr.asInstanceOf[e] }.asExprOf[e]
             '{ Some[e]($casted) }.asExprOf[Option[V]]
+
+  /**
+   * Type class instance of [[Inlinable]] for [[and]]
+   *
+   * @tparam A the first constraint of the conjunction
+   * @tparam B the second constraint of the conjunction
+   * @return a [[Inlinable]] for the conjunction of [[A]] and [[B]]
+   *         either being false results in false
+   *         neither being false and at least one being unknown results in unknown
+   *         both being true results in true
+   */
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A and B, Boolean] =
+    inline Inlinable.reduce[A] match
+      case Some(false) => Inlinable.Constant[false]
+      case None => inline Inlinable.reduce[B] match
+        case Some(false) => Inlinable.Constant[false]
+        case None | Some(true) => Inlinable.Unknown
+      case Some(true) => inline Inlinable.reduce[B] match
+        case Some(false) => Inlinable.Constant[false]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[true]
+
+  /**
+   * Type class instance of [[Inlinable]] for [[Not]]
+   *
+   * @tparam C the constraint to negate
+   * @return a [[Inlinable]] for the negation of [[C]]
+   *         [[Not]] on false becomes true
+   *         [[Not]] on unknown stays unknown
+   *         [[Not]] on true becomes false
+   */
+  transparent inline given[C: Inlinable.To[Boolean]]: Inlinable.Typed[Not[C], Boolean] =
+    inline Inlinable.reduce[C] match
+      case Some(false) => Inlinable.Constant[true]
+      case None => Inlinable.Unknown
+      case Some(true) => Inlinable.Constant[false]
+
+  /**
+   * Type class instance of [[Inlinable]] for [[or]]
+   *
+   * @tparam A the first constraint of the inclusive disjunction
+   * @tparam B the second constraint of the inclusive disjunction
+   * @return a [[Inlinable]] for the inclusive disjunction of [[A]] or [[B]]
+   *         either being true results in true
+   *         neither being true and at least one being unknown results in unknown
+   *         both being false results in false
+   */
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A or B, Boolean] =
+    inline Inlinable.reduce[A] match
+      case Some(false) => inline Inlinable.reduce[B] match
+        case Some(false) => Inlinable.Constant[false]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[true]
+      case None => inline Inlinable.reduce[B] match
+        case Some(false) | None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[true]
+      case Some(true) => Inlinable.Constant[true]
+
+  /**
+   * Type class instance of [[Inlinable]] for [[xor]]
+   *
+   * @tparam A the first constraint of the exclusive disjunction
+   * @tparam B the second constraint of the exclusive disjunction
+   * @return a [[Inlinable]] for the exclusive disjunction of [[A]] xor [[B]]
+   *         either being unknown results in unknown
+   *         both being known results in false if they are the same and true if they are different
+   */
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A xor B, Boolean] =
+    inline Inlinable.reduce[A] match
+      case Some(false) => inline Inlinable.reduce[B] match
+        case Some(false) => Inlinable.Constant[false]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[true]
+      case None => Inlinable.Unknown
+      case Some(true) => inline Inlinable.reduce[B] match
+        case Some(false) => Inlinable.Constant[true]
+        case None => Inlinable.Unknown
+        case Some(true) => Inlinable.Constant[false]

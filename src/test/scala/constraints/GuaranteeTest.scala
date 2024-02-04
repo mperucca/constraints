@@ -1,5 +1,6 @@
 package constraints
 
+import constraints.compile.*
 import org.scalatest.funsuite.AnyFunSuite
 
 class GuaranteeTest extends AnyFunSuite:

@@ -1,4 +1,5 @@
 import constraints.{Guaranteed, Guarantee, and}
+import constraints.compile.*
 
 type Percentage[D <: Double] = Guaranteed.Refined[D, Percentage.Constraint]
 

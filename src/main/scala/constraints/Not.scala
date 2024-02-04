@@ -17,18 +17,3 @@ object Not:
    */
   given[C: Compute.To[Boolean]]: Compute.Typed[Not[C], Boolean] =
     Compute(!Compute[C])
-
-  /**
-   * Type class instance of [[Inlinable]] for [[Not]]
-   *
-   * @tparam C the constraint to negate
-   * @return a [[Inlinable]] for the negation of [[C]]
-   *         [[Not]] on false becomes true
-   *         [[Not]] on unknown stays unknown
-   *         [[Not]] on true becomes false
-   */
-  transparent inline given[C: Inlinable.To[Boolean]]: Inlinable.Typed[Not[C], Boolean] =
-    inline Inlinable.reduce[C] match
-      case Some(false) => Inlinable.Constant[true]
-      case None => Inlinable.Unknown
-      case Some(true) => Inlinable.Constant[false]

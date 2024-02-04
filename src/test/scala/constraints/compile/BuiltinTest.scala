@@ -1,5 +1,6 @@
-package constraints
+package constraints.compile
 
+import constraints.compile.*
 import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.NotGiven

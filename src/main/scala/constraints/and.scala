@@ -19,24 +19,3 @@ object and:
    */
   given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Typed[A and B, Boolean] =
     Compute(Compute[A] && Compute[B])
-
-  /**
-   * Type class instance of [[Inlinable]] for [[and]]
-   *
-   * @tparam A the first constraint of the conjunction
-   * @tparam B the second constraint of the conjunction
-   * @return a [[Inlinable]] for the conjunction of [[A]] and [[B]]
-   *         either being false results in false
-   *         neither being false and at least one being unknown results in unknown
-   *         both being true results in true
-   */
-  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A and B, Boolean] =
-    inline Inlinable.reduce[A] match
-      case Some(false) => Inlinable.Constant[false]
-      case None => inline Inlinable.reduce[B] match
-        case Some(false) => Inlinable.Constant[false]
-        case None | Some(true) => Inlinable.Unknown
-      case Some(true) => inline Inlinable.reduce[B] match
-        case Some(false) => Inlinable.Constant[false]
-        case None => Inlinable.Unknown
-        case Some(true) => Inlinable.Constant[true]

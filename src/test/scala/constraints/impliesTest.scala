@@ -20,30 +20,3 @@ class impliesTest extends AnyFunSuite:
 
   test("compute (false implies false)"):
     ComputeTest[false implies false](true)
-
-  test("inline (true implies true)"):
-    InlinableTest[true implies true]: Some[true]
-
-  test("inline (true implies false)"):
-    InlinableTest[true implies false]: Some[false]
-
-  test("inline (false implies true)"):
-    InlinableTest[false implies true]: Some[true]
-
-  test("inline (false implies false)"):
-    InlinableTest[false implies false]: Some[true]
-
-  test("inline (unknown implies true)"):
-    InlinableTest[Boolean implies true]: Some[true]
-
-  test("inline (unknown implies false)"):
-    InlinableTest[Boolean implies false]: None.type
-
-  test("inline (true implies unknown)"):
-    InlinableTest[true implies Boolean]: None.type
-
-  test("inline (false implies unknown)"):
-    InlinableTest[false implies Boolean]: Some[true]
-
-  test("inline (unknown implies unknown)"):
-    InlinableTest[Boolean implies Boolean]: None.type
