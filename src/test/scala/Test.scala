@@ -26,7 +26,7 @@ import scala.util.Random
 
     def fallback(guarantee: Guarantee[Not[Divisible]]) = 0
     // we check the operands at runtime in case the random numbers violate the constraints
-    Guarantee.testAtRuntime[Divisible] match
+    Guarantee.test[Divisible] match
       case Right(guarantee: Guarantee[Divisible]) => divide(dividend, divisor)(guarantee)
       case Left(guarantee: Guarantee[Not[Divisible]]) => fallback(guarantee)
   }
@@ -41,7 +41,7 @@ import scala.util.Random
   {
     val dividend: Int = Random.nextInt()
     val divisor: 4 = valueOf
-    divide(dividend, divisor)(Guarantee.verifyAtCompileTime[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
+    divide(dividend, divisor)(Guarantee[divisor.type !== 0 and divisor.type !== -1]) // compiles since knowing the divisor isn't 0 nor -1 meets sufficient constraints
   }
 
   // constraint equivalence/satisfaction examples
@@ -83,10 +83,10 @@ import scala.util.Random
 
   // dependent constraints on collections examples
   {
-    Guarantee.verifyAtCompileTime[Unique[(1, 2, 3)]]
-    Guarantee.verifyAtCompileTime[Not[Unique[(1, 2, 2)]]]
-    Guarantee.verifyAtCompileTime[Unique["abc"]]
-    Guarantee.verifyAtCompileTime[Not[Unique["abb"]]]
+    Guarantee[Unique[(1, 2, 3)]]
+    Guarantee[Not[Unique[(1, 2, 2)]]]
+    Guarantee[Unique["abc"]]
+    Guarantee[Not[Unique["abb"]]]
 
     val list: LazyList[Char] = Random.alphanumeric.take(3)
     if summon[Compute[Unique[list.type]]].compute
@@ -98,21 +98,21 @@ import scala.util.Random
     type Grouped = (a.type, b.type, 3)
     val group: Grouped = Compute[Grouped]
     type DoubleCheckUniqueness = Unique[group.type] and Unique[(a.type, b.type, 3)]
-    Guarantee.verifyAtCompileTime[DoubleCheckUniqueness]
+    Guarantee[DoubleCheckUniqueness]
   }
 
   // joining trust example
   {
-    val a = Guarantee.verifyAtCompileTime[1 !== 2]
-    val b = Guarantee.verifyAtCompileTime[3 !== 4]
-    a and b and Guarantee.verifyAtCompileTime[5 !== 6] and Guarantee.verifyAtCompileTime[7 !== 8]: Guarantee[1 !== 2 and 5 !== 6 and 7 !== 8 and 3 !== 4]
+    val a = Guarantee[1 !== 2]
+    val b = Guarantee[3 !== 4]
+    a and b and Guarantee[5 !== 6] and Guarantee[7 !== 8]: Guarantee[1 !== 2 and 5 !== 6 and 7 !== 8 and 3 !== 4]
   }
 
   // corollary example
   {
     def flip[A, B](guarantee: Guarantee[A !== B]): Guarantee[B !== A] = Guarantee.trust
 
-    flip(Guarantee.verifyAtCompileTime[1 !== 2]): Guarantee[2 !== 1]
+    flip(Guarantee[1 !== 2]): Guarantee[2 !== 1]
   }
 
   // non-primitive (lossless value representation) example
@@ -127,15 +127,15 @@ import scala.util.Random
 
     val fraction2 = Fraction(1, 3)(Guarantee.verifyAtCompileTime)
     Inlinable.builtin[Fraction.Tupled[fraction.type]].reduce: Some[Fraction.Tupled[fraction.type]]
-    Guarantee.verifyAtCompileTime[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
-    Guarantee.verifyAtCompileTime[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
+    Guarantee[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
+    Guarantee[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
     val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
     Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.verifyAtCompileTime)
 
     type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
-    Guarantee.verifyAtCompileTime[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== (1, DealiasTest)]
+    Guarantee[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== (1, DealiasTest)]
   }
 
   // Type class and bounds interplay
@@ -161,11 +161,11 @@ import scala.util.Random
   {
     val low: 1 = valueOf
     val high: 2 = valueOf
-    Guarantee.verifyAtCompileTime[low.type AtMost high.type]
+    Guarantee[low.type AtMost high.type]
 
     type Low = 1
     type High = 2
-    Guarantee.verifyAtCompileTime[Low AtMost High]
+    Guarantee[Low AtMost High]
   }
 
   // constraint that uses non-boolean expressions in the computation

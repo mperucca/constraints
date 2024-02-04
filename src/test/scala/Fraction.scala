@@ -29,7 +29,7 @@ object Fraction:
     override def extract(using Quotes): Option[F] =
       for numerator <- FromType[N]
           denominator <- FromType[D]
-          nonZero <- Guarantee.testAtRuntime[denominator.type !== 0].toOption
+          nonZero <- Guarantee.test[denominator.type !== 0].toOption
       yield Fraction(numerator, denominator)(nonZero).asInstanceOf[F]
 
   given narrow[F <: Fraction.WhiteBox[N, D], N <: Int & Singleton : Type, D <: Int & Singleton : Type]: FromType[F] with

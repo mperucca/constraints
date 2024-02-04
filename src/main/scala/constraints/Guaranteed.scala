@@ -98,7 +98,7 @@ object Guaranteed:
     def runtimeCheck[C[_]](v: Any)(
       using c: Compute.Typed[C[v.type], Boolean]
     ): Either[Guaranteed.Refined[v.type, Inverse[C]], Guaranteed.Refined[v.type, C]] =
-      Guarantee.testAtRuntime[C[v.type]] match
+      Guarantee.test[C[v.type]] match
         case Left(invertedGuarantee: Guarantee[Not[C[v.type]]]) =>
           Left(Guaranteed.Refined(v)(invertedGuarantee))
         case Right(guarantee: Guarantee[C[v.type]]) =>

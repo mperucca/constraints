@@ -31,7 +31,7 @@ object Guarantee:
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds or a guarantee that it does not
    */
-  def testAtRuntime[C: Compute.To[Boolean]]: Either[Guarantee[Not[C]], Guarantee[C]] =
+  def test[C: Compute.To[Boolean]]: Either[Guarantee[Not[C]], Guarantee[C]] =
     Either.cond(Compute[C], trust, trust)
 
   extension [A](guarantee: => Guarantee[A])
