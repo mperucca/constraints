@@ -3,7 +3,7 @@ import constraints.compile.Inlinable
 
 import scala.quoted.*
 
-type LessThan[A, B]
+infix type LessThan[A, B]
 
 object LessThan:
 

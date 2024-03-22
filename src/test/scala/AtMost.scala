@@ -1,1 +1,1 @@
-type AtMost[Value, Maximum] = Maximum AtLeast Value
+infix type AtMost[Value, Maximum] = Maximum AtLeast Value

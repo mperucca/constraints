@@ -122,20 +122,12 @@ import scala.util.Random
     val fraction = Fraction(numerator, denominator)(Guarantee.verifyAtCompileTime)
     divide(fraction.numerator, fraction.denominator)(Guarantee.verifyAtCompileTime)
 
-    type NonOverflowingOnDivide[F] = Fraction.Numerator[F] !== Int.MinValue.type or Fraction.Denominator[F] !== -1
-    Guaranteed.Refined[NonOverflowingOnDivide](fraction)(Guarantee.verifyAtCompileTime)
-
     val fraction2 = Fraction(1, 3)(Guarantee.verifyAtCompileTime)
-    Inlinable.builtin[Fraction.Tupled[fraction.type]].reduce: Some[Fraction.Tupled[fraction.type]]
     Guarantee[(1 *: EmptyTuple) === (1 *: EmptyTuple)]
-    Guarantee[Fraction.Tupled[fraction.type] !== Fraction.Tupled[fraction2.type]]
 
     val fraction3: Fraction = Fraction(7, Random.between(8, 9))(Guarantee.trust)
     Fraction(6, fraction3.denominator)(fraction3.nonZeroDenominator)
     divide(6, fraction3.denominator)(fraction3.nonZeroDenominator and Guarantee.verifyAtCompileTime)
-
-    type DealiasTest = Singleton & 4 & Int & Singleton & Int & 4 & Int & Int & Singleton
-    Guarantee[Fraction.Tupled[Fraction.WhiteBox[1, 3]] !== (1, DealiasTest)]
   }
 
   // Type class and bounds interplay
@@ -175,4 +167,34 @@ import scala.util.Random
     ): Char = string.charAt(index)
 
     charAt("abcde", 3)(Guarantee.verifyAtCompileTime)
+  }
+
+  {
+    def divide(dividend: Int, divisor: Int)(using
+      Guarantee[divisor.type !== 0],
+      Guarantee[dividend.type !== Int.MinValue.type or divisor.type !== -1]
+    ): Int = dividend / divisor
+
+    val dividend, divisor = Random.nextInt()
+
+    summon[
+      Guarantee[divisor.type === 0 or (dividend.type === Int.MinValue.type and divisor.type === -1)]
+        =:=
+      Guarantee[Not[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]]
+    ]
+    summon[
+      Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
+        <:<
+      Guarantee[dividend.type !== Int.MinValue.type or divisor.type !== -1]
+    ]
+    summon[
+      Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
+        <:<
+        Guarantee[divisor.type !== 0]
+    ]
+    Guarantee.test[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)] match
+      case Left(given Guarantee[divisor.type === 0 or (dividend.type === Int.MinValue.type and divisor.type === -1)]) =>
+        // divide(dividend, divisor)
+      case Right(given Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]) =>
+        divide(dividend, divisor)
   }

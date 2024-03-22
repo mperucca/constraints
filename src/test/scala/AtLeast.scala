@@ -3,7 +3,7 @@ import constraints.compile.Inlinable
 
 import scala.quoted.{Expr, Quotes, Type}
 
-type AtLeast[Value, Minimum]
+infix type AtLeast[Value, Minimum]
 
 object AtLeast:
 

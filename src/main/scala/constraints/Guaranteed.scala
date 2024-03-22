@@ -5,7 +5,7 @@ package constraints
  * Useful for simple return values from functions without need to create a custom type.
  * @tparam V The value being guaranteed
  */
-trait Guaranteed[+V]:
+trait Guaranteed[+V] extends Any:
 
   /**
    * The value about which there is a guarantee
@@ -44,9 +44,10 @@ object Guaranteed:
    * @return the [[Guaranteed]] value
    */
   def apply(value: Any, guarantee: Guarantee.Impl[Any]): Guaranteed.Typed[value.type, guarantee.type] =
-    val g: guarantee.type = valueOf
-    new Guaranteed.Type[value.type]:
-      override def guarantee: g.type = valueOf
+    new Impl[value.type, guarantee.type](value)
+
+  private class Impl[+V, +G <: Guarantee.Impl[Any]](val value: V) extends AnyVal with Guaranteed[V]:
+    override def guarantee: G = Guarantee.asInstanceOf
 
   /**
    * Type alias that's often clearner than the structural type
