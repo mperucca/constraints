@@ -1,15 +1,11 @@
 import constraints.*
-import constraints.Compute.Typed
 import constraints.compile.Inlinable
 
 import scala.quoted.{Expr, Quotes, Type}
 
 type Length[I]
 
-object Length:
-
-  given computable[S: Compute.To[String]]: Compute.Typed[Length[S], Int] =
-    Compute(Compute[S].length)
+object Length extends Compute.Companion[Length, String, Int](_.length):
 
   transparent inline given inlinable[S: Inlinable.To[String]]: Inlinable.Typed[Length[S], Int] =
     inline Inlinable.reduce[S] match
@@ -20,4 +16,4 @@ object Length:
     override transparent inline def reduce: Option[Int] = ${ impl[S] }
 
   private def impl[S <: String : Type](using Quotes): Expr[Option[Int]] =
-    Inlinable.fromComputation((s: S) => computable[s.type])
+    Inlinable.fromComputation((s: S) => compute[s.type])

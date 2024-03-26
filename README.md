@@ -15,6 +15,7 @@ Attempts to call <code>divide</code> must provide `Guarantee`s which can be obta
 * `trust` which just constructs one without checking
 * <code>test</code> which checks at runtime through `Compute.To[Boolean]` type class instances
 * `apply` which attempts to verify the constraint at compile time
+
 Here's how a caller could call `divide` safely when working with runtime values (presumably the most common scenario):
 ```scala
 val dividend, divisor = Random.nextInt()

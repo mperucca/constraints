@@ -1,5 +1,5 @@
 import constraints.Guarantee.Impl
-import constraints.compile.*
+import constraints.compile.{*, given}
 import constraints.{*, given}
 
 import scala.util.Random
@@ -163,7 +163,7 @@ import scala.util.Random
   // constraint that uses non-boolean expressions in the computation
   {
     def charAt(string: String, index: Int)(
-      withinBounds: Guarantee[(index.type AtLeast 0) and (index.type LessThan Length[string.type])]
+      withinBounds: Guarantee[(index.type AtLeast 0) and (index.type LT Length[string.type])]
     ): Char = string.charAt(index)
 
     charAt("abcde", 3)(Guarantee.verifyAtCompileTime)

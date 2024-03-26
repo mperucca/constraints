@@ -88,3 +88,7 @@ object Compute:
     using head: Compute[H], tail: Compute.Typed[T, Tuple]
   ): Compute.Typed[H *: T, head.Result *: tail.Result] =
     Compute(head.compute *: tail.compute)
+
+  trait Companion[C[_], -E, +R](computation: E => R) {
+    given compute[A: Compute.To[E]]: Compute.Typed[C[A], R] = Compute(computation(Compute[A]))
+  }

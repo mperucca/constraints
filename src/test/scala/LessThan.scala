@@ -3,14 +3,14 @@ import constraints.compile.Inlinable
 
 import scala.quoted.*
 
-infix type LessThan[A, B]
+infix type LT[A, B]
 
-object LessThan:
+object LT:
 
-  given computable[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[LessThan[A, B], Boolean] =
+  given computable[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[LT[A, B], Boolean] =
     Compute(Compute[A] < Compute[B])
 
-  transparent inline given inlinable[A: Inlinable.To[Int], B: Inlinable.To[Int]]: Inlinable.Typed[LessThan[A, B], Boolean] =
+  transparent inline given inlinable[A: Inlinable.To[Int], B: Inlinable.To[Int]]: Inlinable.Typed[LT[A, B], Boolean] =
     inline Inlinable.reduce[A] match
       case None => Inlinable.Unknown
       case Some(l: Int) =>
