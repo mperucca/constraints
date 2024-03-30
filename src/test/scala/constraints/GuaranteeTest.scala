@@ -28,6 +28,6 @@ class GuaranteeTest extends AnyFunSuite:
   test("and"):
     type A
     type B
-    val guarantee1: Guarantee[A] = null.asInstanceOf
-    val guarantee2: Guarantee[B] = null.asInstanceOf
+    val guarantee1: Guarantee[A] = Guarantee.trust
+    val guarantee2: Guarantee[B] = Guarantee.trust
     guarantee1 and guarantee2: Guarantee[A and B]

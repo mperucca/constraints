@@ -15,5 +15,5 @@ object Not:
    * @tparam C the constraint
    * @return a runtime check that succeeds if the runtime check for [[C]] fails
    */
-  given[C: Compute.To[Boolean]]: Compute.Typed[Not[C], Boolean] =
+  given compute[C: Compute.To[Boolean]]: Compute.Typed[Not[C], Boolean] =
     Compute(!Compute[C])

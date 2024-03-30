@@ -19,7 +19,6 @@ class BuiltinTest extends AnyFunSuite:
     summon[Builtin[Short]]
 
   test("tuple"):
-    type A
     summon[Builtin[EmptyTuple]]
     summon[Builtin[Primitive *: EmptyTuple]]
     summon[Builtin[(Primitive, Primitive)]]

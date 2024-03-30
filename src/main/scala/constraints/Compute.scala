@@ -75,12 +75,6 @@ object Compute:
   given value[R: ValueOf]: Compute.Typed[R, R] =
     Compute(valueOf[R])
 
-  /**
-   * Type class instance for [[Null]]
-   * @return the [[Compute]] instance for the constant null
-   */
-  given nullCompute: Compute.Typed[Null, Null] = Compute(null)
-
   given someCompute[A](using compute: Compute[A]): Compute.Typed[Some[A], Some[compute.Result]] =
     Compute(Some(Compute[A]))
 
