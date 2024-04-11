@@ -7,8 +7,8 @@ The goal of this library is to enable fully-specified APIs with ease.
 The main idea is to specify constraints through `Guarantee`s as follows:
 ```scala
 def divide(a: Int, b: Int)(using
-  Guarantee[b.type != 0],
-  Guarantee[a.type != Int.MinValue.type or b.type != -1]
+  noDivideByZero: Guarantee[b.type != 0],
+  noOverflow: Guarantee[a.type != Int.MinValue.type or b.type != -1]
 ): Int = a / b
 ```
 Attempts to call <code>divide</code> must provide `Guarantee`s which can be obtained through various ways:
