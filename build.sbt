@@ -1,4 +1,19 @@
-ThisBuild / scalaVersion := "3.4.0"
+inThisBuild(List(
+  organization := "io.github.mperucca",
+  homepage := Some(url("https://github.com/mperucca/constraints")),
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  developers := List(
+    Developer(
+      "mperucca",
+      "Michael Perucca",
+      "michaelperucca@gmail.com",
+      url("https://github.com/mperucca")
+    )
+  ),
+  sonatypeCredentialHost := "s01.oss.sonatype.org",
+  sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
+  scalaVersion := "3.4.0"
+))
 
 lazy val root = (project in file("."))
   .settings(
@@ -6,7 +21,7 @@ lazy val root = (project in file("."))
   )
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.2.16" % Test
+  "org.scalatest" %% "scalatest" % "3.2.18" % Test
 )
 
 scalacOptions ++= Seq(

@@ -1,12 +1,16 @@
 package constraints
 
 import scala.annotation.targetName
+import scala.math.Ordering.Implicits.infixOrderingOps
 
-infix type LessThan[A, B]
-@targetName("GreaterThan")
+infix trait LessThan[A, B]:
+  def apply(a: A, b: B): Boolean
+@targetName("LessThan")
 type <[A, B] = LessThan[A, B]
 
 object LessThan {
+  
+  def fromOrdering[A: Ordering]: A < A = _ < _
 
   given computeInt[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[A < B, Boolean] =
     Compute(Compute[A] < Compute[B])
@@ -18,11 +22,14 @@ object LessThan {
 
 }
 
-type GreaterThan[A, B]
+infix trait GreaterThan[A, B]:
+  def apply(a: A, b: B): Boolean
 @targetName("GreaterThan")
 type >[A, B] = GreaterThan[A, B]
 
 object GreaterThan {
+
+  def fromOrdering[A: Ordering]: A > A = _ > _
 
   given compute[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[A < B, Boolean] =
     Compute(Compute[A] > Compute[B])

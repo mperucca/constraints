@@ -9,33 +9,7 @@ type `=`[A, B] = EqualTo[A, B]
 
 object EqualTo {
 
-  trait Reflexive[-A]
-
-  object Reflexive {
-
-    given Reflexive[Boolean] = new Reflexive[Boolean] {}
-    given Reflexive[Byte] = new Reflexive[Byte] {}
-    given Reflexive[Char] = new Reflexive[Char] {}
-    given Reflexive[Int] = new Reflexive[Int] {}
-    given Reflexive[Long] = new Reflexive[Long] {}
-    given Reflexive[Short] = new Reflexive[Short] {}
-    given Reflexive[String] = new Reflexive[String] {}
-
-    given [F <: Float | Double](using Guarantee[Not[IsNaN[F]]]): Reflexive[F] = new Reflexive[F] {}
-
-  }
-
-  extension [A, B](guarantee: Guarantee[EqualTo[A, B]]) {
-
-    def symmetric: Guarantee[EqualTo[B, A]] = Guarantee.trust
-
-    def transitive[C](other: Guarantee[EqualTo[B, C]]): Guarantee[EqualTo[A, C]] = Guarantee.trust
-
-  }
-
   def fromEquiv[A: Equiv]: EqualTo[A, A] = Equiv[A].equiv(_, _)
-
-  def reflexive[A: Compute: Reflexive]: Guarantee[EqualTo[A, A]] = Guarantee.trust
 
   given boolean: EqualTo[Boolean, Boolean] = _ == _
 
