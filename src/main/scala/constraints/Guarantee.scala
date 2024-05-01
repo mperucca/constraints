@@ -16,7 +16,12 @@ object Guarantee:
    * @tparam C the constraint (covariant so that more specific constraints satisfy more general constraints)
    */
   private[constraints] opaque type Impl[+C] = Guarantee.type
-  private[constraints] val impl: Impl[Nothing] = Guarantee
+
+  /**
+   * Add {{{import Guarantee.Everything.given}}} to supply trust to all {{{using Guarantee}}} values in scope.
+   */
+  object Everything:
+    given Impl[Nothing] = Guarantee
 
   /**
    * Returns a guarantee based on blind trust
