@@ -17,6 +17,8 @@ object Guarantee:
    */
   private[constraints] opaque type Impl[+C] = Guarantee.type
 
+  val truth: Guarantee[true] = trust[true]
+
   /**
    * Add {{{import Guarantee.Everything.given}}} to supply trust to all {{{using Guarantee}}} values in scope.
    */
@@ -35,18 +37,25 @@ object Guarantee:
    * Checks a constraint at runtime, returning a guarantee for or against the constraint
    *
    * @tparam C the constraint
-   * @return either a guarantee that the constraint holds or a guarantee that it does not
+   * @return either a guarantee that the constraint holds ([[Right]]) or a guarantee that it does not ([[Left]])
    */
   def test[C: Compute.To[Boolean]]: Either[Guarantee[Not[C]], Guarantee[C]] =
     Either.cond(Compute[C], trust, trust)
+
+  /**
+   * Checks a constraint at runtime, returning a guarantee for the constraint if it does
+   * @tparam C the constraint
+   * @return a guarantee ([[Some]]) if the constraint holds
+   */
+  def test_[C: Compute.To[Boolean]]: Option[Guarantee[C]] =
+    Option.when(Compute[C])(trust)
 
   /**
    * Starts a chain of accumulating failed guarantee tests into a single type.
    * @tparam E the accumulated type for guarantee tests that fail
    * @return A function expecting a constraint to begin the guarantee chain of tests
    */
-  def accumulate[E]: [C] => Compute.Typed[C, Boolean] ?=> (Guarantee[Not[C]] => E) => Accumulated[C, E] =
-    [C] => compute ?=> ifNot => Accumulated(test[C].left.map(not => ::(ifNot(not), Nil)))
+  def accumulate[E]: Accumulated[true, E] = Accumulated(Right(Guarantee.truth))
 
   /**
    * Helper class for accumulating guarantee test chains
@@ -54,7 +63,7 @@ object Guarantee:
    * @tparam A The accumulated constraint so far
    * @tparam E The accumulated failed test type
    */
-  class Accumulated[A, E](accumulated: Either[::[E], Guarantee[A]]):
+  class Accumulated[A, E](accumulated: Either[List[E], Guarantee[A]]):
 
     /**
      * Chains on another constraint to check
@@ -62,12 +71,24 @@ object Guarantee:
      * @tparam C the new constraint to check
      * @return the newly accumulated constraint test
      */
-    def apply[C: Compute.To[Boolean]](ifNot: Guarantee[Not[C]] => E): Accumulated[A and C, E] =
+    def test[C: Compute.To[Boolean]](ifNot: Guarantee[Not[C]] => E): Accumulated[A and C, E] =
       Accumulated(
-        test[C] match
+        Guarantee.test[C] match
           case Left(not) => Left(::(ifNot(not), result.left.getOrElse(Nil)))
           case Right(guarantee) => result.map(guarantee and _)
       )
+
+    /**
+     * @see [[test]] except that the negated guarantee argument is ignored
+     */
+    def test_[C: Compute.To[Boolean]](ifNot: => E): Accumulated[A and C, E] =
+      test(_ => ifNot)
+
+    /**
+     * @see [[test]] except that the negated guarantee argument is contextual
+     */
+    def test$[C: Compute.To[Boolean]](ifNot: Guarantee[Not[C]] ?=> E): Accumulated[A and C, E] =
+      test(ifNot(using _))
 
     /**
      * @return The accumulated guarantee or failed test results in the case of failures
