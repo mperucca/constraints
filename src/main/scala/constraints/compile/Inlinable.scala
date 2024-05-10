@@ -1,6 +1,5 @@
 package constraints.compile
 
-import constraints.compile.Builtin
 import constraints.{Compute, Not, and, or, xor}
 
 import scala.quoted.*
@@ -87,14 +86,6 @@ object Inlinable:
   given Inlinable[Null] with
     override type Result = Null
     override transparent inline def reduce: Some[Null] = Some(null)
-
-  transparent inline given some[A](using a: Inlinable[A]): Inlinable.Typed[Some[A], Some[a.Result]] =
-    inline a.reduce match
-      case None => Inlinable.Unknown
-      case Some(result) => SomeImpl[result.type]
-
-  class SomeImpl[A <: Singleton] extends Inlinable.Impl[Some[A]]:
-    override transparent inline def reduce: Some[Some[A]] = Some(Some(singletonToValue[A]))
 
   /**
    * Type class instance to infer singleton types instead of their widened types when possible

@@ -55,7 +55,7 @@ object Guarantee:
    * @tparam E the accumulated type for guarantee tests that fail
    * @return A function expecting a constraint to begin the guarantee chain of tests
    */
-  def accumulate[E]: Accumulated[true, E] = Accumulated(Right(Guarantee.truth))
+  def orAccumulate[E]: Accumulated[true, E] = Accumulated(Right(Guarantee.truth))
 
   /**
    * Helper class for accumulating guarantee test chains

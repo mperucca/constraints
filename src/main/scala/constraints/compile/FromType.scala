@@ -1,7 +1,5 @@
 package constraints.compile
 
-import constraints.compile.Builtin
-
 import scala.quoted.*
 
 /**
@@ -78,11 +76,3 @@ object FromType:
       for head <- h.extract
           tail <- t.extract
         yield head *: tail
-
-  given option[O <: Option[A]: Type, A](using a: FromType[A]): FromType[O] with
-    override def extract(using Quotes): Option[O] =
-      import quotes.reflect.*
-      val tpe = TypeRepr.of[O]
-      if (tpe <:< TypeRepr.of[None.type]) Some(None.asInstanceOf[O])
-      else if (tpe <:< TypeRepr.of[Some[Any]]) a.extract.map(Some(_).asInstanceOf[O])
-      else None

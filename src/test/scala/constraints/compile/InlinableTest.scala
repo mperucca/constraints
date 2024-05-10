@@ -16,9 +16,6 @@ class InlinableTest extends AnyFunSuite:
   test("None"):
     InlinableTest[None.type]: Some[None.type]
 
-  test("Some"):
-    InlinableTest[Some[1]]: Some[Some[1]]
-
 
   test("inline (true and true)"):
     InlinableTest[true and true]: Some[true]

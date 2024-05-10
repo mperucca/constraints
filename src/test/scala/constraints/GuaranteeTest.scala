@@ -34,7 +34,7 @@ class GuaranteeTest extends AnyFunSuite:
 
   test("accumulate fails first"):
     val result = Guarantee
-      .accumulate[Int]
+      .orAccumulate[Int]
         .test[true](_ => 1)
         .test[false](_ => 2)
       .result
@@ -42,7 +42,7 @@ class GuaranteeTest extends AnyFunSuite:
 
   test("accumulate fails multiple"):
     val result = Guarantee
-      .accumulate[Int]
+      .orAccumulate[Int]
         .test[true](_ => 1)
         .test[false or false](_ => 2)
         .test[false and false](_ => 3)
@@ -51,7 +51,7 @@ class GuaranteeTest extends AnyFunSuite:
 
   test("accumulate passes"):
     val result: Either[::[Int], Guarantee[true and (true or true) and (true and true)]] = Guarantee
-      .accumulate[Int]
+      .orAccumulate[Int]
         .test[true](_ => 1)
         .test_[true or true](2)
         .test$[true and true](_ ?=> 3)
