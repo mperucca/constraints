@@ -16,7 +16,7 @@ trait Guaranteed[+V] extends Any:
    * The guarantee associated with the value
    * @return the guarantee
    */
-  def guarantee: Guarantee.Impl[Any]
+  given guarantee: Guarantee.Impl[Any]
 
 /**
  * Utility methods for constructing [[Guaranteed]] values
