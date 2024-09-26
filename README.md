@@ -74,7 +74,7 @@ Here's how a safer alternative might be represented:
 def merge[A](list1: List[A], list2: List[A])(using comp: Ordering[A])(
   using Guarantee[Sorted[comp.type, list1.type]], Guarantee[Sorted[comp.type, list2.type]]
 ): SortedList[A, comp.type] =
-  Guaranteed.Refined(mergeUnsafe(list1, list2))(trust)
+  Guaranteed.Refined(mergeUnsafe(list1, list2))(Guarantee.trust)
 
 // Represents the constraint that the comparator C has sorted L
 type Sorted[C, L]
