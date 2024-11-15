@@ -17,7 +17,7 @@ object Guarantee:
    */
   private[constraints] opaque type Impl[+C] = Guarantee.type
 
-  val truth: Guarantee[true] = trust[true]
+  given truth: Guarantee[true] = trust[true]
 
   /**
    * Add {{{import Guarantee.Everything.given}}} to supply trust to all {{{using Guarantee}}} values in scope.
@@ -49,6 +49,29 @@ object Guarantee:
    */
   def test_[C: Compute.To[Boolean]]: Option[Guarantee[C]] =
     Option.when(Compute[C])(trust)
+
+  type Tested[C] = Either[Guarantee[Not[C]], Guarantee[C]]
+
+  object Tested:
+    def apply[C](boolean: Boolean): Guarantee.Tested[C] =
+      test(using Compute(boolean))
+
+    def apply[C: Compute.To[Boolean]]: Guarantee.Tested[C] =
+      test[C]
+
+  extension [C](tested: Tested[C])
+    def ifElse[A](ifNotGuarantee: Guarantee[C] ?=> A)(ifGuarantee: Guarantee[Not[C]] ?=> A): A =
+      tested.fold(ifNotGuarantee(using _), ifGuarantee(using _))
+    def ifGuarantee[A](ifGuarantee: Guarantee[C] ?=> A): Either[Guarantee[Not[C]], A] =
+      tested.map(ifGuarantee(using _))
+    def ifNotGuarantee[A](ifNotGuarantee: Guarantee[Not[C]] ?=> A): Either[A, Guarantee[C]] =
+      tested.left.map(ifNotGuarantee(using _))
+    def orElse(ifNotGuarantee: Guarantee[Not[C]] ?=> Guarantee[C]): Guarantee[C] =
+      tested.fold(ifNotGuarantee(using _), identity)
+
+  def fold[C]: [A] => Compute.Typed[C, Boolean] ?=> (Guarantee[C] ?=> A) => (Guarantee[Not[C]] ?=> A) => A =
+    [A] => (_: Compute.Typed[C, Boolean]) ?=> (ifGuarantee: Guarantee[C] ?=> A) => (ifNotGuarantee: Guarantee[Not[C]] ?=> A) =>
+      Guarantee.test[C].fold(ifNotGuarantee(using _), ifGuarantee(using _))
 
   /**
    * Starts a chain of accumulating failed guarantee tests into a single type.
