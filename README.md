@@ -36,7 +36,7 @@ Well, one neat thing about `Guarantee` is that it knows DeMorgan's laws and repr
 summon[
   Guarantee[b.type == 0 or (a.type == Int.MinValue.type and b.type == -1)]
     =:=
-    Guarantee[Not[b.type != 0 and (a.type != Int.MinValue.type or b.type != -1)]]
+  Guarantee[Not[b.type != 0 and (a.type != Int.MinValue.type or b.type != -1)]]
 ]
 
 summon[
