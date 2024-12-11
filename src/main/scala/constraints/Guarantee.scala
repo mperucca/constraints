@@ -39,39 +39,20 @@ object Guarantee:
    * @tparam C the constraint
    * @return either a guarantee that the constraint holds ([[Right]]) or a guarantee that it does not ([[Left]])
    */
-  def test[C: Compute.To[Boolean]]: Either[Guarantee[Not[C]], Guarantee[C]] =
+  def test[C: Compute.To[Boolean]]: Tested[C] =
     Either.cond(Compute[C], trust, trust)
 
-  /**
-   * Checks a constraint at runtime, returning a guarantee for the constraint if it does
-   * @tparam C the constraint
-   * @return a guarantee ([[Some]]) if the constraint holds
-   */
-  def test_[C: Compute.To[Boolean]]: Option[Guarantee[C]] =
-    Option.when(Compute[C])(trust)
-
   type Tested[C] = Either[Guarantee[Not[C]], Guarantee[C]]
-
-  object Tested:
-    def apply[C](boolean: Boolean): Guarantee.Tested[C] =
-      test(using Compute(boolean))
-
-    def apply[C: Compute.To[Boolean]]: Guarantee.Tested[C] =
-      test[C]
 
   extension [C](tested: Tested[C])
     def ifElse[A](ifNotGuarantee: Guarantee[C] ?=> A)(ifGuarantee: Guarantee[Not[C]] ?=> A): A =
       tested.fold(ifNotGuarantee(using _), ifGuarantee(using _))
-    def ifGuarantee[A](ifGuarantee: Guarantee[C] ?=> A): Either[Guarantee[Not[C]], A] =
+    def ifGuaranteed[A](ifGuarantee: Guarantee[C] ?=> A): Either[Guarantee[Not[C]], A] =
       tested.map(ifGuarantee(using _))
-    def ifNotGuarantee[A](ifNotGuarantee: Guarantee[Not[C]] ?=> A): Either[A, Guarantee[C]] =
+    def ifNotGuaranteed[A](ifNotGuarantee: Guarantee[Not[C]] ?=> A): Either[A, Guarantee[C]] =
       tested.left.map(ifNotGuarantee(using _))
     def orElse(ifNotGuarantee: Guarantee[Not[C]] ?=> Guarantee[C]): Guarantee[C] =
       tested.fold(ifNotGuarantee(using _), identity)
-
-  def fold[C]: [A] => Compute.Predicate[C] ?=> (Guarantee[C] ?=> A) => (Guarantee[Not[C]] ?=> A) => A =
-    [A] => (_: Compute.Predicate[C]) ?=> (ifGuarantee: Guarantee[C] ?=> A) => (ifNotGuarantee: Guarantee[Not[C]] ?=> A) =>
-      Guarantee.test[C].fold(ifNotGuarantee(using _), ifGuarantee(using _))
 
   /**
    * Starts a chain of accumulating failed guarantee tests into a single type.

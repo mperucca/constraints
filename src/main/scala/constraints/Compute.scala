@@ -45,7 +45,11 @@ object Compute:
    * @tparam R the expression to compute
    */
   type To[+R] = [E] =>> Typed[E, R]
-  
+
+  /**
+   * Type alias for [[Compute]] with [[Boolean]] result type
+   * @tparam E the expression to compute
+   */
   type Predicate[-E] = Typed[E, Boolean]
 
   /**
