@@ -10,7 +10,7 @@ object LT:
   given computable[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Predicate[LT[A, B]] =
     Compute(Compute[A] < Compute[B])
 
-  transparent inline given inlinable[A: Inlinable.To[Int], B: Inlinable.To[Int]]: Inlinable.Typed[LT[A, B], Boolean] =
+  transparent inline given inlinable[A: Inlinable.To[Int], B: Inlinable.To[Int]]: Inlinable.Predicate[LT[A, B]] =
     inline Inlinable.reduce[A] match
       case None => Inlinable.Unknown
       case Some(l: Int) =>

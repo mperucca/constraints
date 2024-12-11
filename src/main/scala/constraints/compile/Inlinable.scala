@@ -72,6 +72,8 @@ object Inlinable:
    */
   type To[+R] = [E] =>> Typed[E, R]
 
+  type Predicate[-E] = Typed[E, Boolean]
+
   /**
    * Used when a compile time computation cannot reduce to a definitive result
    * @note Will never be return so typed a [[Nothing]] for covariance reasons
@@ -200,7 +202,7 @@ object Inlinable:
    *         neither being false and at least one being unknown results in unknown
    *         both being true results in true
    */
-  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A and B, Boolean] =
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Predicate[A and B] =
     inline Inlinable.reduce[A] match
       case Some(false) => Inlinable.Constant[false]
       case None => inline Inlinable.reduce[B] match
@@ -220,7 +222,7 @@ object Inlinable:
    *         [[Not]] on unknown stays unknown
    *         [[Not]] on true becomes false
    */
-  transparent inline given[C: Inlinable.To[Boolean]]: Inlinable.Typed[Not[C], Boolean] =
+  transparent inline given[C: Inlinable.To[Boolean]]: Inlinable.Predicate[Not[C]] =
     inline Inlinable.reduce[C] match
       case Some(false) => Inlinable.Constant[true]
       case None => Inlinable.Unknown
@@ -236,7 +238,7 @@ object Inlinable:
    *         neither being true and at least one being unknown results in unknown
    *         both being false results in false
    */
-  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A or B, Boolean] =
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Predicate[A or B] =
     inline Inlinable.reduce[A] match
       case Some(false) => inline Inlinable.reduce[B] match
         case Some(false) => Inlinable.Constant[false]
@@ -256,7 +258,7 @@ object Inlinable:
    *         either being unknown results in unknown
    *         both being known results in false if they are the same and true if they are different
    */
-  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Typed[A xor B, Boolean] =
+  transparent inline given[A: Inlinable.To[Boolean], B: Inlinable.To[Boolean]]: Inlinable.Predicate[A xor B] =
     inline Inlinable.reduce[A] match
       case Some(false) => inline Inlinable.reduce[B] match
         case Some(false) => Inlinable.Constant[false]

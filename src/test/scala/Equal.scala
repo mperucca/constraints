@@ -15,7 +15,7 @@ object Equal:
 
   transparent inline given inlinable[A, B: Inlinable](
     using a: Inlinable.Typed[A, Any]
-  ): Inlinable.Typed[A === B, Boolean] =
+  ): Inlinable.Predicate[A === B] =
     inline a.reduce match
       case None => Inlinable.Unknown
       case Some(r1: Primitive) => continue[r1.type, B] // use literal type for primitive
@@ -23,7 +23,7 @@ object Equal:
 
   transparent inline def continue[A, B](
     using b: Inlinable.Typed[B, Any]
-  ): Inlinable.Typed[Any, Boolean] =
+  ): Inlinable.Predicate[Any] =
     inline b.reduce match
       case None => Inlinable.Unknown
       case Some(r2: Primitive) => Impl[A, r2.type]
