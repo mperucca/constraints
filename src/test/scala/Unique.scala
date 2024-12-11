@@ -8,7 +8,7 @@ type Unique[A]
 
 object Unique:
 
-  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): Compute.Typed[Unique[I], Boolean] =
+  given runtimeCheck[I: ValueOf, A](using Iterate[I, A]): Compute.Predicate[Unique[I]] =
     Compute {
       val soFar = collection.mutable.Set.empty[A]
       valueOf[I].toIterable.forall(soFar.add)

@@ -1,9 +1,9 @@
 package constraints
 
 abstract class Computes[C[_]](floatOperation: Float => Boolean, doubleOperation: Double => Boolean) {
-  given computeFloat[A: Compute.To[Float]]: Compute.Typed[C[A], Boolean] = Compute(floatOperation(Compute[A]))
+  given computeFloat[A: Compute.To[Float]]: Compute.Predicate[C[A]] = Compute(floatOperation(Compute[A]))
 
-  given computeDouble[A: Compute.To[Double]]: Compute.Typed[C[A], Boolean] = Compute(doubleOperation(Compute[A]))
+  given computeDouble[A: Compute.To[Double]]: Compute.Predicate[C[A]] = Compute(doubleOperation(Compute[A]))
 }
 
 trait NeitherImplies[NotThis[_], NorThis[_], This[_]]:

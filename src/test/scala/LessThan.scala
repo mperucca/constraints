@@ -7,7 +7,7 @@ infix type LT[A, B]
 
 object LT:
 
-  given computable[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[LT[A, B], Boolean] =
+  given computable[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Predicate[LT[A, B]] =
     Compute(Compute[A] < Compute[B])
 
   transparent inline given inlinable[A: Inlinable.To[Int], B: Inlinable.To[Int]]: Inlinable.Typed[LT[A, B], Boolean] =

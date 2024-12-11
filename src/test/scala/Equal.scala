@@ -10,7 +10,7 @@ type ===[A, B] = Equal[A, B]
 
 object Equal:
 
-  given computable[A: Compute, B: Compute]: Compute.Typed[A === B, Boolean] =
+  given computable[A: Compute, B: Compute]: Compute.Predicate[A === B] =
     Compute(Compute[A] == Compute[B])
 
   transparent inline given inlinable[A, B: Inlinable](

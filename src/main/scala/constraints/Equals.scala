@@ -12,7 +12,7 @@ infix type !=[A, B] = Not[A == B]
 
 object Equals {
 
-  given compute[A: Compute, B: Compute]: Compute.Typed[Equals[A, B], Boolean] =
+  given compute[A: Compute, B: Compute]: Compute.Predicate[Equals[A, B]] =
     Compute(Compute[A] == Compute[B])
 
 }

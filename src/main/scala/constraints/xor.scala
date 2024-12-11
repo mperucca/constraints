@@ -19,5 +19,5 @@ object xor:
    * @tparam B the second constraint
    * @return the runtime check that succeeds if one but not both of the runtime checks succeeds
    */
-  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Typed[A xor B, Boolean] =
+  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A xor B] =
     Compute(Compute[A] != Compute[B])

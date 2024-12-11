@@ -76,7 +76,7 @@ import scala.util.Random
 
     type Letter[C]
 
-    given[C <: Char : ValueOf]: Compute.Typed[Letter[C], Boolean] = Compute(valueOf[C].isLetter)
+    given[C <: Char : ValueOf]: Compute.Predicate[Letter[C]] = Compute(valueOf[C].isLetter)
 
     alphanumerics.partitionMap(Guaranteed.Refined.runtimeCheck[Letter](_)): (LazyList[Guaranteed.Refined[Char, Inverse[Letter]]], LazyList[Guaranteed.Refined[Char, Letter]])
   }

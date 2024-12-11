@@ -12,7 +12,7 @@ inThisBuild(List(
   ),
   sonatypeCredentialHost := "s01.oss.sonatype.org",
   sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
-  scalaVersion := "3.4.0"
+  scalaVersion := "3.3.4"
 ))
 
 lazy val root = (project in file("."))

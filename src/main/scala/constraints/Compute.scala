@@ -45,6 +45,8 @@ object Compute:
    * @tparam R the expression to compute
    */
   type To[+R] = [E] =>> Typed[E, R]
+  
+  type Predicate[-E] = Typed[E, Boolean]
 
   /**
    * Helper function to construct a runtime computation with a lazily computed result

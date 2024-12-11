@@ -43,7 +43,7 @@ object EqualTo {
 
   given compute[A, B](using a: Compute[A], b: Compute[B])(
     using equalTo: EqualTo[a.Result, b.Result]
-  ): Compute.Typed[EqualTo[A, B], Boolean] =
+  ): Compute.Predicate[EqualTo[A, B]] =
     Compute(equalTo(Compute[A], Compute[B]))
 
 }

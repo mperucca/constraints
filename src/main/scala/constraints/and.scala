@@ -17,5 +17,5 @@ object and:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if both runtime checks succeed
    */
-  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Typed[A and B, Boolean] =
+  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A and B] =
     Compute(Compute[A] && Compute[B])

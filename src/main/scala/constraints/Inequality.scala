@@ -12,12 +12,12 @@ object LessThan {
   
   def fromOrdering[A: Ordering]: A < A = _ < _
 
-  given computeInt[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[A < B, Boolean] =
+  given computeInt[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Predicate[A < B] =
     Compute(Compute[A] < Compute[B])
 
   given computeDouble[A <: Double: ValueOf, B <: Double: ValueOf](
     using Guarantee[Not[IsNaN[A]]], Guarantee[Not[IsNaN[B]]]
-  ): Compute.Typed[A < B, Boolean] =
+  ): Compute.Predicate[A < B] =
     Compute(valueOf[A] < valueOf[B])
 
 }
@@ -31,12 +31,12 @@ object GreaterThan {
 
   def fromOrdering[A: Ordering]: A > A = _ > _
 
-  given compute[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Typed[A < B, Boolean] =
+  given compute[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Predicate[A < B] =
     Compute(Compute[A] > Compute[B])
 
   given computeDouble[A <: Double : ValueOf, B <: Double : ValueOf](
     using Guarantee[Not[IsNaN[A]]], Guarantee[Not[IsNaN[B]]]
-  ): Compute.Typed[A > B, Boolean] =
+  ): Compute.Predicate[A > B] =
     Compute(valueOf[A] > valueOf[B])
 
 }

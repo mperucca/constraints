@@ -69,8 +69,8 @@ object Guarantee:
     def orElse(ifNotGuarantee: Guarantee[Not[C]] ?=> Guarantee[C]): Guarantee[C] =
       tested.fold(ifNotGuarantee(using _), identity)
 
-  def fold[C]: [A] => Compute.Typed[C, Boolean] ?=> (Guarantee[C] ?=> A) => (Guarantee[Not[C]] ?=> A) => A =
-    [A] => (_: Compute.Typed[C, Boolean]) ?=> (ifGuarantee: Guarantee[C] ?=> A) => (ifNotGuarantee: Guarantee[Not[C]] ?=> A) =>
+  def fold[C]: [A] => Compute.Predicate[C] ?=> (Guarantee[C] ?=> A) => (Guarantee[Not[C]] ?=> A) => A =
+    [A] => (_: Compute.Predicate[C]) ?=> (ifGuarantee: Guarantee[C] ?=> A) => (ifNotGuarantee: Guarantee[Not[C]] ?=> A) =>
       Guarantee.test[C].fold(ifNotGuarantee(using _), ifGuarantee(using _))
 
   /**
