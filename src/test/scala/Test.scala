@@ -78,7 +78,7 @@ import scala.util.Random
 
     given[C <: Char : ValueOf]: Compute.Predicate[Letter[C]] = Compute(valueOf[C].isLetter)
 
-    alphanumerics.partitionMap(Guaranteed.Refined.runtimeCheck[Letter](_)): (LazyList[Guaranteed.Refined[Char, Inverse[Letter]]], LazyList[Guaranteed.Refined[Char, Letter]])
+    alphanumerics.partitionMap(Guaranteed.Refined.test[Letter](_)): (LazyList[Guaranteed.Refined[Char, Inverse[Letter]]], LazyList[Guaranteed.Refined[Char, Letter]])
   }
 
   // dependent constraints on collections examples
@@ -178,7 +178,7 @@ import scala.util.Random
     val dividend, divisor = Random.nextInt()
 
     summon[
-      Guarantee[divisor.type === 0 or (dividend.type === Int.MinValue.type and divisor.type === -1)]
+      Guarantee[divisor.type === 0 || dividend.type === Int.MinValue.type && divisor.type === -1]
         =:=
       Guarantee[Not[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]]
     ]

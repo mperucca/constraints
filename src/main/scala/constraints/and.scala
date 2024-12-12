@@ -1,5 +1,7 @@
 package constraints
 
+import scala.annotation.targetName
+
 /**
  * Logical conjunction (sometimes represented by the symbol ∧)
  *
@@ -7,6 +9,9 @@ package constraints
  * @tparam B the second term of the conjunction
  */
 infix sealed trait and[A, B]
+
+@targetName("and")
+type &&[A, B] = A and B
 
 object and:
 
@@ -17,5 +22,5 @@ object and:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if both runtime checks succeed
    */
-  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A and B] =
+  given compute[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A and B] =
     Compute(Compute[A] && Compute[B])

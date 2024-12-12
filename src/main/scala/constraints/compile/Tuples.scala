@@ -1,7 +1,5 @@
 package constraints.compile
 
-import constraints.compile.{Builtin, Primitive}
-
 import scala.quoted.*
 
 /**

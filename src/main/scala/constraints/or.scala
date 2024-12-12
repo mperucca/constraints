@@ -1,5 +1,7 @@
 package constraints
 
+import scala.annotation.targetName
+
 /**
  * Logical disjunction (sometimes represented by the symbol ∨)
  *
@@ -7,6 +9,9 @@ package constraints
  * @tparam B the second term of the disjunction
  */
 infix sealed trait or[A, B]
+
+@targetName("or")
+type ||[A, B] = A or B
 
 object or:
 
@@ -17,5 +22,5 @@ object or:
    * @tparam B the second constraint
    * @return a runtime check that succeeds if either runtime check succeeds
    */
-  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A or B] =
+  given compute[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A or B] =
     Compute(Compute[A] || Compute[B])

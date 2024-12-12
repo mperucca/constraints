@@ -5,7 +5,7 @@ import scala.quoted.{Expr, Quotes, Type}
 
 type Length[I]
 
-object Length extends Compute.Companion[Length, String, Int](_.length):
+object Length extends Compute.UnaryCompanion[Length, String, Int](_.length):
 
   transparent inline given inlinable[S: Inlinable.To[String]]: Inlinable.Typed[Length[S], Int] =
     inline Inlinable.reduce[S] match

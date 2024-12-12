@@ -1,5 +1,7 @@
 package constraints
 
+import scala.annotation.targetName
+
 /**
  * Exclusive disjunction (sometimes represented by the symbol ⊕)
  *
@@ -10,14 +12,7 @@ package constraints
  */
 infix sealed trait xor[A, B]
 
-object xor:
+@targetName("xor")
+type ^[A, B] = A xor B
 
-  /**
-   * The type class instance for the exclusive disjunction of constraints [[xor]]
-   *
-   * @tparam A the first constraint
-   * @tparam B the second constraint
-   * @return the runtime check that succeeds if one but not both of the runtime checks succeeds
-   */
-  given[A: Compute.To[Boolean], B: Compute.To[Boolean]]: Compute.Predicate[A xor B] =
-    Compute(Compute[A] != Compute[B])
+object xor extends Compute.BinaryCompanion[^, Boolean, Boolean, Boolean](_ ^ _)

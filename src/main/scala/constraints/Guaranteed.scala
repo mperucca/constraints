@@ -96,7 +96,7 @@ object Guaranteed:
      *            otherwise
      *          - a [[Right]] containing the value and a [[Guarantee]] that constraint [[C]] holds
      */
-    def runtimeCheck[C[_]](v: Any)(
+    def test[C[_]](v: Any)(
       using c: Compute.Predicate[C[v.type]]
     ): Either[Guaranteed.Refined[v.type, Inverse[C]], Guaranteed.Refined[v.type, C]] =
       Guarantee.test[C[v.type]] match

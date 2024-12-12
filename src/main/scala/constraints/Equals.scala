@@ -10,9 +10,4 @@ infix type UnequalTo[A, B] = Not[A Equals B]
 @targetName("UnequalTo")
 infix type !=[A, B] = Not[A == B]
 
-object Equals {
-
-  given compute[A: Compute, B: Compute]: Compute.Predicate[Equals[A, B]] =
-    Compute(Compute[A] == Compute[B])
-
-}
+object Equals extends Compute.BinaryCompanion[==, Any, Any, Boolean](_ == _)

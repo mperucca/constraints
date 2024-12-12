@@ -81,14 +81,47 @@ object Compute:
   given value[R: ValueOf]: Compute.Typed[R, R] =
     Compute(valueOf[R])
 
-  given someCompute[A](using compute: Compute[A]): Compute.Typed[Some[A], Some[compute.Result]] =
+  /**
+   * Type class instance for [[Some]]
+   * @param compute computes the contained [[A]]
+   * @tparam A the type of the value inside the [[Some]]
+   * @return the runtime computation for [[Some]] of [[A]]
+   */
+  given some[A](using compute: Compute[A]): Compute.Typed[Some[A], Some[compute.Result]] =
     Compute(Some(Compute[A]))
 
-  given nonEmptyTupleCompute[H, T <: Tuple](
+  /**
+   * Typle class instance for [[*:]] (the sub class of [[NonEmptyTuple]])
+   * @param head computes the head
+   * @param tail computes the tail
+   * @tparam H the type of the head
+   * @tparam T the type of the tail
+   * @return the runtime computation for non-empty tuples
+   */
+  given nonEmptyTuple[H, T <: Tuple](
     using head: Compute[H], tail: Compute.Typed[T, Tuple]
   ): Compute.Typed[H *: T, head.Result *: tail.Result] =
     Compute(head.compute *: tail.compute)
 
-  trait Companion[C[_], -E, +R](computation: E => R) {
+  /**
+   * Helper companion for simple unary [[Compute]] type class instances
+   * @tparam C the constraint
+   * @tparam E the input type
+   * @tparam R the output type
+   */
+  trait UnaryCompanion[C[_], -E, +R](computation: E => R) {
     given compute[A: Compute.To[E]]: Compute.Typed[C[A], R] = Compute(computation(Compute[A]))
+  }
+
+  /**
+   * Helper companion for simple binary [[Compute]] type class instances
+   * @note This eager evaluates the arguments so is inadequate for short-circuiting such as in [[and]]/[[or]]
+   * @tparam C the constraint
+   * @tparam E1 the first input type
+   * @tparam E2 the second input type
+   * @tparam R the output type
+   */
+  trait BinaryCompanion[C[_, _], -E1, -E2, +R](computation: (E1, E2) => R) {
+    given compute[A: Compute.To[E1], B: Compute.To[E2]]: Compute.Typed[C[A, B], R] =
+      Compute(computation(Compute[A], Compute[B]))
   }
