@@ -42,24 +42,12 @@ object Guarantee:
   def test[C: Compute.To[Boolean]]: Tested[C] =
     Either.cond(Compute[C], trust, trust)
 
-  type Tested[C] = Either[Guarantee[Not[C]], Guarantee[C]]
-
-  extension [C](tested: Tested[C])
-    def ifElse[A](ifNotGuarantee: Guarantee[C] ?=> A)(ifGuarantee: Guarantee[Not[C]] ?=> A): A =
-      tested.fold(ifNotGuarantee(using _), ifGuarantee(using _))
-    def ifGuaranteed[A](ifGuarantee: Guarantee[C] ?=> A): Either[Guarantee[Not[C]], A] =
-      tested.map(ifGuarantee(using _))
-    def ifNotGuaranteed[A](ifNotGuarantee: Guarantee[Not[C]] ?=> A): Either[A, Guarantee[C]] =
-      tested.left.map(ifNotGuarantee(using _))
-    def orElse(ifNotGuarantee: Guarantee[Not[C]] ?=> Guarantee[C]): Guarantee[C] =
-      tested.fold(ifNotGuarantee(using _), identity)
-
   /**
    * Starts a chain of accumulating failed guarantee tests into a single type.
    * @tparam E the accumulated type for guarantee tests that fail
    * @return A function expecting a constraint to begin the guarantee chain of tests
    */
-  def orAccumulate[E]: Accumulated[true, E] = Accumulated(Right(Guarantee.truth))
+  def accumulateWhileFailingWith[E]: Accumulated[true, E] = Accumulated(Right(Guarantee.truth))
 
   /**
    * Helper class for accumulating guarantee test chains
@@ -67,7 +55,13 @@ object Guarantee:
    * @tparam A The accumulated constraint so far
    * @tparam E The accumulated failed test type
    */
-  class Accumulated[A, E](accumulated: Either[List[E], Guarantee[A]]):
+  class Accumulated[A, E](accumulated: Either[::[E], Guarantee[A]]):
+
+    /**
+     * @see [[test]] except that the negated guarantee argument is contextual
+     */
+    def apply[C: Compute.To[Boolean]](ifNot: Guarantee[Not[C]] ?=> E): Accumulated[A and C, E] =
+      test(ifNot(using _))
 
     /**
      * Chains on another constraint to check
@@ -78,8 +72,8 @@ object Guarantee:
     def test[C: Compute.To[Boolean]](ifNot: Guarantee[Not[C]] => E): Accumulated[A and C, E] =
       Accumulated(
         Guarantee.test[C] match
-          case Left(not) => Left(::(ifNot(not), result.left.getOrElse(Nil)))
-          case Right(guarantee) => result.map(guarantee and _)
+          case Left(not) => Left(::(ifNot(not), accumulated.left.getOrElse(Nil)))
+          case Right(guarantee) => accumulated.map(guarantee and _)
       )
 
     /**
@@ -87,12 +81,6 @@ object Guarantee:
      */
     def test_[C: Compute.To[Boolean]](ifNot: => E): Accumulated[A and C, E] =
       test(_ => ifNot)
-
-    /**
-     * @see [[test]] except that the negated guarantee argument is contextual
-     */
-    def test$[C: Compute.To[Boolean]](ifNot: Guarantee[Not[C]] ?=> E): Accumulated[A and C, E] =
-      test(ifNot(using _))
 
     /**
      * @return The accumulated guarantee or failed test results in the case of failures

@@ -192,9 +192,15 @@ import scala.util.Random
         <:<
         Guarantee[divisor.type !== 0]
     ]
-    Guarantee.test[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)] match
-      case Left(given Guarantee[divisor.type === 0 or (dividend.type === Int.MinValue.type and divisor.type === -1)]) =>
-        // divide(dividend, divisor)
-      case Right(given Guarantee[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]) =>
+    Guarantee.test[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
+      .ifElse {
         divide(dividend, divisor)
+      } {
+        // divide(dividend, divisor)
+      }
+    Guarantee.test[divisor.type !== 0 and (dividend.type !== Int.MinValue.type or divisor.type !== -1)]
+      .branch(
+        ifHolds = divide(dividend, divisor),
+        ifFails = { /* divide(dividend, divisor) */ }
+      )
   }
