@@ -20,18 +20,17 @@ Here's how a caller could call `divide` safely when working with runtime values 
 ```scala 3
 val a, b = Random.nextInt()
 
-Guarantee.test[b.type != 0 and (a.type != Int.MinValue.type or b.type != -1)] match
-  case Right(given Guarantee[b.type != 0 and (a.type != Int.MinValue.type or b.type != -1)]) =>
-    divide(a, b) // compiles because the necessary Guarantee is in scope
-  case Left(given Guarantee[b.type == 0 or (a.type == Int.MinValue.type and b.type == -1)]) =>
-    // divide(a, b) would be a compile error since the Guarantee is invalid
+Guarantee.test[b.type != 0 and (a.type != Int.MinValue.type or b.type != -1)]
+  .branch(
+    ifHolds = divide(a, b) // compiles because the necessary Guarantee is in scope
+    ifFails = divide(a, b) // compile error since the Guarantee in scope is inverted
+  )
 ```
 `Guarantee.test[Constraint]` returns `Either[Guarantee[Not[Constraint]], Guarantee[Constraint]]` following the convention of the `Right` side being successful.
-At runtime, the constraint check will run, and only if the `Guarantee` is acquired through the `Right` case are we able to call `divide` without a compile error. Notice how we only have one `given` `Guarantee` in scope for the `Right` `case`, but it is sufficient for both `Guarantee` parameters of `divide`.
-This is due to `and` being translated into the intersection type `&`, and it is found during implicit search for both `using` `Guarantee` parameters of `divide`.
+At runtime, the constraint check will run, and only if the `Guarantee` is acquired through the `Right` case are we able to call `divide` on the `ifHolds` contextual callback parameter of the extension method `branch` without a compile error.
+Though invisible in this code, `ifHolds` has an implicit `Guarantee[b.type != 0 and (a.type != Int.MinValue.type or b.type != -1)]` in scope. This satisfies both the necessary `noDivideByZero` and `noOverflow` implicit parameters to `divide` due to `and` being translated into the intersection type `&`.
 
-Looking at the `Left` `case`, you may be asking, "Where is the `Not` in the above example? I thought you said `Guarantee.test` is supposed to return the negated `Guarantee`."
-Well, one neat thing about `Guarantee` is that it knows DeMorgan's laws and represents Boolean predicates in their simplest forms. This means the type system can tell that the following examples type check:
+One neat thing about `Guarantee` is that it knows DeMorgan's laws and represents Boolean predicates in their simplest forms. This means the type system can tell that the following examples type check:
 ```scala 3
 summon[
   Guarantee[b.type == 0 or (a.type == Int.MinValue.type and b.type == -1)]
@@ -53,7 +52,7 @@ summon[
 ```
 The types `==`, `!=`, and other common functions, as well as the combinators `and`, `or`, `Not`, and others as well are provided by the library.
 
-Let's look at another example: how to safely merge two sorted lists.
+Let's look at another example of how to safely merge two sorted lists.
 
 There are many ways to sort a list, so merging two lists requires the lists be sorted the same way. Here's an unsafe merge than relies on, but doesn't enforce, this sorted condition to merge sorted lists in linear time.
 
@@ -68,7 +67,8 @@ def mergeUnsafe[A](list1: List[A], list2: List[A])(using comp: Ordering[A]): Lis
       else h2 :: mergeByUnsafe(l1, t2)
 ```
 
-Here's how a safer alternative might be represented:
+`list1` and `list2` must already sorted in the same way for `mergeUnsafe` to work.
+Here's how a safer alternative might be represented that enforces this constraint:
 
 ```scala 3
 def merge[A](list1: List[A], list2: List[A])(using comp: Ordering[A])(
@@ -95,5 +95,10 @@ import list1.guarantee
 import list2.guarantee
 // merge the sorted lists together
 merge(list1.value, list2.value)
+
+// sort another list differently
+val list3 = sort(List.fill(3)(Random.nextInt(9)))(using Ordering.Int.reverse)
+import list3.guarantee
+merge(list1.value, list3.value) // compile error
 ```
-Using `List[Int]`s means the implicit `Ordering.Int` instance will be used. Sorting one of the lists instead by `Ordering.Int.reverse` will produce a compile error.
+Using `List[Int]`s means the implicit `Ordering.Int` instance will be used. Sorting one of the lists instead by `Ordering.Int.reverse` produces a compile error.
