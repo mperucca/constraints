@@ -3,48 +3,29 @@ package constraints
 import scala.annotation.targetName
 import scala.math.Ordering.Implicits.infixOrderingOps
 
-infix trait LessThan[A, B]:
-  def apply(a: A, b: B): Boolean
 @targetName("LessThan")
-type <[A, B] = LessThan[A, B]
+type <[A, B]
 
-object LessThan {
-  
-  def fromOrdering[A: Ordering]: A < A = _ < _
+object LessThan extends Inequality[<]([A] => (_: Ordering[A]) ?=> _ < _)
 
-  given computeInt[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Predicate[A < B] =
-    Compute(Compute[A] < Compute[B])
-
-  given computeDouble[A <: Double: ValueOf, B <: Double: ValueOf](
-    using Guarantee[Not[IsNaN[A]]], Guarantee[Not[IsNaN[B]]]
-  ): Compute.Predicate[A < B] =
-    Compute(valueOf[A] < valueOf[B])
-
-}
-
-infix trait GreaterThan[A, B]:
-  def apply(a: A, b: B): Boolean
 @targetName("GreaterThan")
-type >[A, B] = GreaterThan[A, B]
+type >[A, B]
 
-object GreaterThan {
+object GreaterThan extends Inequality[>]([A] => (_: Ordering[A]) ?=> _ > _)
 
-  def fromOrdering[A: Ordering]: A > A = _ > _
+@targetName("LessThanOrEqualTo")
+type <=[A, B]
 
-  given compute[A: Compute.To[Int], B: Compute.To[Int]]: Compute.Predicate[A < B] =
-    Compute(Compute[A] > Compute[B])
+object LessThanOrEqualTo extends Inequality[<=]([A] => (_: Ordering[A]) ?=> _ <= _)
 
-  given computeDouble[A <: Double : ValueOf, B <: Double : ValueOf](
-    using Guarantee[Not[IsNaN[A]]], Guarantee[Not[IsNaN[B]]]
-  ): Compute.Predicate[A > B] =
-    Compute(valueOf[A] > valueOf[B])
+@targetName("GreaterThanOrEqualTo")
+type >=[A, B]
+
+object GreaterThanOrEqualTo extends Inequality[>=]([A] => (_: Ordering[A]) ?=> _ >= _)
+
+trait Inequality[op[_, _]](op: [A] => Ordering[A] ?=> (A, A) => Boolean) {
+
+  given compute[A: Compute.To[C], B: Compute.To[C], C: Ordering]: Compute.Predicate[A op B] =
+    Compute(op(Compute[A], Compute[B]))
 
 }
-
-type LessThanOrEqualTo[A, B] = Not[GreaterThan[A, B]]
-@targetName("LessThanOrEqualTo")
-type <=[A, B] = LessThanOrEqualTo[A, B]
-
-type GreaterThanOrEqualTo[A, B] = Not[LessThan[A, B]]
-@targetName("GreaterThanOrEqualTo")
-type >=[A, B] = GreaterThanOrEqualTo[A, B]

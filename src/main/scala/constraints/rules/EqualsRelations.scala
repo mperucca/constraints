@@ -1,6 +1,6 @@
 package constraints.rules
 
-import constraints.{Compute, EqualTo, Guarantee, IsNaN, Not}
+import constraints.{==, Compute, Guarantee, IsNaN, Not}
 
 trait Reflexive[-A]
 
@@ -22,7 +22,7 @@ object Reflexive {
 
   given [F <: Float | Double](using Guarantee[Not[IsNaN[F]]]): Reflexive[F] = new Reflexive[F] {}
   
-  def apply[A: Compute : Reflexive]: Guarantee[EqualTo[A, A]] = Guarantee.trust
+  def apply[A: Compute : Reflexive]: Guarantee[A == A] = Guarantee.trust
 
 }
 
@@ -48,7 +48,7 @@ object Symmetric {
 
   given Symmetric[String, String] = new Symmetric[String, String] {}
 
-  def apply[A, B](guarantee: Guarantee[EqualTo[A, B]])(using Symmetric[A, B]): Guarantee[EqualTo[B, A]] =
+  def apply[A, B](guarantee: Guarantee[A == B])(using Symmetric[A, B]): Guarantee[B == A] =
     Guarantee.trust
 
 }
@@ -76,9 +76,9 @@ object Transitive {
   given Transitive[String, String, String] = new Transitive[String, String, String] {}
 
   def apply[A, B, C](
-    guarantee: Guarantee[EqualTo[A, B]],
-    other: Guarantee[EqualTo[B, C]]
-  )(using Transitive[A, B, C]): Guarantee[EqualTo[A, C]] =
+    guarantee: Guarantee[A == B],
+    other: Guarantee[B == C]
+  )(using Transitive[A, B, C]): Guarantee[A == C] =
     Guarantee.trust
 
 }

@@ -1,16 +1,16 @@
 package constraints.rules
 
-import constraints.{Compute, EqualTo, Guarantee, IsNaN, Not}
+import constraints.{Compute, ==, Guarantee, IsNaN, Not}
 import org.scalatest.funsuite.AnyFunSuite
 
 class EqualsRelationsTest extends AnyFunSuite {
 
   test("reflexive"):
 
-    def reflexive[A: Compute : Reflexive]: Guarantee[EqualTo[A, A]] = Reflexive[A]
+    def reflexive[A: Compute : Reflexive]: Guarantee[A == A] = Reflexive[A]
 
-    assertDoesNotCompile("def missingCompute[A: Reflexive]: Guarantee[EqualTo[A, A]] = EqualTo.reflexive[A]")
-    assertDoesNotCompile("def missingReflexive[A: Compute]: Guarantee[EqualTo[A, A]] = EqualTo.reflexive[A]")
+    assertDoesNotCompile("def missingCompute[A: Reflexive]: Guarantee[A == A] = reflexive[A]")
+    assertDoesNotCompile("def missingReflexive[A: Compute]: Guarantee[A == A] = reflexive[A]")
 
   test("Reflexive floating point"):
 
@@ -24,15 +24,15 @@ class EqualsRelationsTest extends AnyFunSuite {
 
   test("symmetric"):
 
-    def symmetric[A, B](guarantee: Guarantee[EqualTo[A, B]])(using Symmetric[A, B]): Guarantee[EqualTo[B, A]] =
+    def symmetric[A, B](guarantee: Guarantee[A == B])(using Symmetric[A, B]): Guarantee[B == A] =
       Symmetric(guarantee)
 
   test("transitive"):
 
     def transitive[A, B, C](
-      guarantee1: Guarantee[EqualTo[A, B]],
-      guarantee2: Guarantee[EqualTo[B, C]]
-    )(using Transitive[A, B, C]): Guarantee[EqualTo[A, C]] =
+      guarantee1: Guarantee[A == B],
+      guarantee2: Guarantee[B == C]
+    )(using Transitive[A, B, C]): Guarantee[A == C] =
       Transitive(guarantee1, guarantee2)
 
 }
